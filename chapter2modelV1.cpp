@@ -8,7 +8,7 @@ using namespace std;
 /* define animals and resources modelled */
 int predatorNb = 1;           // Number of predators modelled
 int preyNb = 2;               // Number of preys modelled
-int resourceNb = preyNb;      // Number of resources available
+int resourceNb = 2;           // Number of resources available
 string *predatorTypes;        // types of predator simulated: predator1..n prey1..n
 string *preyTypes;            // prey1..n
 string *primaryResourceTypes; // resource1..n
@@ -80,13 +80,14 @@ public:                                  // functions that can modify the privat
             r++;
         }
 
-        /* initialise resources to maximum 
-           PROBLEM HERE: resource2 = 0 and should be maxResource */
+        /* initialise resources to maximum */
+
         r = 0;
         while (r < rowNb)
         {
-            for (int res = 1; res < resourceNb; res++)
-                landscapeTablePtr[r][1 + res] = MaxResource;
+
+            for (int res = 0; res < resourceNb; res++)
+                landscapeTablePtr[r][2 + res] = MaxResource;
 
             r++;
         }
@@ -95,8 +96,11 @@ public:                                  // functions that can modify the privat
         r = 0;
         while (r < rowNb)
         {
-            for (int prey = 1; prey < (2 * preyNb); prey++)
-                landscapeTablePtr[r][1 + resourceNb + prey] = 0;
+            for (int prey = 0; prey < (2 * preyNb); prey++)
+                // landscapeTablePtr[r][2 + resourceNb + prey] = 0;
+
+                /* a specific number to check if the info is where expected */
+                landscapeTablePtr[r][2 + resourceNb + prey] = 1+prey;
 
             r++;
         }
@@ -105,8 +109,11 @@ public:                                  // functions that can modify the privat
         r = 0;
         while (r < rowNb)
         {
-            for (int pred = 1; pred < predatorNb; pred++)
-                landscapeTablePtr[r][1 + resourceNb + 2 * preyNb + pred] = 0;
+            for (int pred = 0; pred < predatorNb; pred++)
+                // landscapeTablePtr[r][2+ resourceNb + 2*preyNb + pred] = 0;
+                
+                /* a specific number to check if the info is where expected */
+                landscapeTablePtr[r][2+ resourceNb + 2*preyNb + pred] = 11+pred;
 
             r++;
         }
@@ -117,8 +124,11 @@ public:                                  // functions that can modify the privat
         int r = 0;
         while (r < rowNb)
         {
-            for (int res = 1; res < resourceNb; res++)
-                landscapeTablePtr[r][1 + res] = MaxResource;
+            for (int res = 0; res < resourceNb; res++)
+                // landscapeTablePtr[r][2 + res] = MaxResource;
+                
+                /* a specific number to check if it works as expected */
+                landscapeTablePtr[r][2 + res] = 10*MaxResource;
 
             r++;
         }
@@ -126,13 +136,7 @@ public:                                  // functions that can modify the privat
 
     void getInfo() // function to cast out the landscape table and check if all good
     {
-        /* debug
-        cout << "landscapeTablePtr[3][0] should be 1 and is:" << landscapeTablePtr[3][0] << endl; // 4st line, 1nd column, should be 1. OK
-        cout << "landscapeTablePtr[3][1] should be 0 and is:" << landscapeTablePtr[3][1] << endl; // 4st line, 2nd column, should be 0. OK
-        cout << "landscapeTablePtr[3][2] should be 10 and is:" << landscapeTablePtr[3][2] << endl; // 4st line, 3rd column, should be maxResource. OK
-        cout << "landscapeTablePtr[3][3] should be 10 and is:" << landscapeTablePtr[3][3] << endl; // 4st line, 4rd column, should be maxResource. KO it's zero
-        */
-
+        /* cast out the column names */
         cout << "xCell"
              << " "
              << "yCell"
@@ -145,13 +149,13 @@ public:                                  // functions that can modify the privat
         for (int i = 0; i < predatorNb; i++)
             cout << predatorTypes[i] << " ";
         cout << endl;
-        
-        /* PROBLEM HERE: every value is casted as 0 whereas it is well defined independently */
+
+        /* iterate through lines and column to cast out the values */
         int r = 0;
         while (r < rowNb)
         {
             for (int column = 0; column < columnNb; column++)
-                cout << landscapeTablePtr[r][columnNb] << " ";
+                cout << landscapeTablePtr[r][column] << " ";
             cout << endl;
 
             r++;
@@ -195,25 +199,15 @@ int main()
     primaryResourceTypes[0] = "resource1"; // hard coded NOT GOOD
     primaryResourceTypes[1] = "resource2"; // hard coded NOT GOOD
 
-    /*  Avoid using lists   
-    predatorTypes.push_back("predator1");
-    predatorsInitialDensities.push_back(5);
-
-    preyTypes.push_back("prey1");
-    preysInitialDensities.push_back(10);
-    preyTypes.push_back("prey2");
-    preysInitialDensities.push_back(15);
-
-    primaryResourceTypes.push_back("resource1");
-    primaryResourceTypes.push_back("resource2");
- */
-
     /* contruct and create landscape */
     landscape world(3, 10);
     world.create();
-    // world.fill();
 
     /* check if everything is where expected */
+    world.getInfo();
+
+    /* check fill function */
+    world.fill();
     world.getInfo();
 
     /* free memory */
