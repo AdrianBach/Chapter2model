@@ -26,8 +26,8 @@ int *preysInitialDensities;
 /* world size */
 int worldSize; // side of the squared lanscape in number of cells [0;+inf[
 
-/* time step variable */
-int timeStep;
+/* time variables */
+int timeMax;
 
 /* ---------------------- Some useful global functions ---------------------- */
 
@@ -56,12 +56,13 @@ create a class:
 class landscape
 {
     /* list of landscape-specific variables */
-private:                  // variables that should not be modified directly, nor accessed from the main function
-    int Size;             // side of the squared lanscape in number of cells [0;+inf[
-    int MaxResource;      // max amount of resources on a cell
-    int rowNb;            // row number
-    int columnNb;         // column number
-    fstream resultsTable; // file to write results in
+private:                   // variables that should not be modified directly, nor accessed from the main function
+    int Size;              // side of the squared lanscape in number of cells [0;+inf[
+    int MaxResource;       // max amount of resources on a cell
+    int rowNb;             // row number
+    int columnNb;          // column number
+    fstream resultsTable;  // file to write results in
+    fstream snapshotTable; // file to save all relevant landscape cell info
 
 protected:                   // variables that should not be modified directly, nor accessed from the main function, but accessible to the other classes
     int **landscapeTablePtr; // pointer to the landscape table
@@ -148,6 +149,19 @@ public:                                  // functions that can modify the privat
         }
     }
 
+    void freeMemory() // free memory allocated to landscape table
+    {
+
+        for (int row = 0; row < rowNb; row++) // free memory allocated to each row
+        {
+            delete[] landscapeTablePtr[row];
+        }
+
+        delete[] landscapeTablePtr; // free the memory allocated to the array of pointer to each row
+
+        landscapeTablePtr = NULL; // erase the address of the array of pointers to rows
+    }
+
     void fill() // function to reset resources to maximum
     {
         int r = 0;
@@ -206,7 +220,7 @@ public:                                  // functions that can modify the privat
         }
     }
 
-    void createResultsTable(string name) // creates a resultsTable and returns a file object and a name
+    void createResultsTable(string name) // creates a resultsTable
     {
 
         /* write headers */
@@ -238,13 +252,49 @@ public:                                  // functions that can modify the privat
         }
     }
 
-    void saveMeasures(string name)
+    void createSnapshotTable(string name) // creates a snapshot file
+    {
+
+        /* write headers */
+        snapshotTable.open(name, ios::out);
+        if (snapshotTable.is_open())
+        {
+            snapshotTable << "timeStep"
+                          << ","
+                          << "xCell"
+                          << ","
+                          << "yCell"
+                          << ",";
+            for (int i = 0; i < resourceNb; i++)
+                snapshotTable << primaryResourceTypes[i] << "amount"
+                              << ",";
+            for (int i = 0; i < preyNb; i++)
+                snapshotTable << preyTypes[i] << "PopulationSize"
+                              << ",";
+            for (int i = 0; i < preyNb; i++)
+                snapshotTable << preyTypes[i] << "catches"
+                              << ",";
+            for (int i = 0; i < predatorNb; i++)
+            {
+                snapshotTable << predatorTypes[i] << "PopulationSize";
+                if (i == (predatorNb - 1))
+                    snapshotTable << "\n";
+                else
+                    snapshotTable << ",";
+            }
+
+            /* close file when finished */
+            snapshotTable.close();
+        }
+    }
+
+    void saveMeasures(string name, int ts) // write sum of results columns in the results file
     {
 
         resultsTable.open(name, ios::app);
         if (resultsTable.is_open())
         {
-            resultsTable << timeStep
+            resultsTable << ts
                          << ",";
 
             /* write the sum of the measure columns */
@@ -272,17 +322,35 @@ public:                                  // functions that can modify the privat
         }
     }
 
-    void freeMemory() // free memory allocated to landscape table
+    void snapshot(string name, int ts) // write all info columns in the snapshot file
     {
 
-        for (int row = 0; row < rowNb; row++) // free memory allocated to each row
+        snapshotTable.open(name, ios::app);
+        if (snapshotTable.is_open())
         {
-            delete[] landscapeTablePtr[row];
+
+            /* iterate through lines and column to cast out the values */
+            int r = 0;
+            while (r < rowNb)
+            {
+                snapshotTable << ts
+                              << ",";
+                for (int column = 0; column < columnNb; column++)
+                {
+                    if (column != (columnNb - 1))
+                        snapshotTable << landscapeTablePtr[r][column] << ",";
+                    else
+                        snapshotTable << landscapeTablePtr[r][column] << "\n";
+                }
+
+                snapshotTable << "\n";
+
+                r++;
+            }
+
+            /* close file when finished */
+            snapshotTable.close();
         }
-
-        delete[] landscapeTablePtr; // free the memory allocated to the array of pointer to each row
-
-        landscapeTablePtr = NULL; // erase the address of the array of pointers to rows
     }
 };
 
@@ -319,29 +387,51 @@ int main()
     landscape world(worldSize, 10);
     world.create();
 
-    /* check if everything is where expected */
+    /* check if everything is where expected: OK
     world.getInfo();
+     */
 
-    /* check fill function */
+    /* check fill function: OK
     world.fill();
     world.getInfo();
+    */
 
-    /* check resetCatches function */
+    /* check resetCatches function: OK
     world.resetCatches();
     world.getInfo();
+    */
 
-    /* create a results csv file */
+    /* create results and snapshot csv files */
 
-    /* Build name */
-    string resultsTableName = simulationName + "ResultsTable.csv";
+    /* file names */
+    string resultsTableName = simulationName + "-ResultsTable.csv";
+    string snapshotTableName = simulationName + "-SnapshotTable.csv";
+
     world.createResultsTable(resultsTableName);
+    world.createSnapshotTable(snapshotTableName);
 
     /* start simulation */
 
-    timeStep = 0;
+    timeMax = 3; // hard coded NOT GOOD
 
-    /* check measure function */
-    world.saveMeasures(resultsTableName);
+    int timeStep = 0; // time step variable
+
+    while (timeStep < timeMax)
+    {
+        /* life events */
+
+        /* take measures and snapshot */
+        world.saveMeasures(resultsTableName, timeStep);
+        world.snapshot(snapshotTableName, timeStep);
+
+        /* refill resources */
+        world.fill();
+
+        /* reset catches counts */
+        world.resetCatches();
+
+        timeStep++;
+    }
 
     /* free memory */
     world.freeMemory();
