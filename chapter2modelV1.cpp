@@ -525,6 +525,16 @@ public:
     /* Preys feeding function */
 };
 
+class predator : public animals // predators are another type of animal object
+{
+public:
+    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorReproductionCost, int predatorMaintenanceCost) : animals(initialDensity, typeTag, maxMovingDistance, predatorReproductionCost, predatorMaintenanceCost) // 
+    {
+    }
+
+    /* feeding function */
+};
+
 /* ------------------------------ Main program ------------------------------ */
 
 int main()
@@ -600,9 +610,13 @@ int main()
     prey prey2(preysInitialDensities[1], 202, 10, 10, 10);
     int **prey2TablePtr = prey2.create(worldSize);
 
+    predator predator(predatorsInitialDensities[0], 301, 10, 10, 10);
+    int **predatorTablePtr = predator.create(worldSize);
+
     /* check create function : OK
     prey1.getInfo(prey1TablePtr);
     prey1.getInfo(prey2TablePtr);
+    predator.getInfo(predatorTablePtr);
     */
 
     /* create results and snapshot csv files */
@@ -645,6 +659,7 @@ int main()
     /* animals tables */
     prey1.freeMemory(prey1TablePtr);
     prey2.freeMemory(prey2TablePtr);
+    predator.freeMemory(predatorTablePtr);
 
     /* parameter arrays */
     delete[] predatorTypes;
