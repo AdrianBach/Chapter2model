@@ -1,8 +1,10 @@
-#include <iostream>  // input and output from the console
-#include <string>    // manipulate char strings
-#include <fstream>   // handle files
-#include <cstdlib>   // for random number generator
-using namespace std; // basic functions
+#include <iostream> // input and output from the console
+#include <string>   // manipulate char strings
+#include <fstream>  // handle files
+#include <time.h>   // get the time for random number generator
+#include <stdlib.h> // random generator tools
+
+using namespace std; // not to have to write std:: in front of every call
 
 /* ---------------------------- Global variables ---------------------------- */
 
@@ -45,13 +47,18 @@ int sumColumn(int **table, int maxRow, int columnIndex) // sum of row values in 
     return sum;
 }
 
-float randomNumberGenerator(float min, float max) // generates a random number between min and max
+double randomNumberGenerator(double min, double max) // generates a random number between min and max
 {
-    srand(time(0)); // set rand() seed number based on current time
-    float res = rand() % 2 * max - min;
+    double res;
+    res = min + (double)rand() * (max - min + 1) / (RAND_MAX - 1);
 
     return res;
 }
+
+/* MATCHING CELLS FUNCTION */
+
+// void doublePtrFreeMemory(int** pointerToTable){}
+// Good idea but would need access to row and column number that are class protected variables
 
 /* ----------------------------- Object classes ----------------------------- */
 
@@ -376,85 +383,97 @@ public:                                  // functions that can modify the privat
 class animals
 {
 private:
+    /* useful variables for memory allocation */
     int rowNb;    // total number of animals of all types
     int columnNb; // number of info stored in the table
 
-protected:
     /* these constants might have different values according to animal types */
     int initialDensity;
-    int typeTag;          // a integer tag for each animal type
-    int maxMove;          // max number of cells an animal can move by in each direction
-    int reproductionCost; // resources needed to reproduce
-    int maintenanceCost;  // resources needed to survive a time step
+    int typeTag; // a integer tag for each animal type
+    // int maxMove;          // max number of cells an animal can move by in each direction
+    // int reproductionCost; // resources needed to reproduce
+    // int maintenanceCost;  // resources needed to survive a time step
 
     /* these are individual level-variables that will change during simulation */
     // int xCell, yCell;
-    int resourceConsumed; // an animal's resource pool
-    int deadOrAlive;      // 0 if dead 1 if alive
-
-    int **animalsTablePtr; // pointer to the animals table
+    // int resourceConsumed; // an animal's resource pool
+    // int deadOrAlive;      // 0 if dead 1 if alive
 
 public:
-    animals(int InitialDensity, int TypeTag, int MaxMove, int ReproductionCost, int MaintenanceCost) // initialise the constants shared by all animal types
+    animals(int InitialDensity, int TypeTag) // , int MaxMove, int ReproductionCost, int MaintenanceCost / initialise the constants shared by all animal types
     {
 
-        int initialDensity = InitialDensity;
-        int maxMove = MaxMove;
-        int typeTag = TypeTag;
-        int reproductionCost = ReproductionCost;
-        int maintenanceCost = MaintenanceCost;
+        initialDensity = InitialDensity;
+        typeTag = TypeTag;
+        // maxMove = MaxMove;
+        // reproductionCost = ReproductionCost;
+        // maintenanceCost = MaintenanceCost;
     }
 
-    void create(int *PreysInitialPopulation, int *PredatorsInitialPopulation) // function to allocate memory to and fill the animal table
+    int **create(int landscapeSize) // function to allocate memory to and fill the animal table
     {
         columnNb = 5; // x - y - animalType - resourceConsumed - deadOrAlive
 
-        rowNb = 0;
-        for (int prey = 0; prey < preyTypesNb; prey++)
-        {
-            rowNb += PreysInitialPopulation[prey];
-        }
-        for (int pred = 0; pred < predatorTypesNb; pred++)
-        {
-            rowNb += PreysInitialPopulation[pred];
-        }
+        rowNb = initialDensity;
 
-        animalsTablePtr = new int *[rowNb]; // define the pointer to an array of int pointers for each row
+        /* create a 2D dynamic array */
+        int **pointerToTable;
 
-        for (int row = 0; row < rowNb; row++) // for each row, create a pointer to an array of size columnNb
+        pointerToTable = new int *[rowNb]; // define the pointer to an array of int pointers for each row
+
+        for (int row = 0; row < rowNb; row++) // for each row, create a pointer to an integer array of size columnNb
         {
-            animalsTablePtr[row] = new int[columnNb];
+            pointerToTable[row] = new int[columnNb];
         }
 
-        /* initialise the variables NEEDED? */
+        /* add the animals with their info */
 
-        int r = 0; // initialise row counter
-        while (r < rowNb)
+        int r = 0;
+        while (r < initialDensity)
         {
-            for (int c = 0; c < columnNb; c++)
-            {
-                animalsTablePtr[r][c] = 0;
-            }
+
+            /* debug
+            cout << "float(landscapeSize) is " << float(landscapeSize) << endl;
+            cout << "random number between zero and landsape size without imposing data type is " << randomNumberGenerator(0, landscapeSize) << endl;
+            cout << "random number between zero and landsape size imposing float(size) is " << randomNumberGenerator(0, float(landscapeSize)) << endl;
+            cout << "the value that goes in the table is " << int(randomNumberGenerator(0, float(landscapeSize))) << endl;
+            */
+
+            /* assign random coordinates between 0 and Size*/
+            pointerToTable[r][0] = int(randomNumberGenerator(0, landscapeSize-1));
+            pointerToTable[r][1] = int(randomNumberGenerator(0, landscapeSize-1));
+
+            /* update pointerToTable with prey info - hard coded NOT GOOD */
+            pointerToTable[r][2] = typeTag;
+            pointerToTable[r][3] = 0; // initialise resource consumed
+            pointerToTable[r][4] = 1; // the animal is alive
 
             r++;
         }
+
+        return pointerToTable;
+
+        /* delete former table pointer without freeing the memory
+           WARNING HERE: be sure that the previous line works fine otherwise the address of the table will be lost FOR EVER */
+        pointerToTable = NULL;
     }
 
-    void freeMemory() // free memory allocated to animals table
+    void freeMemory(int **pointerToTable) // free memory allocated to animals table
     {
 
         for (int row = 0; row < rowNb; row++) // free memory allocated to each row
         {
-            delete[] animalsTablePtr[row];
+            delete[] pointerToTable[row];
         }
 
-        delete[] animalsTablePtr; // free the memory allocated to the array of pointer to each row
+        delete[] pointerToTable; // free the memory allocated to the array of pointer to each row
 
-        animalsTablePtr = NULL; // erase the address of the array of pointers to rows
+        pointerToTable = NULL; // erase the address of the array of pointers to rows
     }
 
-    void getInfo() // function to cast out the animalsTable and check if all good
+    void getInfo(int **pointerToTable) // function to cast out the animalsTable and check if all good
     {
+
         /* cast out the column names */
         cout << "xCell"
              << " "
@@ -462,7 +481,7 @@ public:
              << " "
              << "animalTag"
              << " "
-             << "resourceConsumed"
+             << "resourcesConsumed"
              << " "
              << "deadOrAlive"
              << endl;
@@ -472,7 +491,7 @@ public:
         while (r < rowNb)
         {
             for (int column = 0; column < columnNb; column++)
-                cout << animalsTablePtr[r][column] << " ";
+                cout << pointerToTable[r][column] << " ";
             cout << endl;
 
             r++;
@@ -480,8 +499,8 @@ public:
     }
 
     /* next functions:
-    - create()
-    - randomMove(int maxMovingDistance, int worldSize)
+    - measureDensity(int **tablePtr) -> sum of animals in each cell to update landscapeTable
+    - randomMove(int worldSize)
     - reproduce()
     - die()
     */
@@ -493,32 +512,17 @@ class prey : public animals // preys are one type of animal object, they share t
 {
 
 public:
-    prey(int preyInitialDensity, int preyTag, int maxMovingDistance, int preyReproductionCost, int preyMaintenanceCost) : animals(preyInitialDensity, preyTag, maxMovingDistance, preyReproductionCost, preyMaintenanceCost)
+    prey(int initialDensity, int typeTag) : animals(initialDensity, typeTag) // , int maxMovingDistance, int preyReproductionCost, int preyMaintenanceCost / , maxMovingDistance, preyReproductionCost, preyMaintenanceCost
     {
     }
 
-    /* PROBLEM HERE complicated to add objects information 
+    /* PROBLEM HERE complicated to add objects information
        - need to know where the previous object stopped to continue assigning
-       - it is still not working at the moment, the table stays 0
        - should every object/population have its own table ? no need to create a pop object ?
        - is it going to a problem to match cells ?
        - where does the matching function should be ? */
-       
-    void add(int landscapeSize) // attibutes random coordinates to every prey according to type
-    {
-        int r = 0;
-        while (r < initialDensity)
-        {
-            /* assign random coordinates between 0 and Size*/
-            animalsTablePtr[r][0] = int(randomNumberGenerator(0, float(landscapeSize)));
-            animalsTablePtr[r][1] = int(randomNumberGenerator(0, float(landscapeSize)));
 
-            /* update animalsTablePtr with prey info - hard coded NOT GOOD */
-            animalsTablePtr[r][2] = typeTag;
-            animalsTablePtr[r][3] = 0; // initialise resource consumed
-            animalsTablePtr[r][4] = 1; // the animal is alive
-        }
-    }
+    /* Preys feeding function */
 };
 
 /* ------------------------------ Main program ------------------------------ */
@@ -548,28 +552,17 @@ int main()
 
     worldSize = 3; // hard coded NOT GOOD
 
+    srand(time(0)); // set random generator seed with instant time
+
     /* intiate world */
 
     /* contruct and create landscape */
     landscape world(worldSize, 10);
     world.create();
 
-    /* construct and create animals table: OK */
-    animals pop(0, 5, 0, 10, 10);
-    pop.create(preysInitialDensities, predatorsInitialDensities);
-    pop.getInfo();
-
-    /* add preys : KO!!!
-       WILL BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty */
-    prey prey1(preysInitialDensities[0], 201, 3, 10, 10);
-    prey prey2(preysInitialDensities[1], 202, 3, 10, 10);
-    prey1.add(worldSize);
-    prey2.add(worldSize);
-    pop.getInfo();
-
     /* check if everything is where expected: OK
     world.getInfo();
-     */
+    */
 
     /* check fill function: OK
     world.fill();
@@ -579,6 +572,37 @@ int main()
     /* check resetCatches function: OK
     world.resetCatches();
     world.getInfo();
+    */
+
+    /* convert animal types in integer tags
+       matching strings : https://www.youtube.com/watch?v=aEgG4pidcKU&t=1s&ab_channel=CodeBeauty
+    */
+
+    /* edit interaction/diet table */
+
+    /* construct and create animals table (iteratively if possible)
+       should work like that: OK
+       > prey prey1() // class constructor
+       > int **prey1TablePtr = prey1.create(worldSize); // allocate memory to temporary animalsTablePointer and initialise values
+       .
+       .
+       .
+       > prey1.freeMemory(prey1TablePtr)
+
+       CAREFUL : free memory each time using animals.create()
+
+       CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty 
+    */
+
+    prey prey1(preysInitialDensities[0], 201);
+    int **prey1TablePtr = prey1.create(worldSize);
+    
+    prey prey2(preysInitialDensities[1], 202);
+    int **prey2TablePtr = prey2.create(worldSize);
+
+    /* check create function : OK
+    prey1.getInfo(prey1TablePtr);
+    prey1.getInfo(prey2TablePtr);
     */
 
     /* create results and snapshot csv files */
@@ -600,7 +624,7 @@ int main()
     {
         /* life events */
 
-        /* take measures and snapshot */
+        /* take measures and snapshot: OK */
         world.saveMeasures(resultsTableName, timeStep);
         world.snapshot(snapshotTableName, timeStep);
 
@@ -614,8 +638,15 @@ int main()
     }
 
     /* free memory */
+
+    /* landscape table */
     world.freeMemory();
-    pop.freeMemory();
+
+    /* animals tables */
+    prey1.freeMemory(prey1TablePtr);
+    prey2.freeMemory(prey2TablePtr);
+
+    /* parameter arrays */
     delete[] predatorTypes;
     delete[] predatorsInitialDensities;
     delete[] preyTypes;
