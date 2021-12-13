@@ -390,9 +390,9 @@ private:
     /* these constants might have different values according to animal types */
     int initialDensity;
     int typeTag; // a integer tag for each animal type
-    // int maxMove;          // max number of cells an animal can move by in each direction
-    // int reproductionCost; // resources needed to reproduce
-    // int maintenanceCost;  // resources needed to survive a time step
+    int maxMove;          // max number of cells an animal can move by in each direction
+    int reproductionCost; // resources needed to reproduce
+    int maintenanceCost;  // resources needed to survive a time step
 
     /* these are individual level-variables that will change during simulation */
     // int xCell, yCell;
@@ -400,14 +400,14 @@ private:
     // int deadOrAlive;      // 0 if dead 1 if alive
 
 public:
-    animals(int InitialDensity, int TypeTag) // , int MaxMove, int ReproductionCost, int MaintenanceCost / initialise the constants shared by all animal types
+    animals(int InitialDensity, int TypeTag, int MaxMove, int ReproductionCost, int MaintenanceCost) // initialise the constants shared by all animal types
     {
 
         initialDensity = InitialDensity;
         typeTag = TypeTag;
-        // maxMove = MaxMove;
-        // reproductionCost = ReproductionCost;
-        // maintenanceCost = MaintenanceCost;
+        maxMove = MaxMove;
+        reproductionCost = ReproductionCost;
+        maintenanceCost = MaintenanceCost;
     }
 
     int **create(int landscapeSize) // function to allocate memory to and fill the animal table
@@ -512,7 +512,7 @@ class prey : public animals // preys are one type of animal object, they share t
 {
 
 public:
-    prey(int initialDensity, int typeTag) : animals(initialDensity, typeTag) // , int maxMovingDistance, int preyReproductionCost, int preyMaintenanceCost / , maxMovingDistance, preyReproductionCost, preyMaintenanceCost
+    prey(int initialDensity, int typeTag, int maxMovingDistance, int preyReproductionCost, int preyMaintenanceCost) : animals(initialDensity, typeTag, maxMovingDistance, preyReproductionCost, preyMaintenanceCost) // 
     {
     }
 
@@ -580,24 +580,24 @@ int main()
 
     /* edit interaction/diet table */
 
-    /* construct and create animals table (iteratively if possible)
-       should work like that: OK
-       > prey prey1() // class constructor
-       > int **prey1TablePtr = prey1.create(worldSize); // allocate memory to temporary animalsTablePointer and initialise values
+    /* construct and create animals table (iteratively if possible) : OK but not iterative yet
+       should work like this:
+       > prey preyN() // class constructor
+       > int **preyNTablePtr = preyN.create(worldSize); // allocate memory to temporary animalsTablePointer and initialise values
        .
        .
        .
-       > prey1.freeMemory(prey1TablePtr)
+       > preyN.freeMemory(prey1TablePtr)
 
        CAREFUL : free memory each time using animals.create()
 
        CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty 
     */
 
-    prey prey1(preysInitialDensities[0], 201);
+    prey prey1(preysInitialDensities[0], 201, 10, 10, 10);
     int **prey1TablePtr = prey1.create(worldSize);
     
-    prey prey2(preysInitialDensities[1], 202);
+    prey prey2(preysInitialDensities[1], 202, 10, 10, 10);
     int **prey2TablePtr = prey2.create(worldSize);
 
     /* check create function : OK
