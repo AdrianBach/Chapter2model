@@ -16,15 +16,24 @@ string simulationName = "test";
 // hard coded NOT GOOD
 int predatorTypesNb = 1; // Number of predators modelled
 int preyTypesNb = 2;     // Number of preys modelled
-int resourceNb = 2;      // Number of resources available
+int resourceTypesNb = 2; // Number of resources available
 
-string *predatorTypes;        // types of predator simulated: predator1..n prey1..n
-string *preyTypes;            // prey1..n
-string *primaryResourceTypes; // resource1..n
+/* pointers to individual types arrays */
+string *predatorTypes; // types of predator simulated: predator1..n prey1..n
+string *preyTypes;     // prey1..n
+string *resourceTypes; // resource1..n
 
-/* initial population sizes */
+/* pointers to initial population sizes arrays */
 int *predatorsInitialDensities;
 int *preysInitialDensities;
+
+/* pointers to individuals' matching lists (arrays) */
+string *individualTypes;
+int *typeTags;
+int *indexInLandscape;
+
+/* pointer to diets' table: will indicate who eats who and who does not */
+int **dietsTable;
 
 /* world size */
 int worldSize; // side of the squared lanscape in number of cells [0;+inf[
@@ -32,7 +41,7 @@ int worldSize; // side of the squared lanscape in number of cells [0;+inf[
 /* time variables */
 int timeMax;
 
-/* ---------------------- Some useful global functions ---------------------- */
+/* ---------------------------- Global functions ---------------------------- */
 
 int sumColumn(int **table, int maxRow, int columnIndex) // sum of row values in a column
 {
@@ -55,7 +64,73 @@ double randomNumberGenerator(double min, double max) // generates a random numbe
     return res;
 }
 
-/* MATCHING CELLS FUNCTION */
+void assignTagsIndexes() // matches names, tags and column index in landscapeTablePtr table.
+{
+
+    int arraySize = resourceTypesNb + preyTypesNb + predatorTypesNb - 1; // -1 because starts at 0
+
+    /* create pointers */
+    individualTypes = new string[arraySize];
+    typeTags = new int[arraySize];
+    indexInLandscape = new int[arraySize];
+
+    /* assign values */
+
+    /* choose a tag system: I have chose this one, allowing for 99 types of resources, preys an predators */
+    int resourceTagStart = 101; // tag of the first resource on the list
+    int preyTagStart = 201;     // tag of the first prey on the list
+    int predatorTagStart = 301; // tag of the first predator on the list
+
+    int r = 0; // initialise row counter
+    for (int res = 0; res < resourceTypesNb; res++)
+    {
+        individualTypes[r] = resourceTypes[res];
+        typeTags[r] = resourceTagStart + res;
+        indexInLandscape[r] = 3 + res; // before: cellCode - x - y
+
+        /* debug : OK
+        cout << "individualTypes[" << r << "] is " << individualTypes[r] << endl;
+        cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
+        cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+        */
+
+        r++;
+    }
+
+    for (int prey = 0; prey < preyTypesNb; prey++)
+    {
+        individualTypes[r] = preyTypes[prey];
+        typeTags[r] = preyTagStart + prey;
+        indexInLandscape[r] = 3 + resourceTypesNb + prey; // before: x - y - resource densities
+
+        /* debug : OK 
+        cout << "individualTypes[" << r << "] is " << individualTypes[r] << endl;
+        cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
+        cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+        */
+
+        r++;
+    }
+
+    for (int pred = 0; pred < predatorTypesNb; pred++)
+    {
+        individualTypes[r] = predatorTypes[pred];
+        typeTags[r] = predatorTagStart + pred;
+        indexInLandscape[r] = 3 + resourceTypesNb + 2 * preyTypesNb + pred; // before: x - y - resource densities - prey densities - prey catches
+
+        /* debug : OK 
+        cout << "individualTypes[" << r << "] is " << individualTypes[r] << endl;
+        cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
+        cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+        */
+
+        r++;
+    }
+}
+
+void makeDietsTable()
+{
+}
 
 // void doublePtrFreeMemory(int** pointerToTable){}
 // Good idea but would need access to row and column number that are class protected variables
@@ -72,36 +147,43 @@ create a class:
 class landscape
 {
     /* list of landscape-specific variables */
-private:                     // variables that should not be modified directly, nor accessed from the main function
-    int Size;                // side of the squared lanscape in number of cells [0;+inf[
-    int MaxResource;         // max amount of resources on a cell
-    int rowNb;               // row number
-    int columnNb;            // column number
-    int resColumnStart;      // indexes for table building convinience
-    int preyColumnStart;     //
-    int predatorColumnStart; //
-    fstream resultsTable;    // file to write results in
-    fstream snapshotTable;   // file to save all relevant landscape cell info
+private:                   // variables that should not be modified directly, nor accessed from the main function
+    int Size;              // side of the squared lanscape in number of cells [0;+inf[
+    int MaxResource;       // max amount of resources on a cell
+    int rowNb;             // row number
+    int columnNb;          // column number
+    fstream resultsTable;  // file to write results in
+    fstream snapshotTable; // file to save all relevant landscape cell info
 
 protected:                   // variables that should not be modified directly, nor accessed from the main function, but accessible to the other classes
     int **landscapeTablePtr; // pointer to the landscape table
+    string *XYcoordinates;   // landscape matching lists
+    int *cellCode;           //
 
-public:                                  // functions that can modify the private and protected variables and can be called in the main function
+public:                      // can be used / called in the main function
+    int resColumnStart;      // indexes for table building convinience
+    int preyColumnStart;     //
+    int predatorColumnStart; //
+
     landscape(int size, int maxResource) // constructor: function that creates objects of the class by assigning values to or initializing the variables
     {
         Size = size;
         MaxResource = maxResource;
-        rowNb = Size * Size;
-        columnNb = 2 + resourceNb + 2 * preyTypesNb + predatorTypesNb;
 
         /* column index where every group of info starts in the table*/
-        resColumnStart = 2;                                     // before: x - y
-        preyColumnStart = 2 + resourceNb;                       // before: x - y - resource densities
-        predatorColumnStart = 2 + resourceNb + 2 * preyTypesNb; // before: x - y - resource densities - prey densities - prey catches
+        resColumnStart = 3;                                                       // before: cellCode - x - y
+        preyColumnStart = resColumnStart + resourceTypesNb;                       // before: x - y - resource densities
+        predatorColumnStart = resColumnStart + resourceTypesNb + 2 * preyTypesNb; // before: x - y - resource densities - prey densities - prey catches
+        rowNb = Size * Size;
+        columnNb = resColumnStart + resourceTypesNb + 2 * preyTypesNb + predatorTypesNb;
     }
 
     void create() // function to allocate memory to and fill the landscape table
     {
+
+        /* create cell matching lists */
+        XYcoordinates = new string[rowNb];
+        cellCode = new int[rowNb];
 
         /* create a dynamic 2D array
         Super clear video: https://www.youtube.com/watch?v=mGl9LO-je3o&list=PL43pGnjiVwgSSRlwfahAuIqoJ8TfDIlHq&index=6&ab_channel=CodeBeauty */
@@ -117,6 +199,7 @@ public:                                  // functions that can modify the privat
 
         x/y cell coordinates */
         int r = 0; // initialise row counter
+        int i = 0; // initialise loop counter
         int x = 0; // intialise x counter
         int y = 0;
         while (r < rowNb)
@@ -127,9 +210,15 @@ public:                                  // functions that can modify the privat
                 x++;
             }
 
-            landscapeTablePtr[r][0] = x;
-            landscapeTablePtr[r][1] = y;
+            landscapeTablePtr[r][0] = i;
+            landscapeTablePtr[r][1] = x;
+            landscapeTablePtr[r][2] = y;
 
+            /* match in xy coordinates to cellCode */
+            XYcoordinates[i] = to_string(x) + ";" + to_string(y);
+            cellCode[i] = i;
+
+            i++;
             y++;
             r++;
         }
@@ -140,7 +229,7 @@ public:                                  // functions that can modify the privat
         while (r < rowNb)
         {
 
-            for (int res = 0; res < resourceNb; res++)
+            for (int res = 0; res < resourceTypesNb; res++)
                 landscapeTablePtr[r][resColumnStart + res] = MaxResource;
 
             r++;
@@ -178,6 +267,13 @@ public:                                  // functions that can modify the privat
     void freeMemory() // free memory allocated to landscape table
     {
 
+        /* free matching list memory */
+        delete[] XYcoordinates;
+        XYcoordinates = NULL;
+        delete[] cellCode;
+        cellCode = NULL;
+
+        /* free landscape tabel memory */
         for (int row = 0; row < rowNb; row++) // free memory allocated to each row
         {
             delete[] landscapeTablePtr[row];
@@ -193,11 +289,11 @@ public:                                  // functions that can modify the privat
         int r = 0;
         while (r < rowNb)
         {
-            for (int res = 0; res < resourceNb; res++)
-                // landscapeTablePtr[r][2 + res] = MaxResource;
+            for (int res = 0; res < resourceTypesNb; res++)
+                landscapeTablePtr[r][resColumnStart + res] = MaxResource;
 
-                /* a specific number to check if it works as expected */
-                landscapeTablePtr[r][2 + res] = 10 * MaxResource;
+            /* a specific number to check if it works as expected
+            landscapeTablePtr[r][resColumnStart + res] = 10 * MaxResource; */
 
             r++;
         }
@@ -209,7 +305,7 @@ public:                                  // functions that can modify the privat
         while (r < rowNb)
         {
             for (int prey = 0; prey < preyTypesNb; prey++)
-                landscapeTablePtr[r][2 + resourceNb + preyTypesNb + prey] = 0;
+                landscapeTablePtr[r][preyColumnStart + preyTypesNb + prey] = 0;
 
             r++;
         }
@@ -218,12 +314,14 @@ public:                                  // functions that can modify the privat
     void getInfo() // function to cast out the landscape table and check if all good
     {
         /* cast out the column names */
-        cout << "xCell"
+        cout << "cellCode"
+             << " "
+             << "xCell"
              << " "
              << "yCell"
              << " ";
-        for (int i = 0; i < resourceNb; i++)
-            cout << primaryResourceTypes[i] << " ";
+        for (int i = 0; i < resourceTypesNb; i++)
+            cout << resourceTypes[i] << " ";
         for (int i = 0; i < preyTypesNb; i++)
             cout << preyTypes[i]
                  << " ";
@@ -255,8 +353,8 @@ public:                                  // functions that can modify the privat
         {
             resultsTable << "timeStep"
                          << ",";
-            for (int i = 0; i < resourceNb; i++)
-                resultsTable << primaryResourceTypes[i] << "amount"
+            for (int i = 0; i < resourceTypesNb; i++)
+                resultsTable << resourceTypes[i] << "amount"
                              << ",";
             for (int i = 0; i < preyTypesNb; i++)
                 resultsTable << preyTypes[i] << "PopulationSize"
@@ -287,12 +385,14 @@ public:                                  // functions that can modify the privat
         {
             snapshotTable << "timeStep"
                           << ","
+                          << "cellCode"
+                          << ","
                           << "xCell"
                           << ","
                           << "yCell"
                           << ",";
-            for (int i = 0; i < resourceNb; i++)
-                snapshotTable << primaryResourceTypes[i] << "amount"
+            for (int i = 0; i < resourceTypesNb; i++)
+                snapshotTable << resourceTypes[i] << "amount"
                               << ",";
             for (int i = 0; i < preyTypesNb; i++)
                 snapshotTable << preyTypes[i] << "PopulationSize"
@@ -325,18 +425,18 @@ public:                                  // functions that can modify the privat
 
             /* write the sum of the measure columns */
 
-            for (int i = 0; i < resourceNb; i++)
-                resultsTable << sumColumn(landscapeTablePtr, rowNb, 2 + i)
+            for (int i = 0; i < resourceTypesNb; i++)
+                resultsTable << sumColumn(landscapeTablePtr, rowNb, resColumnStart + i)
                              << ",";
             for (int i = 0; i < preyTypesNb; i++)
-                resultsTable << sumColumn(landscapeTablePtr, rowNb, 2 + resourceNb + i)
+                resultsTable << sumColumn(landscapeTablePtr, rowNb, preyColumnStart + i)
                              << ",";
             for (int i = 0; i < preyTypesNb; i++)
-                resultsTable << sumColumn(landscapeTablePtr, rowNb, 2 + resourceNb + preyTypesNb + i)
+                resultsTable << sumColumn(landscapeTablePtr, rowNb, preyColumnStart + preyTypesNb + i)
                              << ",";
             for (int i = 0; i < predatorTypesNb; i++)
             {
-                resultsTable << sumColumn(landscapeTablePtr, rowNb, 2 + resourceNb + 2 * preyTypesNb + i);
+                resultsTable << sumColumn(landscapeTablePtr, rowNb, predatorColumnStart + i);
                 if (i == (predatorTypesNb - 1))
                     resultsTable << "\n";
                 else
@@ -387,17 +487,21 @@ private:
     int rowNb;    // total number of animals of all types
     int columnNb; // number of info stored in the table
 
-    /* these constants might have different values according to animal types */
+    /* population level constants that might have different values according to animal types */
     int initialDensity;
-    int typeTag; // a integer tag for each animal type
+    int typeTag;          // a integer tag for each animal type
     int maxMove;          // max number of cells an animal can move by in each direction
     int reproductionCost; // resources needed to reproduce
     int maintenanceCost;  // resources needed to survive a time step
 
-    /* these are individual level-variables that will change during simulation */
+    /* individual level variables that will change during simulation */
     // int xCell, yCell;
     // int resourceConsumed; // an animal's resource pool
     // int deadOrAlive;      // 0 if dead 1 if alive
+
+protected:
+    /* population level variables */
+    int currentPopulationSize; // current population size of the animal
 
 public:
     animals(int InitialDensity, int TypeTag, int MaxMove, int ReproductionCost, int MaintenanceCost) // initialise the constants shared by all animal types
@@ -440,8 +544,8 @@ public:
             */
 
             /* assign random coordinates between 0 and Size*/
-            pointerToTable[r][0] = int(randomNumberGenerator(0, landscapeSize-1));
-            pointerToTable[r][1] = int(randomNumberGenerator(0, landscapeSize-1));
+            pointerToTable[r][0] = int(randomNumberGenerator(0, landscapeSize - 1));
+            pointerToTable[r][1] = int(randomNumberGenerator(0, landscapeSize - 1));
 
             /* update pointerToTable with prey info - hard coded NOT GOOD */
             pointerToTable[r][2] = typeTag;
@@ -511,24 +615,48 @@ public:
 class prey : public animals // preys are one type of animal object, they share the same charasteristics but also have specificities
 {
 
+private:
+    float consumptionRate; // fraction of available resources collected by prey
+    // max daily consumption ???
+
 public:
-    prey(int initialDensity, int typeTag, int maxMovingDistance, int preyReproductionCost, int preyMaintenanceCost) : animals(initialDensity, typeTag, maxMovingDistance, preyReproductionCost, preyMaintenanceCost) // 
+    prey(int initialDensity, int typeTag, int maxMovingDistance, int preyReproductionCost, int preyMaintenanceCost) : animals(initialDensity, typeTag, maxMovingDistance, preyReproductionCost, preyMaintenanceCost) //
     {
     }
 
     /* PROBLEM HERE complicated to add objects information
-       - need to know where the previous object stopped to continue assigning
        - should every object/population have its own table ? no need to create a pop object ?
        - is it going to a problem to match cells ?
-       - where does the matching function should be ? */
+       - where does the matching function should be ?
+    */
 
-    /* Preys feeding function */
+    void assignPreyVariables(float preyConsumptionRate)
+    {
+        consumptionRate = preyConsumptionRate;
+    }
+
+    /* Preys feeding function
+       calculate resources collection + add to resourcesConsumed + substract from landscapeTable */
+
+    /* int **feed(int **pointerToTable)
+    {
+        // Not possible yet.. need :
+        //   - resource index in landscapeTablePtr
+        //   - diet table info
+
+        int ind = 0; // initialise individual counter
+        while (ind < currentPopulationSize)
+        {
+            int cons = ;
+        }
+    }
+    */
 };
 
 class predator : public animals // predators are another type of animal object
 {
 public:
-    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorReproductionCost, int predatorMaintenanceCost) : animals(initialDensity, typeTag, maxMovingDistance, predatorReproductionCost, predatorMaintenanceCost) // 
+    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorReproductionCost, int predatorMaintenanceCost) : animals(initialDensity, typeTag, maxMovingDistance, predatorReproductionCost, predatorMaintenanceCost) //
     {
     }
 
@@ -556,9 +684,11 @@ int main()
     preysInitialDensities[0] = 10; // hard coded NOT GOOD
     preysInitialDensities[1] = 15; // hard coded NOT GOOD
 
-    primaryResourceTypes = new string[resourceNb];
-    primaryResourceTypes[0] = "resource1"; // hard coded NOT GOOD
-    primaryResourceTypes[1] = "resource2"; // hard coded NOT GOOD
+    resourceTypes = new string[resourceTypesNb];
+    resourceTypes[0] = "resource1"; // hard coded NOT GOOD
+    resourceTypes[1] = "resource2"; // hard coded NOT GOOD
+
+    assignTagsIndexes(); // creates individuals' matching tables
 
     worldSize = 3; // hard coded NOT GOOD
 
@@ -601,12 +731,12 @@ int main()
 
        CAREFUL : free memory each time using animals.create()
 
-       CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty 
+       CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty
     */
 
     prey prey1(preysInitialDensities[0], 201, 10, 10, 10);
     int **prey1TablePtr = prey1.create(worldSize);
-    
+
     prey prey2(preysInitialDensities[1], 202, 10, 10, 10);
     int **prey2TablePtr = prey2.create(worldSize);
 
@@ -653,20 +783,25 @@ int main()
 
     /* free memory */
 
-    /* landscape table */
-    world.freeMemory();
-
     /* animals tables */
     prey1.freeMemory(prey1TablePtr);
     prey2.freeMemory(prey2TablePtr);
     predator.freeMemory(predatorTablePtr);
+
+    /* landscape table */
+    world.freeMemory();
+
+    /* individuals matching lists */
+    delete[] individualTypes;
+    delete[] typeTags;
+    delete[] indexInLandscape;
 
     /* parameter arrays */
     delete[] predatorTypes;
     delete[] predatorsInitialDensities;
     delete[] preyTypes;
     delete[] preysInitialDensities;
-    delete[] primaryResourceTypes;
+    delete[] resourceTypes;
 }
 
 /*
