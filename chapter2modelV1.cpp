@@ -28,7 +28,7 @@ int *predatorsInitialDensities;
 int *preysInitialDensities;
 
 /* pointers to individuals' matching lists (arrays) */
-string *individualTypes;
+string *memberTypes;
 int *typeTags;
 int *indexInLandscape;
 
@@ -67,10 +67,10 @@ double randomNumberGenerator(double min, double max) // generates a random numbe
 void assignTagsIndexes() // matches names, tags and column index in landscapeTablePtr table.
 {
 
-    int arraySize = resourceTypesNb + preyTypesNb + predatorTypesNb - 1; // -1 because starts at 0
+    int arraySize = resourceTypesNb + preyTypesNb + predatorTypesNb; // because starts at 0
 
-    /* create pointers */
-    individualTypes = new string[arraySize];
+    /* allocate memory */
+    memberTypes = new string[arraySize];
     typeTags = new int[arraySize];
     indexInLandscape = new int[arraySize];
 
@@ -81,55 +81,108 @@ void assignTagsIndexes() // matches names, tags and column index in landscapeTab
     int preyTagStart = 201;     // tag of the first prey on the list
     int predatorTagStart = 301; // tag of the first predator on the list
 
+    /* assign tags iteratively */
     int r = 0; // initialise row counter
-    for (int res = 0; res < resourceTypesNb; res++)
+    while (r < arraySize)
     {
-        individualTypes[r] = resourceTypes[res];
-        typeTags[r] = resourceTagStart + res;
-        indexInLandscape[r] = 3 + res; // before: cellCode - x - y
+        for (int res = 0; res < resourceTypesNb; res++)
+        {
+            memberTypes[r] = resourceTypes[res];
+            typeTags[r] = resourceTagStart + res;
+            indexInLandscape[r] = 3 + res; // before: cellCode - x - y
 
-        /* debug : OK
-        cout << "individualTypes[" << r << "] is " << individualTypes[r] << endl;
-        cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
-        cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
-        */
+            /* debug : OK
+            cout << "memberTypes[" << r << "] is " << memberTypes[r] << endl;
+            cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
+            cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+            */
 
-        r++;
-    }
+            r++;
+        }
 
-    for (int prey = 0; prey < preyTypesNb; prey++)
-    {
-        individualTypes[r] = preyTypes[prey];
-        typeTags[r] = preyTagStart + prey;
-        indexInLandscape[r] = 3 + resourceTypesNb + prey; // before: x - y - resource densities
+        for (int prey = 0; prey < preyTypesNb; prey++)
+        {
+            memberTypes[r] = preyTypes[prey];
+            typeTags[r] = preyTagStart + prey;
+            indexInLandscape[r] = 3 + resourceTypesNb + prey; // before: x - y - resource densities
 
-        /* debug : OK 
-        cout << "individualTypes[" << r << "] is " << individualTypes[r] << endl;
-        cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
-        cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
-        */
+            /* debug : OK 
+            cout << "memberTypes[" << r << "] is " << memberTypes[r] << endl;
+            cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
+            cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+            */
 
-        r++;
-    }
+            r++;
+        }
 
-    for (int pred = 0; pred < predatorTypesNb; pred++)
-    {
-        individualTypes[r] = predatorTypes[pred];
-        typeTags[r] = predatorTagStart + pred;
-        indexInLandscape[r] = 3 + resourceTypesNb + 2 * preyTypesNb + pred; // before: x - y - resource densities - prey densities - prey catches
+        for (int pred = 0; pred < predatorTypesNb; pred++)
+        {
+            memberTypes[r] = predatorTypes[pred];
+            typeTags[r] = predatorTagStart + pred;
+            indexInLandscape[r] = 3 + resourceTypesNb + 2 * preyTypesNb + pred; // before: x - y - resource densities - prey densities - prey catches
 
-        /* debug : OK 
-        cout << "individualTypes[" << r << "] is " << individualTypes[r] << endl;
-        cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
-        cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
-        */
-
-        r++;
+            /* debug : OK
+            cout << "memberTypes[" << r << "] is " << memberTypes[r] << endl;
+            cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
+            cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+            */
+           
+            r++;
+        }
     }
 }
 
-void makeDietsTable()
+void makeDietsTable() // this table allows for each member of the system to eat and be eaten by another
 {
+    int arraySize = resourceTypesNb + preyTypesNb + predatorTypesNb + 1; // +1 because we want space for the tags
+
+    /* allocate memory */
+    dietsTable = new int *[arraySize];
+
+    for (int row = 0; row < arraySize; row++)
+    {
+        dietsTable[row] = new int[arraySize];
+    }
+
+    /* assign lines and columns headers */
+    for (int row = 1; row < arraySize; row++)
+    {
+        dietsTable[row][0] = typeTags[row-1];
+    }
+
+    for (int col = 1; col < arraySize; col++)
+    {
+        dietsTable[0][col] = typeTags[col-1];
+    }
+
+    /* set all the values to 0 */
+    for (int row = 1; row < arraySize; row++)
+    {
+        for (int col = 1; col < arraySize; col++)
+            dietsTable[row][col] = 0;
+    }
+
+    /* Set to one when one feeds on the other */
+    dietsTable[1][3] = 1; // prey1 feeds on resource1
+    dietsTable[2][4] = 1; // prey2 feeds on resource2
+    dietsTable[3][5] = 1; // predator1 feeds on prey1
+    dietsTable[4][5] = 1; // predator1 feeds on prey2
+
+    /* debug : OK 
+    cout << "dietsTable" << endl;
+    for (int row = 0; row < arraySize; row++)
+    {
+        for (int col = 0; col < arraySize; col++)
+        {
+            cout << dietsTable[row][col];
+            if (col == (arraySize - 1))
+                cout << endl;
+            else
+                cout << " ";
+        }
+    }
+    */
+
 }
 
 // void doublePtrFreeMemory(int** pointerToTable){}
@@ -616,7 +669,7 @@ class prey : public animals // preys are one type of animal object, they share t
 {
 
 private:
-    float consumptionRate; // fraction of available resources collected by prey
+    // float consumptionRate; // fraction of available resources collected by prey
     // max daily consumption ???
 
 public:
@@ -632,7 +685,6 @@ public:
 
     void assignPreyVariables(float preyConsumptionRate)
     {
-        consumptionRate = preyConsumptionRate;
     }
 
     /* Preys feeding function
@@ -689,6 +741,8 @@ int main()
     resourceTypes[1] = "resource2"; // hard coded NOT GOOD
 
     assignTagsIndexes(); // creates individuals' matching tables
+
+    makeDietsTable();
 
     worldSize = 3; // hard coded NOT GOOD
 
@@ -791,8 +845,17 @@ int main()
     /* landscape table */
     world.freeMemory();
 
+    /* diets table */
+    int rmax = resourceTypesNb + preyTypesNb + predatorTypesNb;
+    for (int row = 0; row < rmax; row++)
+    {
+        delete[] dietsTable[row];
+    }
+    delete[] dietsTable;
+    dietsTable = NULL;
+
     /* individuals matching lists */
-    delete[] individualTypes;
+    delete[] memberTypes;
     delete[] typeTags;
     delete[] indexInLandscape;
 
