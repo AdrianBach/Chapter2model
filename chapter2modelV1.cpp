@@ -14,25 +14,25 @@ string simulationName = "test";
 
 /* define animals and resources modelled */
 // hard coded NOT GOOD
-int predatorTypesNb = 1; // Number of predators modelled
-int preyTypesNb = 2;     // Number of preys modelled
 int resourceTypesNb = 2; // Number of resources available
+int preyTypesNb = 2;     // Number of preys modelled
+int predatorTypesNb = 1; // Number of predators modelled
 
 /* pointers to individual types arrays */
-string *predatorTypes; // types of predator simulated: predator1..n prey1..n
-string *preyTypes;     // prey1..n
 string *resourceTypes; // resource1..n
+string *preyTypes;     // prey1..n
+string *predatorTypes; // types of predator simulated: predator1..n
 
 /* pointers to initial population sizes arrays */
 int *predatorsInitialDensities;
 int *preysInitialDensities;
 
 /* pointers to members' matching lists (arrays) + size variables */
-string *memberTypes;
-int *typeTags;
-int *indexInLandscape;
+int memberMatchingListsSize = resourceTypesNb + preyTypesNb + predatorTypesNb; // total number of types
 
-int memberMatchingListsSize = resourceTypesNb + preyTypesNb + predatorTypesNb;
+string *memberTypes;   //
+int *typeTags;         //
+int *indexInLandscape; // column index of each type in the landscape table
 
 /* pointer to diets' table: will indicate who eats who and who does not */
 int **dietsTable;
@@ -41,7 +41,7 @@ int **dietsTable;
 int worldSize; // side of the squared lanscape in number of cells [0;+inf[
 
 /* time variables */
-int timeMax;
+int timeMax; // simulation time
 
 /* ---------------------------- Global functions ---------------------------- */
 
@@ -91,10 +91,11 @@ void assignTagsIndexes() // matches names, tags and column index in landscapeTab
             typeTags[r] = resourceTagStart + res;
             indexInLandscape[r] = 3 + res; // before: cellCode - x - y
 
-            /* debug : OK */
+            /* debug : OK
             cout << "memberTypes[" << r << "] is " << memberTypes[r] << endl;
             cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
             cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+            */
 
             r++;
         }
@@ -105,10 +106,11 @@ void assignTagsIndexes() // matches names, tags and column index in landscapeTab
             typeTags[r] = preyTagStart + prey;
             indexInLandscape[r] = 3 + resourceTypesNb + prey; // before: x - y - resource densities
 
-            /* debug : OK */
+            /* debug : OK
             cout << "memberTypes[" << r << "] is " << memberTypes[r] << endl;
             cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
             cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+            */
 
             r++;
         }
@@ -119,132 +121,149 @@ void assignTagsIndexes() // matches names, tags and column index in landscapeTab
             typeTags[r] = predatorTagStart + pred;
             indexInLandscape[r] = 3 + resourceTypesNb + 2 * preyTypesNb + pred; // before: x - y - resource densities - prey densities - prey catches
 
-            /* debug : OK */
+            /* debug : OK
             cout << "memberTypes[" << r << "] is " << memberTypes[r] << endl;
             cout << "typeTags[" << r << "] is " << typeTags[r] << endl;
             cout << "indexInLandscape[" << r << "] is " << indexInLandscape[r] << endl;
+            */
 
             r++;
         }
     }
 }
 
-int getMemberMatchingListsIndex(int TypeTag)
+int getMemberIndexFromTag(int TypeTag)
 {
+
+    int index = 0; // declare integer to be returned
+
     int row = 0;
     int rowMax = memberMatchingListsSize;
     while (row < rowMax)
     {
+        if (TypeTag == typeTags[row]) // if tag corresponds
+        {
+            index = row;
+            break; // exits the nested loops
+        }
 
-        if (TypeTag == typeTags[row]) // if x and y coordinates correspond
-            return row;               // individual's row index in landscape matching table
-
-        r++;
+        row++;
     }
+
+    return index; // returns the row index of the tag. It will be the same in all members matching lists.
 }
 
 void makeDietsTable() // this table allows for each member of the system to eat and be eaten by another
 {
 
-    /* allocate memory */
-    dietsTable = new int *[memberMatchingListsSize];
+    int dietsTableSize = memberMatchingListsSize;
+    // no need for headers when the memberMatchingListsIndex is known
 
-    for (int row = 0; row < memberMatchingListsSize; row++)
+    /* allocate memory. Make sure it is freed at the end of the main function! */
+    dietsTable = new int *[dietsTableSize];
+
+    for (int row = 0; row < dietsTableSize; row++)
     {
-        dietsTable[row] = new int[memberMatchingListsSize];
+        dietsTable[row] = new int[dietsTableSize];
     }
 
-    /* assign lines and columns headers */
-    for (int row = 1; row < memberMatchingListsSize; row++)
+    /* assign lines and columns headers : not needed here but useful for debug
+    for (int row = 1; row < dietsTableSize; row++)
     {
-        dietsTable[row][0] = typeTags[row - 1];
+        dietsTable[row][0] = typeTags[row - 1]; // -1 because we start row at 1 while we want typeTags[0]
     }
 
-    for (int col = 1; col < memberMatchingListsSize; col++)
+    for (int col = 1; col < dietsTableSize; col++)
     {
         dietsTable[0][col] = typeTags[col - 1];
     }
+    */
 
-    /* set all the values to 0 */
-    for (int row = 1; row < memberMatchingListsSize; row++)
+    /* intialise all values to 0 */
+    for (int row = 0; row < dietsTableSize; row++)
     {
-        for (int col = 1; col < memberMatchingListsSize; col++)
+        for (int col = 0; col < dietsTableSize; col++)
             dietsTable[row][col] = 0;
     }
 
-    /* Set to one when one feeds on the other */
-    dietsTable[1][3] = 1; // prey1 feeds on resource1
-    dietsTable[2][4] = 1; // prey2 feeds on resource2
-    dietsTable[3][5] = 1; // predator1 feeds on prey1
-    dietsTable[4][5] = 1; // predator1 feeds on prey2
+    /* Set to 1 when one feeds on the other */
+    dietsTable[0][2] = 1; // prey1 feeds on resource1
+    dietsTable[1][3] = 1; // prey2 feeds on resource2
+    dietsTable[2][4] = 1; // predator1 feeds on prey1
+    dietsTable[3][4] = 1; // predator1 feeds on prey2
 
-    /* debug : OK */
+    /* debug : OK
     cout << "dietsTable" << endl;
-    for (int row = 0; row < memberMatchingListsSize; row++)
+    for (int row = 0; row < dietsTableSize; row++)
     {
-        for (int col = 0; col < memberMatchingListsSize; col++)
+        for (int col = 0; col < dietsTableSize; col++)
         {
             cout << dietsTable[row][col];
-            if (col == (memberMatchingListsSize - 1))
+            if (col == (dietsTableSize - 1)) // last loop
                 cout << endl;
             else
                 cout << " ";
         }
     }
+    */
 }
 
-int *getDiet(int TypeTag)
+int *getDietLandscapeIndexes(int MembersMatchingListsIndex) // get the diet of a particular member of the food chain from its typeTag.
 {
 
-    int col = 0;
-    int rowMax, colMax = memberMatchingListsSize;
-    while (col < colMax)
+    int *dietArray = NULL; // declare the array to be returned
+
+    int rowMax = memberMatchingListsSize; // row number of dietTable
+
+    /* sum the values of the columns to get the number of members the individual feeds on */
+    int typesInDiet = sumColumn(dietsTable, rowMax, MembersMatchingListsIndex);
+
+    /* create int array of this size to store their tags */
+    dietArray = new int[typesInDiet + 1]; // +1 because the first element will be the number of types in the diet
+
+    dietArray[0] = typesInDiet;
+
+    /* loop over lines to fill the array with their tags */
+    int i = 1; // initialise counter to iterate through diet array. value of 1 to let the first element (0) contain the size of the array
+    for (int row = 0; row < rowMax; row++)
     {
-
-        if (TypeTag == dietsTable[0][col]) // find the right tag column in dietsTable
+        if (dietsTable[row][MembersMatchingListsIndex] == 1 && i <= typesInDiet) // control not to add to the array more than its size
         {
-            /* sum the values of the columns to get the number of members the individual feeds on */
-            int typesInDiet = sumColumn(dietsTable, rowMax, col);
+            dietArray[i] = indexInLandscape[row]; // the row number of this match is enough to know its index in the landscape table!
+            i++;                                  // increment i for next 1 value in the column
+        }
+    }
 
-            /* create int array of this size to store their tags */
-            int *diet = new int[typesInDiet + 1]; // +1 because the first element will be the number of types in the diet
+    return dietArray;
+    /* WARNING: be sure to delete the array returned when not need anymore
+       currently in animal.freeMemory() where it is called */
 
-            diet[0] = typesInDiet;
+    dietArray = NULL;
+}
 
-            /* loop over lines to fill the array with their tags */
-            int i = 0; // initialise counter to iterate through diet array
-            for (int row = 1; row < rowMax; i++)
-            {
-                if (dietsTable[row][col] == 1 && i < typesInDiet) // control not to add to the array more than its size
-                {
-                    diet[i + 1] = dietsTable[row][0]; // the corresponding typeTag
-                    i++;                              // increment i for next 1 value in the column
-                }
-            }
+int getCellCode(string *xyCoordinates, int *CellCodes, int LandscapeSize, int x, int y)
+{
 
-            /* WARNING: be sure to delete the array where not need anymore */
+    int cellCode = 0; // declare the integer to be returned
+
+    /* turn x y coordinates into string */
+    string XYcoord = to_string(x) + ";" + to_string(y);
+
+    /* iterate through xyCoordinates to find match */
+    int row = 0;
+    int rowMax = LandscapeSize * LandscapeSize; // WARNING only works if squared
+    while (row < rowMax)
+    {
+        if (XYcoord == xyCoordinates[row]) // if XY corresponds
+        {
+            cellCode = CellCodes[row]; // the row index is the same in all landscape matching lists
+            break;
         }
 
-        r++;
+        row++;
     }
 
-    return diet;
-}
-
-int *getDietIndexes(int *Diet)
-{
-    int dietSize = Diet[0]; // first element contains the number of types in the diet
-
-    int *dietIndexes = new int[dietSize + 1]; // +1 to store its size as first element. make sure to delete it when not need anymore: end of feed() function
-    dietIndexes[0] = dietSize;
-
-    for (int i = 0; i < dietSize; i++)
-    {
-        int index = getMemberMatchingListsIndex(diet[i + 1]); // get the index corresponding to the typeTag and store it into the dietIndex list
-        dietIndexes[i + 1] = indexInLandscape[index];
-    }
-
-    return dietIndexes;
+    return cellCode;
 }
 
 // void doublePtrFreeMemory(int** pointerToTable){}
@@ -275,20 +294,21 @@ private:                     // variables that should not be modified directly, 
 
 protected:                          // variables that should not be modified directly, nor accessed from the main function, but accessible to the other classes
     int **landscapeTablePtr;        // pointer to the landscape table
-    string *XYcoordinates;          // landscape matching lists
-    int *cellCode;                  //
     int landscapeMatchingListsSize; //
 
-public:                                  // can be used / called in the main function
+public:                    // can be used / called in the main function
+    string *XYcoordinates; // landscape matching lists
+    int *cellCode;         //
+
     landscape(int size, int maxResource) // constructor: function that creates objects of the class by assigning values to or initializing the variables
     {
         Size = size;
         MaxResource = maxResource;
 
         /* column index where every group of info starts in the table*/
-        resColumnStart = 3;                                                       // before: cellCode - x - y
-        preyColumnStart = resColumnStart + resourceTypesNb;                       // before: x - y - resource densities
-        predatorColumnStart = resColumnStart + resourceTypesNb + 2 * preyTypesNb; // before: x - y - resource densities - prey densities - prey catches
+        resColumnStart = 3;                                      // before: cellCode - x - y
+        preyColumnStart = resColumnStart + resourceTypesNb;      // before: x - y - resource densities
+        predatorColumnStart = preyColumnStart + 2 * preyTypesNb; // before: x - y - resource densities - prey densities - prey catches
 
         /* table size */
         rowNb = Size * Size;
@@ -298,7 +318,7 @@ public:                                  // can be used / called in the main fun
     void create() // function to allocate memory to and fill the landscape table
     {
 
-        /* create cell matching lists */
+        /* create landscape matching lists */
         landscapeMatchingListsSize = rowNb;
         XYcoordinates = new string[landscapeMatchingListsSize];
         cellCode = new int[landscapeMatchingListsSize];
@@ -317,7 +337,6 @@ public:                                  // can be used / called in the main fun
 
         x/y cell coordinates */
         int r = 0; // initialise row counter
-        int i = 0; // initialise loop counter
         int x = 0; // intialise x counter
         int y = 0;
         while (r < rowNb)
@@ -328,15 +347,18 @@ public:                                  // can be used / called in the main fun
                 x++;
             }
 
-            landscapeTablePtr[r][0] = i;
+            landscapeTablePtr[r][0] = r;
             landscapeTablePtr[r][1] = x;
             landscapeTablePtr[r][2] = y;
 
             /* match in xy coordinates to cellCode */
-            XYcoordinates[i] = to_string(x) + ";" + to_string(y);
-            cellCode[i] = i;
+            XYcoordinates[r] = to_string(x) + ";" + to_string(y);
+            cellCode[r] = r;
 
-            i++;
+            /* debug : OK
+            cout << "XYcoordinates[" << r << "] is " << XYcoordinates[r] << " cellCode[" << r << "] is " << cellCode[r] << endl;
+            */
+
             y++;
             r++;
         }
@@ -608,14 +630,13 @@ private:
 
     /* population level constants that might have different values according to animal types */
     int initialDensity;
-    int typeTag;                   // a integer tag for each animal type
-    int maxMove;                   // max number of cells an animal can move by in each direction
-    int reproductionCost;          // resources needed to reproduce
-    int maintenanceCost;           // resources needed to survive a time step
+    int typeTag;          // a integer tag for each animal type
+    int maxMove;          // max number of cells an animal can move by in each direction
+    int reproductionCost; // resources needed to reproduce
+    int maintenanceCost;  // resources needed to survive a time step
 
     /* matching informations */
     int membersMatchingListsIndex; //
-    int *diet;                     // array containing the types the animal feeds on
     int *dietLandscapeIndexes;     // array containing their column index in the landscape table
 
     /* individual level variables that will change during simulation */
@@ -640,14 +661,22 @@ public:
 
         currentPopulationSize = initialDensity; // initialise current population size variable
 
-        int memberMatchingListsIndex = getMemberMatchingListsIndex(typeTag);
-        int *diet = getDiet(typeTag);
-        int *dietLandscapeIndexes = getDietIndexes(diet);
+        membersMatchingListsIndex = getMemberIndexFromTag(typeTag);
+        dietLandscapeIndexes = getDietLandscapeIndexes(membersMatchingListsIndex);
+
+        /* debug : ? */
+        cout << "dietLandscapeIndexes( " << typeTag << " ) are ";
+        for (int i = 0; i < dietLandscapeIndexes[0]; i++)
+        {
+            cout << dietLandscapeIndexes[i + 1] << " "; // idem
+        }
+        cout << endl;
     }
 
-    int **create() // function to allocate memory to and fill the animal table
+    int **create(string *XYcoordinates, int *CellCodes) // function to allocate memory to and fill the animal table
     {
-        columnNb = 5; // x - y - animalType - resourceConsumed - deadOrAlive
+
+        columnNb = 5; // x - y - cellCode - resourceConsumed - deadOrAlive
 
         rowNb = initialDensity;
 
@@ -666,7 +695,6 @@ public:
         int r = 0;
         while (r < initialDensity)
         {
-
             /* debug
             cout << "float(landscapeSize) is " << float(landscapeSize) << endl;
             cout << "random number between zero and landsape size without imposing data type is " << randomNumberGenerator(0, landscapeSize) << endl;
@@ -679,7 +707,7 @@ public:
             pointerToTable[r][1] = int(randomNumberGenerator(0, landscapeSize - 1));
 
             /* update pointerToTable with prey info - hard coded NOT GOOD */
-            pointerToTable[r][2] = typeTag;
+            pointerToTable[r][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, pointerToTable[r][0], pointerToTable[r][1]);
             pointerToTable[r][3] = 0; // initialise resource consumed
             pointerToTable[r][4] = 1; // the animal is alive
 
@@ -705,21 +733,20 @@ public:
 
         pointerToTable = NULL; // erase the address of the array of pointers to rows
 
-        delete[] diet;
-        Diet = NULL;
         delete[] dietLandscapeIndexes;
-        DietLandscapeIndexes = NULL;
+        dietLandscapeIndexes = NULL;
     }
 
     void getInfo(int **pointerToTable) // function to cast out the animalsTable and check if all good
     {
 
         /* cast out the column names */
+        cout << typeTag << "'s population table" << endl;
         cout << "xCell"
              << " "
              << "yCell"
              << " "
-             << "animalTag"
+             << "cellCode"
              << " "
              << "resourcesConsumed"
              << " "
@@ -752,7 +779,7 @@ class prey : public animals // preys are one type of animal object, they share t
 {
 
 private:
-    float consumptionRate; // fraction of available resources collected by prey
+    // float consumptionRate; // fraction of available resources collected by prey
     // max daily consumption ???
 
 public:
@@ -760,75 +787,50 @@ public:
     {
     }
 
-    void assignPreyVariables(float preyConsumptionRate)
-    {
-        consumptionRate = preyConsumptionRate;
-    }
+    // void assignPreyVariables(float preyConsumptionRate)
+    // {
+    //     consumptionRate = preyConsumptionRate;
+    // }
 
-    void feed(int **pointerToTable, int *Diet, int *DietLandscapeIndexes, int MemberMatchingListsIndex)
-    {
+    // void feed(int **pointerToTable, int *Diet, int *DietLandscapeIndexes, int MemberMatchingListsIndex)
+    // {
 
-        int ind = 0; // initialise individual counter
-        while (ind < currentPopulationSize)
-        {
+    //     int ind = 0; // initialise individual counter
+    //     while (ind < currentPopulationSize)
+    //     {
+    //         int indCellCode = pointerToTable[ind][2]; // get individual's cellCode
 
-            /* get x and y position
-               SHOULD be transformed into a global function that returns cellCode but a bit tricky */
-            int xInd = pointerToTable[ind][O];
-            int yInd = pointerToTable[ind][1];
+    //         /* for each type in the diet match tag to the associated column index in landscape table
+    //            note that the first element of Diet should be the number of different types in the diet */
+    //         int dietSize = DietLandscapeIndexes[0];
+    //         for (int i = 0; i < dietSize; i++)
+    //         {
+    //             /* get resource amount */
+    //             int resourceIndex = DietLandscapeIndexes[i + 1]; // resource column index in landscape table
+    //             int resourceAvailable = landscapeTablePtr[indCellCode][resourceIndex];
 
-            /* convert in string */
-            string XYpos = to_string(xInd) + ";" + to_string(yInd);
+    //             /* compute consumption */
+    //             if (resourceAvailable >= consumptionRate) // if there is more than consumption rate, consume max
+    //             {
+    //                 landscapeTablePtr[indCellCode][resourceIndex] -= consumptionRate; // subtract to landscape cell
+    //                 pointerToTable[ind][4] += consumptionRate;                        // add resource consumed to the individual resource pool
+    //             }
+    //             else // else consume what is left (should also work if resourceAvailable=0)
+    //             {
+    //                 landscapeTablePtr[indCellCode][resourceIndex] -= resourceAvailable;
+    //                 pointerToTable[ind][4] += resourceAvailable;
+    //             }
+    //         }
 
-            /* match to the associated cellCode
-               SHOULD BE TURNED INTO A GLOBAL FUNCTION that returns row index */
-            int row = 0;
-            int rowMax = landscapeMatchingListsSize;
-            while (row < rowMax)
-            {
-
-                if (XYpos == XYcoordinates[row]) // if x and y coordinates correspond
-                {
-                    int indLandscapeIndex = row; // individual's row index in landscape matching tables
-                    break;                       // end the loop
-                }
-
-                r++;
-            }
-
-            int indCellCode = cellCode[indLandscapeIndex]; // individual's cell code is the at the same position in cellCode array
-
-            /* for each type in the diet match tag to the associated column index in landscape table
-               note that the first element of Diet should be the number of different types in the diet */
-            int dietSize = DietLandscapeIndexes[0];
-            for (int i = 0; i < count; i++)
-            {
-                /* get resource amount */
-                int resourceIndex = DietLandscapeIndexes[i + 1];
-                int resourceAvailable = landscapeTablePtr[indCellCode][resourceIndex];
-
-                /* compute consumption */
-                if (resourceAvailable > consumptionRate) // if there is more than consumption rate, consume max
-                {
-                    landscapeTablePtr[indCellCode][resourceIndex] -= consumptionRate; // subtract to landscape cell
-                    pointerToTable[ind][3] += consumptionRate;                        // add resource consumed to the individual resource pool
-                }
-                else // else consume what is left (should also work if resourceAvailable=0)
-                {
-                    landscapeTablePtr[indCellCode][resourceIndex] -= resourceAvailable;
-                    pointerToTable[ind][3] += resourceAvailable;
-                }
-            }
-
-            ind++; // next individual
-        }
-    }
+    //         ind++; // next individual
+    //     }
+    // }
 };
 
 class predator : public animals // predators are another type of animal object
 {
 public:
-    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorReproductionCost, int predatorMaintenanceCost) : animals(initialDensity, typeTag, maxMovingDistance, predatorReproductionCost, predatorMaintenanceCost) //
+    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorReproductionCost, int predatorMaintenanceCost, int LandscapeSize) : animals(initialDensity, typeTag, maxMovingDistance, predatorReproductionCost, predatorMaintenanceCost, LandscapeSize) //
     {
     }
 
@@ -842,11 +844,9 @@ int main()
 
     /* enter different types and initital densities */
 
-    predatorTypes = new string[predatorTypesNb]; // assign memory to the pointer
-    predatorTypes[0] = "predator1";              // hard coded NOT GOOD
-
-    predatorsInitialDensities = new int[predatorTypesNb];
-    predatorsInitialDensities[0] = 5; // hard coded NOT GOOD
+    resourceTypes = new string[resourceTypesNb];
+    resourceTypes[0] = "resource1"; // hard coded NOT GOOD
+    resourceTypes[1] = "resource2"; // hard coded NOT GOOD
 
     preyTypes = new string[preyTypesNb];
     preyTypes[0] = "prey1"; // hard coded NOT GOOD
@@ -856,9 +856,11 @@ int main()
     preysInitialDensities[0] = 10; // hard coded NOT GOOD
     preysInitialDensities[1] = 15; // hard coded NOT GOOD
 
-    resourceTypes = new string[resourceTypesNb];
-    resourceTypes[0] = "resource1"; // hard coded NOT GOOD
-    resourceTypes[1] = "resource2"; // hard coded NOT GOOD
+    predatorTypes = new string[predatorTypesNb]; // assign memory to the pointer
+    predatorTypes[0] = "predator1";              // hard coded NOT GOOD
+
+    predatorsInitialDensities = new int[predatorTypesNb];
+    predatorsInitialDensities[0] = 5; // hard coded NOT GOOD
 
     assignTagsIndexes(); // creates individuals' matching tables. NEED 3 delete[] : OK
 
@@ -891,7 +893,7 @@ int main()
     /* construct and create animals table (iteratively if possible) : OK but not iterative yet
        should work like this:
        > prey preyN() // class constructor
-       > int **preyNTablePtr = preyN.create(worldSize); // allocate memory to temporary animalsTablePointer and initialise values
+       > int **preyNTablePtr = preyN.create(world.XYcoordinates, world.cellCode); // allocate memory to temporary animalsTablePointer and initialise values
        .
        .
        .
@@ -902,20 +904,20 @@ int main()
        CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty
     */
 
-    prey prey1(preysInitialDensities[0], 201, 10, 10, 10, worldSize); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
-    int **prey1TablePtr = prey1.create();                             // allocate memory for prey1 population table
+    prey prey1(preysInitialDensities[0], 201, 10, 10, 10, worldSize);        // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    int **prey1TablePtr = prey1.create(world.XYcoordinates, world.cellCode); // allocate memory for prey1 population table
 
     prey prey2(preysInitialDensities[1], 202, 10, 10, 10, worldSize);
-    int **prey2TablePtr = prey2.create();
+    int **prey2TablePtr = prey2.create(world.XYcoordinates, world.cellCode);
 
-    predator predator(predatorsInitialDensities[0], 301, 10, 10, 10, worldSize);
-    int **predatorTablePtr = predator.create();
+    predator predator1(predatorsInitialDensities[0], 301, 10, 10, 10, worldSize);
+    int **predatorTablePtr = predator1.create(world.XYcoordinates, world.cellCode);
 
-    /* check create function : OK
+    /* check create function : OK*/
     prey1.getInfo(prey1TablePtr);
     prey1.getInfo(prey2TablePtr);
-    predator.getInfo(predatorTablePtr);
-    */
+    predator1.getInfo(predatorTablePtr);
+    
 
     /* create results and snapshot csv files */
 
@@ -951,16 +953,16 @@ int main()
 
     /* free memory */
 
-    /* animals tables */
+    /* animals tables : including animal's diet and dietLandscapeIndexes arrays */
     prey1.freeMemory(prey1TablePtr);
     prey2.freeMemory(prey2TablePtr);
-    predator.freeMemory(predatorTablePtr);
+    predator1.freeMemory(predatorTablePtr);
 
     /* landscape table : including landscape matching lists */
     world.freeMemory();
 
     /* diets table */
-    int rmax = memberMatchingListsSize;
+    int rmax = memberMatchingListsSize; // the exact dimension of the diet table
     for (int row = 0; row < rmax; row++)
     {
         delete[] dietsTable[row];
@@ -972,6 +974,9 @@ int main()
     delete[] memberTypes;
     delete[] typeTags;
     delete[] indexInLandscape;
+    memberTypes = NULL;
+    typeTags = NULL;
+    indexInLandscape = NULL;
 
     /* parameter arrays */
     delete[] predatorTypes;
@@ -979,7 +984,6 @@ int main()
     delete[] preyTypes;
     delete[] preysInitialDensities;
     delete[] resourceTypes;
-
     predatorTypes = NULL;
     predatorsInitialDensities = NULL;
     preyTypes = NULL;
