@@ -73,12 +73,12 @@ vector<int> shuffleOrder(int populationSize)
 
     vector<int> myvector;
 
-    for (int i = 1; i < populationSize; ++i)
+    for (int i = 0; i < populationSize; ++i)
         myvector.push_back(i);
 
     random_shuffle(myvector.begin(), myvector.end());
 
-    /* debug : OK 
+    /* debug : OK
     cout << "myvector contains:";
     for (std::vector<int>::iterator it = myvector.begin(); it != myvector.end(); ++it)
         cout << ' ' << *it;
@@ -291,7 +291,7 @@ int getCellCode(string *xyCoordinates, int *CellCodes, int LandscapeSize, int x,
 
 int transmissiveBoundaries(int coordinate, int LandscapeSize)
 {
-    
+
     if (coordinate >= LandscapeSize)
     {
         coordinate -= LandscapeSize;
@@ -300,7 +300,7 @@ int transmissiveBoundaries(int coordinate, int LandscapeSize)
     {
         coordinate += LandscapeSize;
     }
-        
+
     return coordinate;
 }
 
@@ -462,33 +462,24 @@ public:                      // can be used / called in the main function
         landscapeTablePtr = NULL; // erase the address of the array of pointers to rows
     }
 
-    void fill() // function to reset resources to maximum
+    void resetLandscape() // function to reset resources to maximum and counts to 0
     {
 
         /* debug */
-        cout << "refilling resources to maximum ..." << endl
+        cout << "reinitialising landscape ..." << endl
              << endl;
 
         int r = 0;
         while (r < rowNb)
         {
+
+            /* refill resources */
             for (int res = 0; res < resourceTypesNb; res++)
                 landscapeTablePtr[r][resColumnStart + res] = MaxResource;
 
-            /* a specific number to check if it works as expected
-            landscapeTablePtr[r][resColumnStart + res] = 10 * MaxResource; */
-
-            r++;
-        }
-    }
-
-    void resetCatches() // function to reset catches to zero
-    {
-        int r = 0;
-        while (r < rowNb)
-        {
-            for (int prey = 0; prey < preyTypesNb; prey++)
-                landscapeTablePtr[r][preyColumnStart + preyTypesNb + prey] = 0;
+            /* resetting counts to O */
+            for (int col = preyColumnStart; col < columnNb; col++)
+                landscapeTablePtr[r][col] = 0;
 
             r++;
         }
@@ -525,6 +516,7 @@ public:                      // can be used / called in the main function
 
             r++;
         }
+        cout << endl;
     }
 
     void createResultsTable(string name) // creates a resultsTable
@@ -787,22 +779,50 @@ public:
     void randomMove(int **pointerToTable, string *XYcoordinates, int *CellCodes)
     {
         /* debug */
-        cout << memberTypes[membersMatchingListsIndex] << "are moving at random" << endl << endl;
-        
+        cout << memberTypes[membersMatchingListsIndex] << " are moving at random" << endl
+             << endl;
+
         /* iterate through individuals */
         int ind = 0;
 
         while (ind < currentPopulationSize)
         {
             /* update position with random number in moving range */
-            pointerToTable[ind][0] += randomNumberGenerator(-1*maxMove, maxMove); // xCell
-            pointerToTable[ind][1] += randomNumberGenerator(-1*maxMove, maxMove); // yCell
-            
+            pointerToTable[ind][0] += randomNumberGenerator(-1 * maxMove, maxMove); // xCell
+            pointerToTable[ind][1] += randomNumberGenerator(-1 * maxMove, maxMove); // yCell
+
             /* check boundaries */
             pointerToTable[ind][0] = transmissiveBoundaries(pointerToTable[ind][0], landscapeSize); // xCell
             pointerToTable[ind][1] = transmissiveBoundaries(pointerToTable[ind][1], landscapeSize); // yCell
 
             pointerToTable[ind][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, pointerToTable[ind][0], pointerToTable[ind][1]); // update cell code
+
+            ind++; // next individual
+        }
+    }
+
+    void measureDensity(int **pointerToTable, int **LandscapeTable)
+    {
+
+        /* debug */
+        cout << "measuring " << memberTypes[membersMatchingListsIndex] << " densities" << endl
+             << endl;
+
+        /* get animal's column index in landscapeTable */
+        int colIndex = indexInLandscape[membersMatchingListsIndex];
+
+        /* iterate through population table */
+        int ind = 0;
+        while (ind < currentPopulationSize)
+        {
+            /* increment landscape table at the right position */
+            int rowIndex = pointerToTable[ind][2];
+            LandscapeTable[rowIndex][colIndex] += 1;
+
+            /* debug
+            cout << "incrementing cell [" << rowIndex << "] [" << colIndex << "]" << endl
+                 << endl;
+            */
 
             ind++; // next individual
         }
@@ -838,12 +858,9 @@ public:
     }
 
     /* next functions:
-    - measureDensity(int **tablePtr) -> sum of animals in each cell to update landscapeTable
-    - reproduce()
-    - die()
+    - reproduce(int **pointerToTable)
+    - die(int **pointerToTable)
     */
-
-    // virtual void feed() = 0;
 };
 
 class prey : public animals // preys are one type of animal object, they share the same charasteristics but also have specificities
@@ -866,12 +883,17 @@ public:
     void feed(int **pointerToTable, int **landscapePtr)
     {
 
+        /* debug */
+        cout << memberTypes[membersMatchingListsIndex] << " are feeding" << endl
+             << endl;
+
         /* shuffle the order of the individuals */
         vector<int> shuffledPop = shuffleOrder(currentPopulationSize);
 
         int ind = 0;                        // initialise individual counter
         while (ind < currentPopulationSize) // iterate through individuals
         {
+
             int rowIndex = shuffledPop[ind]; // get shuffled row index
 
             int indCellCode = pointerToTable[rowIndex][2]; // get individual's cellCode
@@ -879,35 +901,25 @@ public:
             /* for each type in the diet match tag to the associated column index in landscape table
                note that the first element of Diet should be the number of different types in the diet */
             int dietSize = dietLandscapeIndexes[0];
+
             for (int i = 0; i < dietSize; i++)
             {
                 /* get resource amount */
-                int resourceIndex = dietLandscapeIndexes[i + 1]; // resource column index in landscape table (+1 because first element is size)
-                int resourceAvailable = landscapePtr[indCellCode][resourceIndex];
+                int resourceColIndex = dietLandscapeIndexes[i+1]; // resource column index in landscape table (+ 1 because first element is size)
+
+                int resourceAvailable = landscapePtr[indCellCode][resourceColIndex];
 
                 /* compute consumption */
                 if (resourceAvailable >= consumptionRate) // if there is more than consumption rate, consume max
                 {
-                    landscapePtr[indCellCode][resourceIndex] -= consumptionRate; // subtract to landscape cell
-                    pointerToTable[rowIndex][3] += consumptionRate;                   // add resource consumed to the individual resource pool
-
-                    /* debug
-                    cout << memberTypes[membersMatchingListsIndex] << " number " << rowIndex << " consumes " << consumptionRate << " units of "
-                         << "its resource" << endl
-                         << endl;
-                    */
+                    landscapePtr[indCellCode][resourceColIndex] -= consumptionRate; // subtract to landscape cell
+                    pointerToTable[rowIndex][3] += consumptionRate;   
                 }
                 else // else consume what is left (should also work if resourceAvailable=0)
                 {
-                    landscapePtr[indCellCode][resourceIndex] -= resourceAvailable;
+                    landscapePtr[indCellCode][resourceColIndex] -= resourceAvailable;
                     pointerToTable[rowIndex][3] += resourceAvailable;
                 }
-
-                /* debug
-                cout << memberTypes[membersMatchingListsIndex] << " number " << rowIndex << " consumes " << resourceAvailable << " units of "
-                     << "its resource" << endl
-                     << endl;
-                */
             }
 
             ind++; // next individual
@@ -954,7 +966,7 @@ int main()
 
     makeDietsTable(); // NEED 1 delete[] : OK
 
-    worldSize = 10; // hard coded NOT GOOD
+    worldSize = 3; // hard coded NOT GOOD
 
     srand(time(0)); // set random generator seed with instant time
 
@@ -965,16 +977,6 @@ int main()
     world.create();
 
     /* check if everything is where expected: OK
-    world.getInfo();
-    */
-
-    /* check fill function: OK
-    world.fill();
-    world.getInfo();
-    */
-
-    /* check resetCatches function: OK
-    world.resetCatches();
     world.getInfo();
     */
 
@@ -992,15 +994,15 @@ int main()
        CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty
     */
 
-    prey prey1(preysInitialDensities[0], 201, 3, 10, 10, worldSize); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    prey prey1(preysInitialDensities[0], 201, 1, 10, 10, worldSize); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
     prey1.assignPreyVariables(5);
     int **prey1TablePtr = prey1.create(world.XYcoordinates, world.cellCode); // allocate memory for prey1 population table
 
-    prey prey2(preysInitialDensities[1], 202, 10, 10, 10, worldSize);
+    prey prey2(preysInitialDensities[1], 202, 1, 10, 10, worldSize);
     prey2.assignPreyVariables(7);
     int **prey2TablePtr = prey2.create(world.XYcoordinates, world.cellCode);
 
-    predator predator1(predatorsInitialDensities[0], 301, 10, 10, 10, worldSize);
+    predator predator1(predatorsInitialDensities[0], 301, 1, 10, 10, worldSize);
     int **predatorTablePtr = predator1.create(world.XYcoordinates, world.cellCode);
 
     /* check create function : OK
@@ -1035,30 +1037,29 @@ int main()
         cout << "time step " << timeStep << endl
              << endl;
 
-        /* life events */
+        /* life events
+           CAN BE OPTIMIZED with iteration using pointers to objects : see above */
+
+        /* moving */
         prey1.randomMove(prey1TablePtr, world.XYcoordinates, world.cellCode);
-        prey1.getInfo(prey1TablePtr);
-
-        prey1.feed(prey1TablePtr, world.landscapeTablePtr);
-        // prey2.getInfo(prey2TablePtr);
-
         prey2.randomMove(prey2TablePtr, world.XYcoordinates, world.cellCode);
-        prey2.getInfo(prey2TablePtr);
-
-        prey2.feed(prey2TablePtr, world.landscapeTablePtr);
-        // prey2.getInfo(prey2TablePtr);
-
         predator1.randomMove(predatorTablePtr, world.XYcoordinates, world.cellCode);
 
-        /* take measures and snapshot: OK */
+        /* feeding */
+        prey1.feed(prey1TablePtr, world.landscapeTablePtr);
+        prey2.feed(prey2TablePtr, world.landscapeTablePtr);
+
+        /* measure densities */
+        prey1.measureDensity(prey1TablePtr, world.landscapeTablePtr);
+        prey2.measureDensity(prey2TablePtr, world.landscapeTablePtr);
+        predator1.measureDensity(predatorTablePtr, world.landscapeTablePtr);
+
+        /* save measures and snapshot in files : OK */
         world.saveMeasures(resultsTableName, timeStep);
         world.snapshot(snapshotTableName, timeStep);
 
-        /* refill resources */
-        world.fill();
-
-        /* reset catches counts */
-        // world.resetCatches();
+        /* reset landscape table */
+        world.resetLandscape();
 
         timeStep++;
     }
