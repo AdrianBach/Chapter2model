@@ -300,9 +300,6 @@ int transmissiveBoundaries(int coordinate, int LandscapeSize)
     return coordinate;
 }
 
-// void doublePtrFreeMemory(int** pointerToTable){}
-// Good idea but would need access to row and column number that are class protected variables
-
 /* ----------------------------- Object classes ----------------------------- */
 
 /*
@@ -347,10 +344,6 @@ public:                      // can be used / called in the main function
         /* table size */
         rowNb = Size * Size;
         columnNb = resColumnStart + resourceTypesNb + 2 * preyTypesNb + predatorTypesNb;
-    }
-
-    void create() // function to allocate memory to and fill the landscape table
-    {
 
         /* create landscape matching lists */
         landscapeMatchingListsSize = rowNb;
@@ -438,14 +431,12 @@ public:                      // can be used / called in the main function
         }
     }
 
-    void freeMemory() // free memory allocated to landscape table
+    ~landscape() // free memory allocated to landscape table
     {
 
         /* free matching list memory */
         delete[] XYcoordinates;
-        XYcoordinates = NULL;
         delete[] cellCode;
-        cellCode = NULL;
 
         /* free landscape tabel memory */
         for (int row = 0; row < rowNb; row++) // free memory allocated to each row
@@ -454,8 +445,6 @@ public:                      // can be used / called in the main function
         }
 
         delete[] landscapeTablePtr; // free the memory allocated to the array of pointer to each row
-
-        landscapeTablePtr = NULL; // erase the address of the array of pointers to rows
     }
 
     void resetLandscape() // function to reset resources to maximum and counts to 0
@@ -674,19 +663,18 @@ class animals
 {
 private:
     /* useful variables for memory allocation */
-    int columnNb; // number of info stored in the table
+    int columnNb;         // number of info stored in the table
 
     /* population level constants that might have different values according to animal types */
     int initialDensity;
     int typeTag;          // a integer tag for each animal type
     int maxMove;          // max number of cells an animal can move by in each direction
     int reproductionCost; // resources needed to reproduce
-    int maintenanceCost;  // resources needed to survive a time step
     int maxOffspring;     // max number of offspring when passing reproduction trial
 
 protected:
     int landscapeSize;
-    int maintenanceCost;  // resources needed to survive a time step
+    int maintenanceCost; // resources needed to survive a time step
 
     /* matching informations */
     int membersMatchingListsIndex;    //
@@ -694,9 +682,10 @@ protected:
 
 public:
     /* population level variables */
-    int currentPopulationSize; // current population size of the animal
+    int currentPopulationSize;    // current population size of the animal
+    int **populationTablePtr; //
 
-    animals(int InitialDensity, int TypeTag, int MaxMove, int MaintenanceCost, int ReproductionCost, int LandscapeSize, int MaxOffspring) // initialise the constants shared by all animal types
+    animals(int InitialDensity, int TypeTag, int MaxMove, int MaintenanceCost, int ReproductionCost, int LandscapeSize, int MaxOffspring, string *XYcoordinates, int *CellCodes) // initialise the constants shared by all animal types
     {
 
         initialDensity = InitialDensity;
@@ -714,21 +703,15 @@ public:
 
         membersMatchingListsIndex = getMemberIndexFromTag(typeTag);
         dietLandscapeIndexes = getDietLandscapeIndexes(membersMatchingListsIndex);
-    }
 
-    int **create(string *XYcoordinates, int *CellCodes) // function to allocate memory to and fill the animal table
-    {
-
+        /* create animals table */
         columnNb = 7; // x - y - cellCode - resourceConsumed - deadOrAlive - offspring - age
 
-        /* create a 2D dynamic array */
-        int **pointerToTable;
-
-        pointerToTable = new int *[currentPopulationSize]; // define the pointer to an array of int pointers for each row
+        populationTablePtr = new int *[currentPopulationSize]; // define the pointer to an array of int pointers for each row
 
         for (int row = 0; row < currentPopulationSize; row++) // for each row, create a pointer to an integer array of size columnNb
         {
-            pointerToTable[row] = new int[columnNb];
+            populationTablePtr[row] = new int[columnNb];
         }
 
         /* add the animals with their info */
@@ -744,36 +727,32 @@ public:
             */
 
             /* assign random coordinates between 0 and Size*/
-            pointerToTable[r][0] = int(randomNumberGenerator(0, landscapeSize - 1));
-            pointerToTable[r][1] = int(randomNumberGenerator(0, landscapeSize - 1));
+            populationTablePtr[r][0] = int(randomNumberGenerator(0, landscapeSize - 1));
+            populationTablePtr[r][1] = int(randomNumberGenerator(0, landscapeSize - 1));
 
-            /* update pointerToTable with prey info - hard coded NOT GOOD */
-            pointerToTable[r][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, pointerToTable[r][0], pointerToTable[r][1]);
-            pointerToTable[r][3] = 0; // initialise resource consumed
-            pointerToTable[r][4] = 1; // the animal is alive
-            pointerToTable[r][5] = 0; // the animal has no offspring yet
-            pointerToTable[r][6] = 0; // initial population is of age 0
+            /* update populationTablePtr with prey info - columns indexes hard coded NOT GOOD */
+            populationTablePtr[r][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, populationTablePtr[r][0], populationTablePtr[r][1]);
+            populationTablePtr[r][3] = 0; // initialise resource consumed
+            populationTablePtr[r][4] = 1; // the animal is alive
+            populationTablePtr[r][5] = 0; // the animal has no offspring yet
+            populationTablePtr[r][6] = 0; // initial population is of age 0
 
             r++;
         }
-
-        return pointerToTable;
     }
 
-    void freeMemory(int **pointerToTable) // free memory allocated to animals table
+    ~animals() // free memory allocated to animals table
     {
 
         for (int row = 0; row < currentPopulationSize; row++) // free memory allocated to each row
         {
-            delete[] pointerToTable[row];
+            delete[] populationTablePtr[row];
         }
 
-        delete[] pointerToTable; // free the memory allocated to the array of pointer to each row
-
-        pointerToTable = NULL; // erase the address of the array of pointers to rows
+        delete[] populationTablePtr; // free the memory allocated to the array of pointer to each row
     }
 
-    void randomMove(int **pointerToTable, string *XYcoordinates, int *CellCodes)
+    void randomMove(string *XYcoordinates, int *CellCodes)
     {
         /* debug
         cout << memberTypes[membersMatchingListsIndex] << " are moving at random" << endl
@@ -786,23 +765,23 @@ public:
         while (ind < currentPopulationSize)
         {
             /* update position with random number in moving range */
-            int xCell = pointerToTable[ind][0];
-            int yCell = pointerToTable[ind][1];
+            int xCell = populationTablePtr[ind][0];
+            int yCell = populationTablePtr[ind][1];
 
             xCell += randomNumberGenerator(-1 * maxMove, maxMove);
             yCell += randomNumberGenerator(-1 * maxMove, maxMove);
 
             /* check boundaries */
-            pointerToTable[ind][0] = transmissiveBoundaries(xCell, landscapeSize); // xCell
-            pointerToTable[ind][1] = transmissiveBoundaries(yCell, landscapeSize); // yCell
+            populationTablePtr[ind][0] = transmissiveBoundaries(xCell, landscapeSize); // xCell
+            populationTablePtr[ind][1] = transmissiveBoundaries(yCell, landscapeSize); // yCell
 
-            pointerToTable[ind][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, pointerToTable[ind][0], pointerToTable[ind][1]); // update cell code
+            populationTablePtr[ind][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, populationTablePtr[ind][0], populationTablePtr[ind][1]); // update cell code
 
             ind++; // next individual
         }
     }
 
-    void survivalTrial(int **pointerToTable)
+    void survivalTrial()
     {
         /* debug
         cout << memberTypes[membersMatchingListsIndex] << " survival trials" << endl
@@ -815,16 +794,16 @@ public:
 
         while (ind < currentPopulationSize)
         {
-            if (pointerToTable[ind][4] == 1) // if individual is alive
+            if (populationTablePtr[ind][4] == 1) // if individual is alive
             {
                 /* if resonsume < maintenance cost -> change deadOrAlive to 0 else remove maintenance cost from the individual's resource pool */
-                if (pointerToTable[ind][3] < maintenanceCost)
+                if (populationTablePtr[ind][3] < maintenanceCost)
                 {
-                    pointerToTable[ind][4] = 0;
+                    populationTablePtr[ind][4] = 0;
                     zz += 1;
                 }
                 else
-                    pointerToTable[ind][3] -= maintenanceCost;
+                    populationTablePtr[ind][3] -= maintenanceCost;
             }
 
             ind++; // next individual
@@ -836,7 +815,7 @@ public:
                  << endl;
     }
 
-    void reproductionTrial(int **pointerToTable)
+    void reproductionTrial()
     {
         /* debug
         cout << memberTypes[membersMatchingListsIndex] << " reproduction trials" << endl
@@ -848,24 +827,24 @@ public:
 
         while (ind < currentPopulationSize)
         {
-            if (pointerToTable[ind][4] == 1 && pointerToTable[ind][3] >= reproductionCost) // if individual is alive
+            if (populationTablePtr[ind][4] == 1 && populationTablePtr[ind][3] >= reproductionCost) // if individual is alive
             {
-                pointerToTable[ind][5] = randomNumberGenerator(0, maxOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
-                if (pointerToTable[ind][5] > 0)
-                    pointerToTable[ind][3] -= reproductionCost; // if at least one offspring subtract reproduction cost from resource pool
+                populationTablePtr[ind][5] = randomNumberGenerator(0, maxOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
+                if (populationTablePtr[ind][5] > 0)
+                    populationTablePtr[ind][3] -= reproductionCost; // if at least one offspring subtract reproduction cost from resource pool
             }
 
             ind++; // next individual
         }
     }
 
-    int **updatePopulationTable(int **pointerToTable) // updates current pop size, creates a new table with updated information, replaces popTable with the updated version, reset offspring to 0, deletes the older version
+    void updatePopulationTable() // updates current pop size, creates a new table with updated information, replaces popTable with the updated version, reset offspring to 0, deletes the older version
     {
 
         /* update current population size with deaths and offspring */
         int oldPopulationSize = currentPopulationSize;                                              // store current population size for later purpose                                                        // store previous population size
-        int deadInds = currentPopulationSize - sumColumn(pointerToTable, currentPopulationSize, 4); // number of dead ind is pop size - sum of alive individuals
-        int newInds = sumColumn(pointerToTable, currentPopulationSize, 5);                          // sum of all offspring produces
+        int deadInds = currentPopulationSize - sumColumn(populationTablePtr, currentPopulationSize, 4); // number of dead ind is pop size - sum of alive individuals
+        int newInds = sumColumn(populationTablePtr, currentPopulationSize, 5);                          // sum of all offspring produces
 
         currentPopulationSize += newInds - deadInds; // update current population size/* debug */
 
@@ -896,14 +875,14 @@ public:
 
         for (int oldPopRow = 0; oldPopRow < oldPopulationSize; oldPopRow++) // iterate through previous pop table
         {
-            int indDoAstatus = pointerToTable[oldPopRow][4]; // get dead or alive status
-            int indOffspring = pointerToTable[oldPopRow][5]; // get offspring number
-            int indAge = pointerToTable[oldPopRow][6];       // get age
+            int indDoAstatus = populationTablePtr[oldPopRow][4]; // get dead or alive status
+            int indOffspring = populationTablePtr[oldPopRow][5]; // get offspring number
+            int indAge = populationTablePtr[oldPopRow][6];       // get age
 
             if (indDoAstatus == 1 && newTabRow < currentPopulationSize) // if individual is alive and we don't override the new table's dimensions
             {
                 for (int col = 0; col < 5; col++)
-                    newTablePtr[newTabRow][col] = pointerToTable[oldPopRow][col]; // copy x y position cellCode resource pool and DoA status into new table
+                    newTablePtr[newTabRow][col] = populationTablePtr[oldPopRow][col]; // copy x y position cellCode resource pool and DoA status into new table
 
                 newTablePtr[newTabRow][5] = 0;          // reset offspring to zero in the new table
                 newTablePtr[newTabRow][6] = indAge + 1; // individual is one time step older in the new table
@@ -917,7 +896,7 @@ public:
                 for (int i = 0; i < indOffspring; i++) // for each offspring
                 {
                     for (int col = 0; col < 3; col++) // copy only position variables
-                        newTablePtr[newTabRow][col] = pointerToTable[oldPopRow][col];
+                        newTablePtr[newTabRow][col] = populationTablePtr[oldPopRow][col];
 
                     newTablePtr[newTabRow][3] = 0; // new individual has not consumed any resource yet
                     newTablePtr[newTabRow][4] = 1; // new individual is alive
@@ -932,16 +911,17 @@ public:
         /* older table not needed anymore, delete it */
         for (int row = 0; row < oldPopulationSize; row++)
         {
-            delete[] pointerToTable[row];
+            delete[] populationTablePtr[row];
         }
-        delete[] pointerToTable;
+        delete[] populationTablePtr;
 
-        return newTablePtr;
+        populationTablePtr = newTablePtr;
+
+        newTablePtr = NULL;
     }
 
-    void measureDensity(int **pointerToTable, int **LandscapeTable)
+    void measureDensity(int **LandscapeTable)
     {
-        
 
         /* debug
         cout << "measuring " << memberTypes[membersMatchingListsIndex] << " densities" << endl
@@ -952,7 +932,7 @@ public:
         int colIndex = indexInLandscape[membersMatchingListsIndex];
 
         /* resetting densities to 0 */
-        for (int landRow = 0; landRow < (landscapeSize*landscapeSize); landRow++)
+        for (int landRow = 0; landRow < (landscapeSize * landscapeSize); landRow++)
         {
             LandscapeTable[landRow][colIndex] = 0;
         }
@@ -962,7 +942,7 @@ public:
         while (ind < currentPopulationSize)
         {
             /* increment landscape table at the right position */
-            int rowIndex = pointerToTable[ind][2];
+            int rowIndex = populationTablePtr[ind][2];
             LandscapeTable[rowIndex][colIndex] += 1;
 
             /* debug
@@ -974,7 +954,7 @@ public:
         }
     }
 
-    void getInfo(int **pointerToTable) // function to cast out the animalsTable and check if all good
+    void getInfo() // function to cast out the animalsTable and check if all good
     {
 
         /* cast out the column names */
@@ -999,7 +979,7 @@ public:
         while (r < currentPopulationSize)
         {
             for (int column = 0; column < columnNb; column++)
-                cout << pointerToTable[r][column] << " ";
+                cout << populationTablePtr[r][column] << " ";
             cout << endl;
 
             r++;
@@ -1007,9 +987,6 @@ public:
         cout << endl;
     }
 
-    /* next functions:
-    - updateTable(int **pointerToTable) // has to reset offspring to zero as well
-    */
 };
 
 class prey : public animals // preys are one type of animal object, they share the same charasteristics but also have specificities
@@ -1019,7 +996,7 @@ private:
     int maxConsumption; // max resource units the prey can consume in a time step
 
 public:
-    prey(int preyInitialDensity, int preyTypeTag, int preyMaxMovingDistance, int preyMaintenanceCost, int preyReproductionCost, int LandscapeSize, int preyMaxOffspring) : animals(preyInitialDensity, preyTypeTag, preyMaxMovingDistance, preyMaintenanceCost, preyReproductionCost, LandscapeSize, preyMaxOffspring) //
+    prey(int preyInitialDensity, int preyTypeTag, int preyMaxMovingDistance, int preyMaintenanceCost, int preyReproductionCost, int LandscapeSize, int preyMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(preyInitialDensity, preyTypeTag, preyMaxMovingDistance, preyMaintenanceCost, preyReproductionCost, LandscapeSize, preyMaxOffspring, XYcoordinates, CellCodes) //
     {
     }
 
@@ -1028,7 +1005,7 @@ public:
         maxConsumption = preyMaxConsumption;
     }
 
-    void feed(int **pointerToTable, int **landscapeTable)
+    void feed(int **landscapeTable)
     {
 
         /* debug
@@ -1045,7 +1022,7 @@ public:
 
             int rowIndex = shuffledPop[ind]; // get shuffled row index
 
-            int indCellCode = pointerToTable[rowIndex][2]; // get individual's cellCode
+            int indCellCode = populationTablePtr[rowIndex][2]; // get individual's cellCode
 
             /* iteration through diet and feed */
             int dietSize = dietLandscapeIndexes.size();
@@ -1061,12 +1038,12 @@ public:
                 if (resourceAvailable >= maxConsumption) // if there is more than maxConsumption rate, consume max
                 {
                     landscapeTable[indCellCode][resourceColIndex] -= maxConsumption; // subtract to landscape cell
-                    pointerToTable[rowIndex][3] += maxConsumption;
+                    populationTablePtr[rowIndex][3] += maxConsumption;
                 }
                 else // else consume what is left (should also work if resourceAvailable=0)
                 {
                     landscapeTable[indCellCode][resourceColIndex] -= resourceAvailable;
-                    pointerToTable[rowIndex][3] += resourceAvailable;
+                    populationTablePtr[rowIndex][3] += resourceAvailable;
                 }
             }
 
@@ -1074,7 +1051,7 @@ public:
         }
     }
 
-    void countCatches(int **pointerToTable, int **LandscapeTable, bool debug)
+    void countCatches(int **LandscapeTable, bool debug)
     {
 
         int catchesColumn = indexInLandscape[membersMatchingListsIndex] + preyTypesNb; // get the catches column index in landscape table
@@ -1084,7 +1061,7 @@ public:
         // {
         // cout << "counting " << memberTypes[membersMatchingListsIndex] << " catches" << endl
         //     << "catches counting column is " << catchesColumn << endl
-        cout << memberTypes[membersMatchingListsIndex] << ": "<< sumColumn(LandscapeTable, landscapeSize * landscapeSize, catchesColumn) << " catches" << endl
+        cout << memberTypes[membersMatchingListsIndex] << ": " << sumColumn(LandscapeTable, landscapeSize * landscapeSize, catchesColumn) << " catches" << endl
              << endl;
         // }
 
@@ -1107,8 +1084,8 @@ public:
                 for (int ind = 0; ind < shuffledPop.size(); ind++) // iterate through population table individuals
                 {
                     int popRow = shuffledPop[ind];               // get shuffled row index
-                    int indCellCode = pointerToTable[popRow][2]; // get the cell it is on
-                    int DoAstatus = pointerToTable[popRow][4]; // DoA?
+                    int indCellCode = populationTablePtr[popRow][2]; // get the cell it is on
+                    int DoAstatus = populationTablePtr[popRow][4];   // DoA?
 
                     if (indCellCode == landRow && DoAstatus == 1) // if it is on the same cell, and is not already dead for some reason
                     {
@@ -1118,14 +1095,14 @@ public:
                             cout << memberTypes[membersMatchingListsIndex] << " number " << popRow << " is on cell " << landRow << " with DoA status " << DoAstatus << endl
                                  << endl;
 
-                        pointerToTable[popRow][4] = 0; // update individual's dead or alive status
-                        catches--;                        // one less catch to take into account
+                        populationTablePtr[popRow][4] = 0; // update individual's dead or alive status
+                        catches--;                     // one less catch to take into account
 
                         /* debug */
                         if (debug == true)
                         {
-                            cout << memberTypes[membersMatchingListsIndex] << " number " << popRow << "'s DoA status is now " << pointerToTable[popRow][4] << endl;
-                            if (pointerToTable[popRow][3] < maintenanceCost)
+                            cout << memberTypes[membersMatchingListsIndex] << " number " << popRow << "'s DoA status is now " << populationTablePtr[popRow][4] << endl;
+                            if (populationTablePtr[popRow][3] < maintenanceCost)
                                 cout << "but it did not have enough resources to survive anyway" << endl;
                             cout << catches << " " << memberTypes[membersMatchingListsIndex] << " catches left to count on cell " << landRow << endl
                                  << endl;
@@ -1151,7 +1128,7 @@ protected:
     int conversionRate; // equivalent of a catch in resources
 
 public:
-    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring) //
+    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring, XYcoordinates, CellCodes) //
     {
     }
 
@@ -1161,7 +1138,7 @@ public:
         conversionRate = predatorConversionRate;
     }
 
-    void hunt(int **pointerToTable, int **LandscapeTable, bool debug)
+    void hunt(int **LandscapeTable, bool debug)
     {
 
         /* debug */
@@ -1179,7 +1156,7 @@ public:
         {
             int rowIndex = shuffledPop[ind]; // get shuffled row index
 
-            int indCellCode = pointerToTable[rowIndex][2]; // get individual's cellCode
+            int indCellCode = populationTablePtr[rowIndex][2]; // get individual's cellCode
 
             /* debug */
             if (debug == true)
@@ -1216,7 +1193,7 @@ public:
                 {
                     LandscapeTable[indCellCode][catchColumn] += 1;     // increment corresponding catch cell in landscape table
                     LandscapeTable[indCellCode][shuffledDiet[i]] -= 1; // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
-                    pointerToTable[rowIndex][3] += 1 * conversionRate; // increment predator resource pool
+                    populationTablePtr[rowIndex][3] += 1 * conversionRate; // increment predator resource pool
 
                     catches++; // increment catches counter
 
@@ -1274,7 +1251,6 @@ int main()
 
     /* contruct and create landscape */
     landscape world(worldSize, 10);
-    world.create();
 
     /* check if everything is where expected: OK
     world.getInfo();
@@ -1294,17 +1270,14 @@ int main()
        CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty
     */
 
-    prey prey1(preysInitialDensities[0], 201, 1, 3, 5, worldSize, 1); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    prey prey1(preysInitialDensities[0], 201, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
     prey1.assignPreyVariables(5);
-    int **prey1TablePtr = prey1.create(world.XYcoordinates, world.cellCode); // allocate memory for prey1 population table
-
-    prey prey2(preysInitialDensities[1], 202, 1, 3, 5, worldSize, 1);
+    
+    prey prey2(preysInitialDensities[1], 202, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
     prey2.assignPreyVariables(5);
-    int **prey2TablePtr = prey2.create(world.XYcoordinates, world.cellCode);
 
-    predator pred1(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1);
+    predator pred1(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
     pred1.assignPredatorVariables(1, 5);
-    int **pred1TablePtr = pred1.create(world.XYcoordinates, world.cellCode);
 
     /* check create function : OK
     prey1.getInfo(prey1TablePtr);
@@ -1343,71 +1316,71 @@ int main()
                CAN BE OPTIMIZED with iteration using pointers to objects : see above */
 
             /* moving */
-            prey1.randomMove(prey1TablePtr, world.XYcoordinates, world.cellCode);
-            prey2.randomMove(prey2TablePtr, world.XYcoordinates, world.cellCode);
-            pred1.randomMove(pred1TablePtr, world.XYcoordinates, world.cellCode);
+            prey1.randomMove(world.XYcoordinates, world.cellCode);
+            prey2.randomMove(world.XYcoordinates, world.cellCode);
+            pred1.randomMove(world.XYcoordinates, world.cellCode);
 
-            // prey1.getInfo(prey1TablePtr);
-            // prey2.getInfo(prey2TablePtr);
-            // pred1.getInfo(pred1TablePtr);
+            // prey1.getInfo();
+            // prey2.getInfo();
+            // pred1.getInfo();
 
             /* measure densities */
-            prey1.measureDensity(prey1TablePtr, world.landscapeTablePtr);
-            prey2.measureDensity(prey2TablePtr, world.landscapeTablePtr);
-            pred1.measureDensity(pred1TablePtr, world.landscapeTablePtr);
+            prey1.measureDensity(world.landscapeTablePtr);
+            prey2.measureDensity(world.landscapeTablePtr);
+            pred1.measureDensity(world.landscapeTablePtr);
 
-            // prey1.getInfo(prey1TablePtr);
-            // prey2.getInfo(prey2TablePtr);
-            // pred1.getInfo(pred1TablePtr);
+            // prey1.getInfo();
+            // prey2.getInfo();
+            // pred1.getInfo();
 
             /* feeding */
-            prey1.feed(prey1TablePtr, world.landscapeTablePtr);
-            prey2.feed(prey2TablePtr, world.landscapeTablePtr);
-            pred1.hunt(pred1TablePtr, world.landscapeTablePtr, false);
+            prey1.feed(world.landscapeTablePtr);
+            prey2.feed(world.landscapeTablePtr);
+            pred1.hunt(world.landscapeTablePtr, false);
 
-            // prey1.getInfo(prey1TablePtr);
-            // prey2.getInfo(prey2TablePtr);
-            // pred1.getInfo(pred1TablePtr);
+            // prey1.getInfo();
+            // prey2.getInfo();
+            // pred1.getInfo();
 
             /* counting catches */
-            prey1.countCatches(prey1TablePtr, world.landscapeTablePtr, false);
-            prey2.countCatches(prey2TablePtr, world.landscapeTablePtr, false);
+            prey1.countCatches(world.landscapeTablePtr, false);
+            prey2.countCatches(world.landscapeTablePtr, false);
 
-            // prey1.getInfo(prey1TablePtr);
-            // prey2.getInfo(prey2TablePtr);
+            // prey1.getInfo();
+            // prey2.getInfo();
 
             /* surviving */
-            prey1.survivalTrial(prey1TablePtr);
-            prey2.survivalTrial(prey2TablePtr);
-            pred1.survivalTrial(pred1TablePtr);
+            prey1.survivalTrial();
+            prey2.survivalTrial();
+            pred1.survivalTrial();
 
-            // prey1.getInfo(prey1TablePtr);
-            // prey2.getInfo(prey2TablePtr);
-            // pred1.getInfo(pred1TablePtr);
+            // prey1.getInfo();
+            // prey2.getInfo();
+            // pred1.getInfo();
 
             /* reproducing */
-            prey1.reproductionTrial(prey1TablePtr);
-            prey2.reproductionTrial(prey2TablePtr);
-            pred1.reproductionTrial(pred1TablePtr);
+            prey1.reproductionTrial();
+            prey2.reproductionTrial();
+            pred1.reproductionTrial();
 
-            // prey1.getInfo(prey1TablePtr);
-            // prey2.getInfo(prey2TablePtr);
-            // pred1.getInfo(pred1TablePtr);
+            // prey1.getInfo();
+            // prey2.getInfo();
+            // pred1.getInfo();
         }
 
         /* update animals dynamic arrays with birth catches and deaths */
-        prey1TablePtr = prey1.updatePopulationTable(prey1TablePtr);
-        prey2TablePtr = prey2.updatePopulationTable(prey2TablePtr);
-        pred1TablePtr = pred1.updatePopulationTable(pred1TablePtr);
+        prey1.updatePopulationTable();
+        prey2.updatePopulationTable();
+        pred1.updatePopulationTable();
 
-        prey1.getInfo(prey1TablePtr);
-        prey2.getInfo(prey2TablePtr);
-        pred1.getInfo(pred1TablePtr);
+        prey1.getInfo();
+        prey2.getInfo();
+        pred1.getInfo();
 
         /* measure densities */
-        prey1.measureDensity(prey1TablePtr, world.landscapeTablePtr);
-        prey2.measureDensity(prey2TablePtr, world.landscapeTablePtr);
-        pred1.measureDensity(pred1TablePtr, world.landscapeTablePtr);
+        prey1.measureDensity(world.landscapeTablePtr);
+        prey2.measureDensity(world.landscapeTablePtr);
+        pred1.measureDensity(world.landscapeTablePtr);
 
         /* save measures and snapshot in files : OK */
         world.saveMeasures(resultsTableName, timeStep);
@@ -1428,15 +1401,8 @@ int main()
     }
 
     /* free memory */
-    cout << "simulation ended, free memory" << endl << endl;
-
-    /* animals tables : including animal's diet and dietLandscapeIndexes arrays */
-    prey1.freeMemory(prey1TablePtr);
-    prey2.freeMemory(prey2TablePtr);
-    pred1.freeMemory(pred1TablePtr);
-
-    /* landscape table : including landscape matching lists */
-    world.freeMemory();
+    cout << "simulation ended, free memory" << endl
+         << endl;
 
     /* diets table */
     int rmax = memberMatchingListsSize; // the exact dimension of the diet table
