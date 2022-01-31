@@ -667,7 +667,7 @@ class animals
 {
 private:
     /* useful variables for memory allocation */
-    int columnNb;         // number of info stored in the table
+    int columnNb; // number of info stored in the table
 
     /* population level constants that might have different values according to animal types */
     int initialDensity;
@@ -686,8 +686,8 @@ protected:
 
 public:
     /* population level variables */
-    int currentPopulationSize;    // current population size of the animal
-    int **populationTablePtr; //
+    int currentPopulationSize; // current population size of the animal
+    int **populationTablePtr;  //
 
     animals(int InitialDensity, int TypeTag, int MaxMove, int MaintenanceCost, int ReproductionCost, int LandscapeSize, int MaxOffspring, string *XYcoordinates, int *CellCodes) // initialise the constants shared by all animal types
     {
@@ -817,7 +817,7 @@ public:
             ind++; // next individual
         }
 
-        /* debug 
+        /* debug
         if (zz > 0)
             cout << zz << " " << memberTypes[membersMatchingListsIndex] << " had not enough resources to survive" << endl
                  << endl;
@@ -851,7 +851,7 @@ public:
     {
 
         /* update current population size with deaths and offspring */
-        int oldPopulationSize = currentPopulationSize;                                              // store current population size for later purpose                                                        // store previous population size
+        int oldPopulationSize = currentPopulationSize;                                                  // store current population size for later purpose                                                        // store previous population size
         int deadInds = currentPopulationSize - sumColumn(populationTablePtr, currentPopulationSize, 4); // number of dead ind is pop size - sum of alive individuals
         int newInds = sumColumn(populationTablePtr, currentPopulationSize, 5);                          // sum of all offspring produces
 
@@ -868,7 +868,7 @@ public:
         if (debug == true)
         {
             cout << memberTypes[membersMatchingListsIndex] << ": " << newInds << " offspring and " << deadInds << " deaths" << endl
-                << endl;
+                 << endl;
         }
         // */
 
@@ -995,7 +995,6 @@ public:
         }
         cout << endl;
     }
-
 };
 
 class prey : public animals // preys are one type of animal object, they share the same charasteristics but also have specificities
@@ -1068,10 +1067,10 @@ public:
         /* debug */
         if (debug == true)
         {
-        // cout << "counting " << memberTypes[membersMatchingListsIndex] << " catches" << endl
-        //     << "catches counting column is " << catchesColumn << endl
-        cout << memberTypes[membersMatchingListsIndex] << ": " << sumColumn(LandscapeTable, landscapeSize * landscapeSize, catchesColumn) << " catches" << endl
-             << endl;
+            // cout << "counting " << memberTypes[membersMatchingListsIndex] << " catches" << endl
+            //     << "catches counting column is " << catchesColumn << endl
+            cout << memberTypes[membersMatchingListsIndex] << ": " << sumColumn(LandscapeTable, landscapeSize * landscapeSize, catchesColumn) << " catches" << endl
+                 << endl;
         }
 
         /* found the cells where prey have been caught by predators in landscape table */
@@ -1092,7 +1091,7 @@ public:
 
                 for (int ind = 0; ind < shuffledPop.size(); ind++) // iterate through population table individuals
                 {
-                    int popRow = shuffledPop[ind];               // get shuffled row index
+                    int popRow = shuffledPop[ind];                   // get shuffled row index
                     int indCellCode = populationTablePtr[popRow][2]; // get the cell it is on
                     int DoAstatus = populationTablePtr[popRow][4];   // DoA?
 
@@ -1105,7 +1104,7 @@ public:
                                  << endl;
 
                         populationTablePtr[popRow][4] = 0; // update individual's dead or alive status
-                        catches--;                     // one less catch to take into account
+                        catches--;                         // one less catch to take into account
 
                         /* debug */
                         if (debug == true)
@@ -1200,8 +1199,8 @@ public:
 
                 if (dens > 0 && catches < maxCatches) // if prey present and maxCatches is not attained yet
                 {
-                    LandscapeTable[indCellCode][catchColumn] += 1;     // increment corresponding catch cell in landscape table
-                    LandscapeTable[indCellCode][shuffledDiet[i]] -= 1; // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
+                    LandscapeTable[indCellCode][catchColumn] += 1;         // increment corresponding catch cell in landscape table
+                    LandscapeTable[indCellCode][shuffledDiet[i]] -= 1;     // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
                     populationTablePtr[rowIndex][3] += 1 * conversionRate; // increment predator resource pool
 
                     catches++; // increment catches counter
@@ -1265,32 +1264,32 @@ int main()
     world.getInfo();
     */
 
-    /* construct and create animals table (iteratively if possible) : OK but not iterative yet
-       should work like this:
-       > prey preyN() // class constructor
-       > int **preyNTablePtr = preyN.create(world.XYcoordinates, world.cellCode); // allocate memory to temporary animalsTablePointer and initialise values
-       .
-       .
-       .
-       > preyN.freeMemory(prey1TablePtr)
+    /* construct animals populations */
 
-       CAN BE OPTIMISED: https://www.youtube.com/watch?v=T8f4ajtFU9g&list=PL43pGnjiVwgTJg7uz8KUGdXRdGKE0W_jN&index=6&ab_channel=CodeBeauty
-    */
+    prey *prey1 = new prey(preysInitialDensities[0], 201, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    prey1->assignPreyVariables(5);
 
-    prey prey1(preysInitialDensities[0], 201, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
-    prey1.assignPreyVariables(5);
-    
-    prey prey2(preysInitialDensities[1], 202, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
-    prey2.assignPreyVariables(5);
+    prey *prey2 = new prey(preysInitialDensities[1], 202, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
+    prey2->assignPreyVariables(5);
+
+    /* create pointer groups */
+    prey *preys[2] = {prey1, prey2};
 
     predator pred1(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
     pred1.assignPredatorVariables(1, 5);
 
-    /* check create function : OK
-    prey1.getInfo(prey1TablePtr);
-    prey1.getInfo(prey2TablePtr);
-    pred1.getInfo(pred1TablePtr);
+    /* if more than one predator 
+    predator *pred1 = new predator(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
+    pred1->assignPredatorVariables(1, 5);
+
+    predator *predators[predatorTypesNb] = {}; 
+    pred1->getInfo();
     */
+
+    /* check create function : OK*/
+    prey1->getInfo();
+    prey1->getInfo();
+    pred1.getInfo();
 
     /* create results and snapshot csv files */
 
@@ -1323,78 +1322,162 @@ int main()
                CAN BE OPTIMIZED with iteration using pointers to objects : see above */
 
             /* moving */
-            prey1.randomMove(world.XYcoordinates, world.cellCode);
-            prey2.randomMove(world.XYcoordinates, world.cellCode);
-            pred1.randomMove(world.XYcoordinates, world.cellCode);
 
+            /* preys */
+            for (int i = 0; i < preyTypesNb; i++)
+            {
+                preys[i]->randomMove(world.XYcoordinates, world.cellCode);
+            }
             // prey1.getInfo();
             // prey2.getInfo();
+
+            /* predators */
+            pred1.randomMove(world.XYcoordinates, world.cellCode);
+
+            // for (int i = 0; i < predatorTypesNb; i++)
+            // {
+            //     predators[i]->randomMove(world.XYcoordinates, world.cellCode);
+            // }
+
             // pred1.getInfo();
 
             /* measure densities */
-            prey1.measureDensity(world.landscapeTablePtr);
-            prey2.measureDensity(world.landscapeTablePtr);
-            pred1.measureDensity(world.landscapeTablePtr);
-
+            
+            /* preys */
+            for (int i = 0; i < preyTypesNb; i++)
+            {
+                preys[i]->measureDensity(world.landscapeTablePtr);
+            }
             // prey1.getInfo();
             // prey2.getInfo();
+
+            /* predators */
+            pred1.measureDensity(world.landscapeTablePtr);
+
+            // for (int i = 0; i < predatorTypesNb; i++)
+            // {
+            //     predators[i]->measureDensity(world.landscapeTablePtr);
+            // }
+
             // pred1.getInfo();
 
             /* feeding */
-            prey1.feed(world.landscapeTablePtr);
-            prey2.feed(world.landscapeTablePtr);
-            pred1.hunt(world.landscapeTablePtr, false);
-
+            
+            /* preys */
+            for (int i = 0; i < preyTypesNb; i++)
+            {
+                preys[i]->feed(world.landscapeTablePtr);
+            }
             // prey1.getInfo();
             // prey2.getInfo();
+
+            /* predators */
+            pred1.hunt(world.landscapeTablePtr, false);
+
+            // for (int i = 0; i < predatorTypesNb; i++)
+            // {
+            //     predators[i]->hunt(world.landscapeTablePtr, false);
+            // }
+
             // pred1.getInfo();
 
             /* counting catches */
-            prey1.countCatches(world.landscapeTablePtr, false);
-            prey2.countCatches(world.landscapeTablePtr, false);
 
+            for (int i = 0; i < preyTypesNb; i++)
+            {
+                preys[i]->countCatches(world.landscapeTablePtr, false);
+            }
             // prey1.getInfo();
             // prey2.getInfo();
 
             /* surviving */
-            prey1.survivalTrial();
-            prey2.survivalTrial();
-            pred1.survivalTrial();
-
+            
+            /* preys */
+            for (int i = 0; i < preyTypesNb; i++)
+            {
+                preys[i]->survivalTrial();
+            }
             // prey1.getInfo();
             // prey2.getInfo();
+
+            /* predators */
+            pred1.survivalTrial();
+
+            // for (int i = 0; i < predatorTypesNb; i++)
+            // {
+            //     predators[i]->survivalTrial();
+            // }
+
             // pred1.getInfo();
 
             /* reproducing */
-            prey1.reproductionTrial();
-            prey2.reproductionTrial();
-            pred1.reproductionTrial();
-
+            
+            /* preys */
+            for (int i = 0; i < preyTypesNb; i++)
+            {
+                preys[i]->reproductionTrial();
+            }
             // prey1.getInfo();
             // prey2.getInfo();
+
+            /* predators */
+            pred1.reproductionTrial();
+
+            // for (int i = 0; i < predatorTypesNb; i++)
+            // {
+            //     predators[i]->reproductionTrial();
+            // }
+            
             // pred1.getInfo();
         }
 
         /* update animals dynamic arrays with birth catches and deaths */
-        prey1.updatePopulationTable(false);
-        prey2.updatePopulationTable(false);
-        pred1.updatePopulationTable(false);
-
+        
+        /* preys */
+        for (int i = 0; i < preyTypesNb; i++)
+        {
+            preys[i]->updatePopulationTable(false);
+        }
         // prey1.getInfo();
         // prey2.getInfo();
+
+        /* predators */
+        pred1.updatePopulationTable(false);
+
+        // for (int i = 0; i < predatorTypesNb; i++)
+        // {
+        //     predators[i]->updatePopulationTable(false);
+        // }
+
         // pred1.getInfo();
 
         /* measure densities */
-        prey1.measureDensity(world.landscapeTablePtr);
-        prey2.measureDensity(world.landscapeTablePtr);
+        
+        /* preys */
+        for (int i = 0; i < preyTypesNb; i++)
+        {
+            preys[i]->measureDensity(world.landscapeTablePtr);
+        }
+        // prey1.getInfo();
+        // prey2.getInfo();
+
+        /* predators */
         pred1.measureDensity(world.landscapeTablePtr);
+
+        // for (int i = 0; i < predatorTypesNb; i++)
+        // {
+        //     predators[i]->measureDensity(world.landscapeTablePtr);
+        // }
+
+        // pred1.getInfo();
 
         /* save measures and snapshot in files : OK */
         world.saveMeasures(resultsTableName, timeStep);
         world.snapshot(snapshotTableName, timeStep);
 
         /* check extinctions CAN BE OPTIMIZED with pointer to objects */
-        if (prey1.currentPopulationSize == 0 | prey2.currentPopulationSize == 0 | pred1.currentPopulationSize == 0)
+        // if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1->currentPopulationSize == 0)
+        if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1.currentPopulationSize == 0)
         {
             cout << "at least one population got extinct, stop simulation" << endl
                  << endl;
