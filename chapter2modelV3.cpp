@@ -5,30 +5,55 @@
 #include <stdlib.h>  // random generator tools
 #include <algorithm> // random shuffle
 #include <vector>    // needed for random shuffle
+#include <cmath>     // ceil
 
 using namespace std; // not to have to write std:: in front of every call
 
 /* ---------------------------- Global variables ---------------------------- */
 
 /* give a name to the simulation */
-// hard coded NOT GOOD
-string simulationName = "test";
+string simulationName;
 
-/* define animals and resources modelled */
-// hard coded NOT GOOD
-int resourceTypesNb = 2; // Number of resources available
-int preyTypesNb = 2;     // Number of preys modelled
-int predatorTypesNb = 1; // Number of predators modelled
+/* landscape variables */
+int worldSize;                // side of the squared lanscape in number of cells [0;+inf[
+int resourceTypesNb;          // Number of resources available
+vector<string> resourceTypes; // res1..n
+vector<int> maxResources;     // maximum resources per cell
 
-/* pointers to individual types arrays */
-string *resourceTypes; // resource1..n
-string *preyTypes;     // prey1..n
-string *predatorTypes; // types of predator simulated: predator1..n
+/* prey variables */
+int preyTypesNb;                  // Number of preys modelled
+vector<int> preyInitialDensities; //
+vector<string> preyTypes;         // prey1..n
+vector<float> preyMaxMove;        // NOT GOOD should rather be defined in % of landscape size
+vector<int> preyMaxConsume;       // in resource units
+vector<int> preyMaintenanceCost;  //
+vector<int> preyMaxOffspring;     //
+vector<int> preyReproCost;        //
+// add time of introduction?
+// frequency of reproduction
+// frequency of survival trial
 
-/* pointers to initial population sizes arrays */
-int *predatorsInitialDensities;
-int *preysInitialDensities;
+/* predator variables */
+int predatorTypesNb;              // Number of predators modelled
+vector<string> predatorTypes;     // res1..n
+vector<int> predInitialDensities; //
+vector<float> predMaxMove;        // NOT GOOD should rather be defined in % of landscape size CAREFUL the product has to stay int
+vector<int> predMaxConsume;       // in prey catches
+vector<int> predConvRate;         // conversion rate catches into resource units
+vector<int> predMaintenanceCost;  //
+vector<int> predMaxOffspring;     //
+vector<int> predReproCost;        //
+vector<int> predIntro;            // time of introduction of the predator
+// frequency of reproduction
+// frequency of survival trial
 
+/* time variables */
+int timeMax;  // simulation time
+int timeBurn; // let the animals feed for a while before "daily" death trial
+int freqRepro;
+int freqSurvi;
+
+/* structures for the ibm */
 /* pointers to members' matching lists (arrays) + size variables */
 int memberMatchingListsSize = resourceTypesNb + preyTypesNb + predatorTypesNb; // total number of types
 
@@ -38,12 +63,6 @@ int *indexInLandscape; // column index of each type in the landscape table
 
 /* pointer to diets' table: will indicate who eats who and who does not */
 int **dietsTable;
-
-/* world size */
-int worldSize; // side of the squared lanscape in number of cells [0;+inf[
-
-/* time variables */
-int timeMax; // simulation time
 
 /* ---------------------------- Global functions ---------------------------- */
 
@@ -89,6 +108,7 @@ vector<int> shuffleOrder(int populationSize)
     return popVector;
 }
 
+// NOT GOOD allocate memberTypes automatically
 void assignTagsIndexes() // matches names, tags and column index in landscapeTablePtr table.
 {
 
@@ -314,8 +334,8 @@ class landscape
     /* list of landscape-specific variables */
 private:                     // variables that should not be modified directly, nor accessed from the main function
     int Size;                // side of the squared lanscape in number of cells [0;+inf[
-    int MaxResource;         // max amount of resources on a cell
-    
+    vector<int> MaxResource; // max amount of resources on a cell
+
     int rowNb;               // row number
     int columnNb;            // column number
     int resColumnStart;      // indexes for table building convinience
@@ -332,10 +352,10 @@ public:                      // can be used / called in the main function
     string *XYcoordinates;   // landscape matching lists
     int *cellCode;           //
 
-    landscape(int size, int maxResource) // constructor: function that creates objects of the class by assigning values to or initializing the variables
+    landscape(int size, vector<int> maxResourceVec) // constructor: function that creates objects of the class by assigning values to or initializing the variables
     {
         Size = size;
-        MaxResource = maxResource;
+        MaxResource = maxResourceVec;
 
         /* column index where every group of info starts in the table*/
         resColumnStart = 3;                                      // before: cellCode - x - y
@@ -398,7 +418,7 @@ public:                      // can be used / called in the main function
         {
 
             for (int res = 0; res < resourceTypesNb; res++)
-                landscapeTablePtr[r][resColumnStart + res] = MaxResource;
+                landscapeTablePtr[r][resColumnStart + res] = MaxResource[res];
 
             r++;
         }
@@ -466,7 +486,7 @@ public:                      // can be used / called in the main function
 
             /* refill resources */
             for (int res = 0; res < resourceTypesNb; res++)
-                landscapeTablePtr[r][resColumnStart + res] = MaxResource;
+                landscapeTablePtr[r][resColumnStart + res] = MaxResource[0];
 
             /* resetting counts to O */
             for (int col = preyColumnStart; col < columnNb; col++)
@@ -673,7 +693,7 @@ private:
     /* population level constants that might have different values according to animal types */
     int initialDensity;
     int typeTag;          // a integer tag for each animal type
-    int maxMove;          // max number of cells an animal can move by in each direction
+    float maxMove;        // max number of cells an animal can move by in each direction
     int reproductionCost; // resources needed to reproduce
     int maxOffspring;     // max number of offspring when passing reproduction trial
 
@@ -690,16 +710,16 @@ public:
     int currentPopulationSize; // current population size of the animal
     int **populationTablePtr;  //
 
-    animals(int InitialDensity, int TypeTag, int MaxMove, int MaintenanceCost, int ReproductionCost, int LandscapeSize, int MaxOffspring, string *XYcoordinates, int *CellCodes) // initialise the constants shared by all animal types
+    animals(int InitialDensity, int TypeTag, float MaxMove, int MaintenanceCost, int ReproductionCost, int LandscapeSize, int MaxOffspring, string *XYcoordinates, int *CellCodes) // initialise the constants shared by all animal types
     {
 
         initialDensity = InitialDensity;
         typeTag = TypeTag;
-        maxMove = MaxMove;
         reproductionCost = ReproductionCost;
         maintenanceCost = MaintenanceCost;
         maxOffspring = MaxOffspring;
         landscapeSize = LandscapeSize;
+        maxMove = ceil(MaxMove * (float)landscapeSize);
 
         if (maxMove >= landscapeSize)
             cout << "Warning animal's moving range is larger than the landscape size, can mess cell coordinates when moving" << endl;
@@ -1225,65 +1245,111 @@ public:
 
 /* ------------------------------ Main program ------------------------------ */
 
-int main()
+int main(int argc, char *argv[])
 {
 
-    /* enter different types and initital densities */
+    /* ---- assign values to the variables from the command line ---- */
 
-    resourceTypes = new string[resourceTypesNb];
-    resourceTypes[0] = "resource1"; // hard coded NOT GOOD : for loop appending i to "resource" ? no possibility to call it a name though but more flexible
-    resourceTypes[1] = "resource2"; // hard coded NOT GOOD
+    /* give a name to the simulation */
+    simulationName = argv[1];
 
-    preyTypes = new string[preyTypesNb];
-    preyTypes[0] = "prey1"; // hard coded NOT GOOD
-    preyTypes[1] = "prey2"; // hard coded NOT GOOD
+    /* landscape variables */
+    worldSize = atoi(argv[2]);
+    resourceTypesNb = atoi(argv[3]);
 
-    preysInitialDensities = new int[preyTypesNb];
-    preysInitialDensities[0] = 10; // hard coded NOT GOOD
-    preysInitialDensities[1] = 10; // hard coded NOT GOOD
+    for (int i = 0; i < resourceTypesNb; i++)
+    {
+        resourceTypes.push_back("resource" + to_string(i)); // res1..n
+    }
 
-    predatorTypes = new string[predatorTypesNb]; // assign memory to the pointer
-    predatorTypes[0] = "predator1";              // hard coded NOT GOOD
+    maxResources.push_back(atoi(argv[4])); // NOT GOOD hard coded
+    maxResources.push_back(atoi(argv[5]));
 
-    predatorsInitialDensities = new int[predatorTypesNb];
-    predatorsInitialDensities[0] = 5; // hard coded NOT GOOD
+    /* prey variables */
+    preyTypesNb = atoi(argv[6]);
+
+    for (int i = 0; i < preyTypesNb; i++)
+    {
+        preyTypes.push_back("prey" + to_string(i)); // res1..n
+    }
+
+    preyMaxMove.push_back(atof(argv[7])); // NOT GOOD hard coded
+    preyMaxMove.push_back(atof(argv[8]));
+
+    preyMaxConsume.push_back(atoi(argv[9]));
+    preyMaxConsume.push_back(atoi(argv[10]));
+
+    preyMaintenanceCost.push_back(atoi(argv[11]));
+    preyMaintenanceCost.push_back(atoi(argv[12]));
+
+    preyMaxOffspring.push_back(atoi(argv[13]));
+    preyMaxOffspring.push_back(atoi(argv[14]));
+
+    preyReproCost.push_back(atoi(argv[15]));
+    preyReproCost.push_back(atoi(argv[16]));
+
+    /* predator variables */
+    predatorTypesNb = atoi(argv[17]);
+
+    for (int i = 0; i < predatorTypesNb; i++)
+    {
+        predatorTypes.push_back("predator" + to_string(i)); // res1..n
+    }
+
+    predMaxMove.push_back(atof(argv[18])); // NOT GOOD hard coded
+
+    predMaxConsume.push_back(atoi(argv[19]));
+
+    predConvRate.push_back(atoi(argv[20]));
+
+    predMaintenanceCost.push_back(atoi(argv[21]));
+
+    predMaxOffspring.push_back(atoi(argv[22]));
+
+    predReproCost.push_back(atoi(argv[23]));
+
+    /* time variables */
+    timeMax = atoi(argv[24]);  // simulation time
+    timeBurn = atoi(argv[25]); // let the animals feed for a while before "daily" death trial
+    freqRepro = atoi(argv[26]);
+    freqSurvi = atoi(argv[27]);
+
+    /* ---- construct matching structures ---- */
 
     assignTagsIndexes(); // creates individuals' matching tables. NEED 3 delete[] : OK
 
     makeDietsTable(); // NEED 1 delete[] : OK
 
-    worldSize = 3; // hard coded NOT GOOD
-
     srand(time(0)); // set random generator seed with instant time
 
-    /* intiate world */
+    /* ---- initiate world ---- */
 
     /* contruct and create landscape */
-    landscape world(worldSize, 10);
+    landscape world(worldSize, maxResources); // NOT GOOD add a variable for different max for each resource
 
     /* check if everything is where expected: OK
     world.getInfo();
     */
 
-    /* construct animals populations */
+    /* ---- construct animals populations ---- */
 
-    prey *prey1 = new prey(preysInitialDensities[0], 201, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
-    prey1->assignPreyVariables(5);
+    prey *prey1 = new prey(preyInitialDensities[0], 201, preyMaxMove[0], preyMaintenanceCost[0], preyReproCost[0], worldSize, preyMaxOffspring[0], world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    prey1->assignPreyVariables(preyMaxConsume[0]);
 
-    prey *prey2 = new prey(preysInitialDensities[1], 202, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
-    prey2->assignPreyVariables(5);
+    prey *prey2 = new prey(preyInitialDensities[1], 201, preyMaxMove[1], preyMaintenanceCost[1], preyReproCost[1], worldSize, preyMaxOffspring[1], world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    prey1->assignPreyVariables(preyMaxConsume[1]);
 
-    /* create pointer groups */
+    /* create prey pointer group */
     prey *preys[2] = {prey1, prey2};
 
-    predator pred1(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
+    predator pred1(predInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
     pred1.assignPredatorVariables(1, 5);
 
-    /* if more than one predator 
+    /* if more than one predator
     predator *pred1 = new predator(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
     pred1->assignPredatorVariables(1, 5);
 
-    predator *predators[predatorTypesNb] = {}; 
+    predator *predators[predatorTypesNb] = {};
     pred1->getInfo();
     */
 
@@ -1292,7 +1358,7 @@ int main()
     prey1->getInfo();
     pred1.getInfo();
 
-    /* create results and snapshot csv files */
+    /* ---- create results and snapshot csv files ---- */
 
     /* file names */
     string resultsTableName = simulationName + "-ResultsTable.csv";
@@ -1301,15 +1367,13 @@ int main()
     world.createResultsTable(resultsTableName);
     world.createSnapshotTable(snapshotTableName);
 
-    /* start simulation */
-
-    timeMax = 4; // hard coded NOT GOOD
+    /* ---- start simulation ---- */
 
     /* debug */
     cout << "starting simulation over " << timeMax << " time steps" << endl
          << endl;
 
-    int timeStep = 0; // time step variable
+    int timeStep = 0; // initialise time step variable
 
     while (timeStep < timeMax)
     {
@@ -1319,10 +1383,9 @@ int main()
 
         if (timeStep > 0)
         {
-            /* life events
-               CAN BE OPTIMIZED with iteration using pointers to objects : see above */
+            /* ---- life events ---- */
 
-            /* moving */
+            /* -- moving -- */
 
             /* preys */
             for (int i = 0; i < preyTypesNb; i++)
@@ -1333,7 +1396,8 @@ int main()
             // prey2.getInfo();
 
             /* predators */
-            pred1.randomMove(world.XYcoordinates, world.cellCode);
+            if (timeStep > predIntro[0])
+                pred1.randomMove(world.XYcoordinates, world.cellCode);
 
             // for (int i = 0; i < predatorTypesNb; i++)
             // {
@@ -1342,8 +1406,8 @@ int main()
 
             // pred1.getInfo();
 
-            /* measure densities */
-            
+            /* -- measure densities -- */
+
             /* preys */
             for (int i = 0; i < preyTypesNb; i++)
             {
@@ -1353,7 +1417,8 @@ int main()
             // prey2.getInfo();
 
             /* predators */
-            pred1.measureDensity(world.landscapeTablePtr);
+            if (timeStep > predIntro[0])
+                pred1.measureDensity(world.landscapeTablePtr);
 
             // for (int i = 0; i < predatorTypesNb; i++)
             // {
@@ -1362,8 +1427,8 @@ int main()
 
             // pred1.getInfo();
 
-            /* feeding */
-            
+            /* -- feeding -- */
+
             /* preys */
             for (int i = 0; i < preyTypesNb; i++)
             {
@@ -1373,7 +1438,8 @@ int main()
             // prey2.getInfo();
 
             /* predators */
-            pred1.hunt(world.landscapeTablePtr, false);
+            if (timeStep > predIntro[0])
+                pred1.hunt(world.landscapeTablePtr, false);
 
             // for (int i = 0; i < predatorTypesNb; i++)
             // {
@@ -1382,7 +1448,7 @@ int main()
 
             // pred1.getInfo();
 
-            /* counting catches */
+            /* -- counting catches -- */
 
             for (int i = 0; i < preyTypesNb; i++)
             {
@@ -1391,49 +1457,56 @@ int main()
             // prey1.getInfo();
             // prey2.getInfo();
 
-            /* surviving */
-            
-            /* preys */
-            for (int i = 0; i < preyTypesNb; i++)
+            /* -- surviving -- */
+
+            if (timeStep % freqSurvi == 0)
             {
-                preys[i]->survivalTrial();
+                /* preys */
+                for (int i = 0; i < preyTypesNb; i++)
+                {
+                    preys[i]->survivalTrial();
+                }
+                // prey1.getInfo();
+                // prey2.getInfo();
+
+                /* predators */
+                if (timeStep > predIntro[0])
+                    pred1.survivalTrial();
+
+                // for (int i = 0; i < predatorTypesNb; i++)
+                // {
+                //     predators[i]->survivalTrial();
+                // }
+
+                // pred1.getInfo();
             }
-            // prey1.getInfo();
-            // prey2.getInfo();
 
-            /* predators */
-            pred1.survivalTrial();
-
-            // for (int i = 0; i < predatorTypesNb; i++)
-            // {
-            //     predators[i]->survivalTrial();
-            // }
-
-            // pred1.getInfo();
-
-            /* reproducing */
-            
-            /* preys */
-            for (int i = 0; i < preyTypesNb; i++)
+            /* -- reproducing -- */
+            if (timeStep % freqRepro == 0)
             {
-                preys[i]->reproductionTrial();
+                /* preys */
+                for (int i = 0; i < preyTypesNb; i++)
+                {
+                    preys[i]->reproductionTrial();
+                }
+                // prey1.getInfo();
+                // prey2.getInfo();
+
+                /* predators */
+                if (timeStep > predIntro[0])
+                    pred1.reproductionTrial();
+
+                // for (int i = 0; i < predatorTypesNb; i++)
+                // {
+                //     predators[i]->reproductionTrial();
+                // }
+
+                // pred1.getInfo();
             }
-            // prey1.getInfo();
-            // prey2.getInfo();
-
-            /* predators */
-            pred1.reproductionTrial();
-
-            // for (int i = 0; i < predatorTypesNb; i++)
-            // {
-            //     predators[i]->reproductionTrial();
-            // }
-            
-            // pred1.getInfo();
         }
 
-        /* update animals dynamic arrays with birth catches and deaths */
-        
+        /* -- update animals dynamic arrays with birth catches and deaths -- */
+
         /* preys */
         for (int i = 0; i < preyTypesNb; i++)
         {
@@ -1443,7 +1516,8 @@ int main()
         // prey2.getInfo();
 
         /* predators */
-        pred1.updatePopulationTable(false);
+        if (timeStep > predIntro[0])
+            pred1.updatePopulationTable(false);
 
         // for (int i = 0; i < predatorTypesNb; i++)
         // {
@@ -1452,8 +1526,8 @@ int main()
 
         // pred1.getInfo();
 
-        /* measure densities */
-        
+        /* -- measure densities -- */
+
         /* preys */
         for (int i = 0; i < preyTypesNb; i++)
         {
@@ -1463,7 +1537,8 @@ int main()
         // prey2.getInfo();
 
         /* predators */
-        pred1.measureDensity(world.landscapeTablePtr);
+        if (timeStep > predIntro[0])
+            pred1.measureDensity(world.landscapeTablePtr);
 
         // for (int i = 0; i < predatorTypesNb; i++)
         // {
@@ -1472,11 +1547,11 @@ int main()
 
         // pred1.getInfo();
 
-        /* save measures and snapshot in files : OK */
+        /* ---- save measures and snapshot in files ---- */
         world.saveMeasures(resultsTableName, timeStep);
         world.snapshot(snapshotTableName, timeStep);
 
-        /* check extinctions CAN BE OPTIMIZED with pointer to objects */
+        /* ---- check extinctions ---- */
         // if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1->currentPopulationSize == 0)
         if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1.currentPopulationSize == 0)
         {
@@ -1485,14 +1560,14 @@ int main()
             break;
         }
 
-        /* reset landscape table */
+        /* ---- reset landscape table ---- */
         world.resetLandscape();
 
         timeStep++;
     }
 
-    /* free memory */
-    cout << "simulation ended, free memory" << endl
+    /* ---- free memory ---- */
+    cout << "simulation ended, free memory, call destructors" << endl
          << endl;
 
     /* diets table */
@@ -1511,22 +1586,10 @@ int main()
     memberTypes = NULL;
     typeTags = NULL;
     indexInLandscape = NULL;
-
-    /* parameter arrays */
-    delete[] predatorTypes;
-    delete[] predatorsInitialDensities;
-    delete[] preyTypes;
-    delete[] preysInitialDensities;
-    delete[] resourceTypes;
-    predatorTypes = NULL;
-    predatorsInitialDensities = NULL;
-    preyTypes = NULL;
-    preysInitialDensities = NULL;
-    resourceTypes = NULL;
 }
 
 /*
-To compile :
-> g++ -Wall -g chapter2modelV1.cpp -o outfile.o
+To compile and run:
+> g++ -Wall -g chapter2modelV3.cpp -o outfile.o
 > ./outfile.o
 */
