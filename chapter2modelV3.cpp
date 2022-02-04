@@ -1262,57 +1262,62 @@ int main(int argc, char *argv[])
         resourceTypes.push_back("resource" + to_string(i)); // res1..n
     }
 
-    maxResources.push_back(atoi(argv[4])); // NOT GOOD hard coded
-    maxResources.push_back(atoi(argv[5]));
+    preyInitialDensities.push_back(atoi(argv[4]));
+    preyInitialDensities.push_back(atoi(argv[5]));
+
+    maxResources.push_back(atoi(argv[6])); // NOT GOOD hard coded
+    maxResources.push_back(atoi(argv[7]));
 
     /* prey variables */
-    preyTypesNb = atoi(argv[6]);
+    preyTypesNb = atoi(argv[8]);
 
     for (int i = 0; i < preyTypesNb; i++)
     {
         preyTypes.push_back("prey" + to_string(i)); // res1..n
     }
 
-    preyMaxMove.push_back(atof(argv[7])); // NOT GOOD hard coded
-    preyMaxMove.push_back(atof(argv[8]));
+    preyMaxMove.push_back(atof(argv[9])); // NOT GOOD hard coded
+    preyMaxMove.push_back(atof(argv[10]));
 
-    preyMaxConsume.push_back(atoi(argv[9]));
-    preyMaxConsume.push_back(atoi(argv[10]));
+    preyMaxConsume.push_back(atoi(argv[11]));
+    preyMaxConsume.push_back(atoi(argv[12]));
 
-    preyMaintenanceCost.push_back(atoi(argv[11]));
-    preyMaintenanceCost.push_back(atoi(argv[12]));
+    preyMaintenanceCost.push_back(atoi(argv[13]));
+    preyMaintenanceCost.push_back(atoi(argv[14]));
 
-    preyMaxOffspring.push_back(atoi(argv[13]));
-    preyMaxOffspring.push_back(atoi(argv[14]));
+    preyMaxOffspring.push_back(atoi(argv[15]));
+    preyMaxOffspring.push_back(atoi(argv[16]));
 
-    preyReproCost.push_back(atoi(argv[15]));
-    preyReproCost.push_back(atoi(argv[16]));
+    preyReproCost.push_back(atoi(argv[17]));
+    preyReproCost.push_back(atoi(argv[18]));
 
     /* predator variables */
-    predatorTypesNb = atoi(argv[17]);
+    predatorTypesNb = atoi(argv[19]);
 
     for (int i = 0; i < predatorTypesNb; i++)
     {
         predatorTypes.push_back("predator" + to_string(i)); // res1..n
     }
 
-    predMaxMove.push_back(atof(argv[18])); // NOT GOOD hard coded
+    predInitialDensities.push_back(atoi(argv[20]));
 
-    predMaxConsume.push_back(atoi(argv[19]));
+    predMaxMove.push_back(atof(argv[21])); // NOT GOOD hard coded
 
-    predConvRate.push_back(atoi(argv[20]));
+    predMaxConsume.push_back(atoi(argv[22]));
 
-    predMaintenanceCost.push_back(atoi(argv[21]));
+    predConvRate.push_back(atoi(argv[23]));
 
-    predMaxOffspring.push_back(atoi(argv[22]));
+    predMaintenanceCost.push_back(atoi(argv[24]));
 
-    predReproCost.push_back(atoi(argv[23]));
+    predMaxOffspring.push_back(atoi(argv[25]));
+
+    predReproCost.push_back(atoi(argv[26]));
 
     /* time variables */
-    timeMax = atoi(argv[24]);  // simulation time
-    timeBurn = atoi(argv[25]); // let the animals feed for a while before "daily" death trial
-    freqRepro = atoi(argv[26]);
-    freqSurvi = atoi(argv[27]);
+    timeMax = atoi(argv[27]);  // simulation time
+    timeBurn = atoi(argv[28]); // let the animals feed for a while before "daily" death trial
+    freqRepro = atoi(argv[29]);
+    freqSurvi = atoi(argv[30]);
 
     /* ---- construct matching structures ---- */
 
@@ -1342,8 +1347,8 @@ int main(int argc, char *argv[])
     /* create prey pointer group */
     prey *preys[2] = {prey1, prey2};
 
-    predator pred1(predInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
-    pred1.assignPredatorVariables(1, 5);
+    predator pred1(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[1], world.XYcoordinates, world.cellCode);
+    pred1.assignPredatorVariables(predMaxConsume[0], predConvRate[0]);
 
     /* if more than one predator
     predator *pred1 = new predator(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
