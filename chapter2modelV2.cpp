@@ -1289,7 +1289,7 @@ int main()
 
     /* check create function : OK*/
     prey1->getInfo();
-    prey1->getInfo();
+    prey2->getInfo();
     pred1.getInfo();
 
     /* create results and snapshot csv files */
