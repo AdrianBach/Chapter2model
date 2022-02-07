@@ -50,13 +50,18 @@ vector<int> predIntro;            // time of introduction of the predator
 /* time variables */
 int timeMax;  // simulation time
 int timeBurn; // let the animals feed for a while before "daily" death trial
-int freqRepro;
-int freqSurvi;
+int freqRepro; // frequency of reproduction trial
+int freqSurvi;  // frequency of survival trial
+int freqResu;   // frequency of save of the results
+int freqSnap;   // frequency of snapshot of the landscape
+
+/* seed for random number generator */
+unsigned int randomSeed;
 
 /* structures for the ibm */
-/* pointers to members' matching lists (arrays) + size variables */
 int memberMatchingListsSize; // total number of types
 
+/* pointers to members' matching lists (arrays) + size variables */
 string *memberTypes;   //
 int *typeTags;         //
 int *indexInLandscape; // column index of each type in the landscape table
@@ -1315,6 +1320,13 @@ int main(int argc, char **argv)
     freqRepro = atoi(argv[30]);
     freqSurvi = atoi(argv[31]);
 
+    /* assessment frequency variables */
+    freqResu = atoi(argv[32]);
+    freqSnap = atoi(argv[33]);
+
+    /* seed */
+    randomSeed = atoi(argv[34]);
+
     /* ---- construct matching structures ---- */
 
     memberMatchingListsSize = resourceTypesNb + preyTypesNb + predatorTypesNb;
@@ -1323,7 +1335,7 @@ int main(int argc, char **argv)
 
     makeDietsTable(); // NEED 1 delete[] : OK
 
-    srand(time(0)); // set random generator seed with instant time
+    srand(randomSeed); // set random generator seed with instant time
 
     /* ---- initiate world ---- */
 
@@ -1345,13 +1357,13 @@ int main(int argc, char **argv)
     /* create prey pointer group */
     prey *preys[2] = {prey1, prey2};
 
-    predator pred1(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[0], world.XYcoordinates, world.cellCode);
-    pred1.assignPredatorVariables(predMaxConsume[0], predConvRate[0]);
+    // predator pred1(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[0], world.XYcoordinates, world.cellCode);
+    // pred1.assignPredatorVariables(predMaxConsume[0], predConvRate[0]);
+
+    predator *pred1 = new predator(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[0], world.XYcoordinates, world.cellCode);
+    pred1->assignPredatorVariables(predMaxConsume[0], predConvRate[0]);
 
     /* if more than one predator
-    predator *pred1 = new predator(predatorsInitialDensities[0], 301, 1, 3, 5, worldSize, 1, world.XYcoordinates, world.cellCode);
-    pred1->assignPredatorVariables(1, 5);
-
     predator *predators[predatorTypesNb] = {};
     pred1->getInfo();
     */
@@ -1359,7 +1371,7 @@ int main(int argc, char **argv)
     /* check create function : OK
     prey1->getInfo();
     prey2->getInfo();
-    pred1.getInfo();
+    pred1->getInfo();
     */
 
     /* ---- create results and snapshot csv files ---- */
@@ -1381,9 +1393,10 @@ int main(int argc, char **argv)
 
     while (timeStep < timeMax)
     {
-        /* debug */
+        /* debug 
         cout << "time step " << timeStep << endl
              << endl;
+        */
 
         if (timeStep > 0)
         {
@@ -1400,14 +1413,14 @@ int main(int argc, char **argv)
 
             /* predators */
             if (timeStep >= predIntro[0])
-                pred1.randomMove(world.XYcoordinates, world.cellCode);
+                pred1->randomMove(world.XYcoordinates, world.cellCode);
 
             // for (int i = 0; i < predatorTypesNb; i++)
             // {
             //     predators[i]->randomMove(world.XYcoordinates, world.cellCode);
             // }
 
-            // pred1.getInfo();
+            // pred1->getInfo();
 
             /* -- measure densities -- */
 
@@ -1420,14 +1433,14 @@ int main(int argc, char **argv)
 
             /* predators */
             if (timeStep >= predIntro[0])
-                pred1.measureDensity(world.landscapeTablePtr);
+                pred1->measureDensity(world.landscapeTablePtr);
 
             // for (int i = 0; i < predatorTypesNb; i++)
             // {
             //     predators[i]->measureDensity(world.landscapeTablePtr);
             // }
 
-            // pred1.getInfo();
+            // pred1->getInfo();
 
             /* -- feeding -- */
 
@@ -1440,14 +1453,14 @@ int main(int argc, char **argv)
 
             /* predators */
             if (timeStep >= predIntro[0])
-                pred1.hunt(world.landscapeTablePtr, false);
+                pred1->hunt(world.landscapeTablePtr, false);
 
             // for (int i = 0; i < predatorTypesNb; i++)
             // {
             //     predators[i]->hunt(world.landscapeTablePtr, false);
             // }
 
-            // pred1.getInfo();
+            // pred1->getInfo();
 
             /* -- counting catches -- */
 
@@ -1470,14 +1483,14 @@ int main(int argc, char **argv)
 
                 /* predators */
                 if (timeStep >= predIntro[0])
-                    pred1.survivalTrial();
+                    pred1->survivalTrial();
 
                 // for (int i = 0; i < predatorTypesNb; i++)
                 // {
                 //     predators[i]->survivalTrial();
                 // }
 
-                // pred1.getInfo();
+                // pred1->getInfo();
             }
 
             /* -- reproducing -- */
@@ -1492,14 +1505,14 @@ int main(int argc, char **argv)
 
                 /* predators */
                 if (timeStep >= predIntro[0])
-                    pred1.reproductionTrial();
+                    pred1->reproductionTrial();
 
                 // for (int i = 0; i < predatorTypesNb; i++)
                 // {
                 //     predators[i]->reproductionTrial();
                 // }
 
-                // pred1.getInfo();
+                // pred1->getInfo();
             }
         }
 
@@ -1507,21 +1520,21 @@ int main(int argc, char **argv)
 
         /* preys */
         for (int i = 0; i < preyTypesNb; i++)
-            preys[i]->updatePopulationTable(true);
+            preys[i]->updatePopulationTable(false);
 
         // prey1->getInfo();
         // prey2->getInfo();
 
         /* predators */
         if (timeStep >= predIntro[0])
-            pred1.updatePopulationTable(true);
+            pred1->updatePopulationTable(false);
 
         // for (int i = 0; i < predatorTypesNb; i++)
         // {
         //     predators[i]->updatePopulationTable(false);
         // }
 
-        // pred1.getInfo();
+        // pred1->getInfo();
 
         /* -- measure densities -- */
 
@@ -1534,24 +1547,27 @@ int main(int argc, char **argv)
 
         /* predators */
         if (timeStep >= predIntro[0])
-            pred1.measureDensity(world.landscapeTablePtr);
+            pred1->measureDensity(world.landscapeTablePtr);
 
         // for (int i = 0; i < predatorTypesNb; i++)
         // {
         //     predators[i]->measureDensity(world.landscapeTablePtr);
         // }
 
-        // pred1.getInfo();
+        // pred1->getInfo();
 
         /* ---- save measures and snapshot in files ---- */
-        world.saveMeasures(resultsTableName, timeStep);
-        world.snapshot(snapshotTableName, timeStep);
+        if (timeStep % freqResu == 0)
+            world.saveMeasures(resultsTableName, timeStep);
+        
+        if (timeStep % freqSnap == 0)
+            world.snapshot(snapshotTableName, timeStep);
 
         /* ---- check extinctions ---- */
         // if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1->currentPopulationSize == 0)
-        if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1.currentPopulationSize == 0)
+        if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1->currentPopulationSize == 0)
         {
-            cout << "at least one population got extinct, stop simulation" << endl
+            cout << "Time step #" << timeStep << ": at least one population got extinct, stop simulation" << endl
                  << endl;
             break;
         }
