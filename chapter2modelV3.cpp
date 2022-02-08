@@ -678,8 +678,6 @@ public:                      // can be used / called in the main function
                         snapshotTable << landscapeTablePtr[r][column] << "\n";
                 }
 
-                snapshotTable << "\n";
-
                 r++;
             }
 
@@ -873,7 +871,7 @@ public:
         }
     }
 
-    void updatePopulationTable(bool debug) // updates current pop size, creates a new table with updated information, replaces popTable with the updated version, reset offspring to 0, deletes the older version
+    void updatePopulationTable(int timeStep, bool debug) // updates current pop size, creates a new table with updated information, replaces popTable with the updated version, reset offspring to 0, deletes the older version
     {
 
         /* update current population size with deaths and offspring */
@@ -885,10 +883,10 @@ public:
 
         /* make warnings if low pop */
         if (float(currentPopulationSize) <= 0.1 * float(initialDensity))
-            cout << memberTypes[membersMatchingListsIndex] << "'s population is under 10 percent of its initial size" << endl
+            cout << "time step #" << timeStep << ": " << memberTypes[membersMatchingListsIndex] << "'s population is under 10 percent of its initial size" << endl
                  << endl;
         if (currentPopulationSize == 0)
-            cout << memberTypes[membersMatchingListsIndex] << "'s population has gone extinct" << endl
+            cout << "time step #" << timeStep << ": " << memberTypes[membersMatchingListsIndex] << "'s population has gone extinct" << endl
                  << endl;
 
         if (debug == true)
@@ -1029,7 +1027,7 @@ private:
     int maxConsumption; // max resource units the prey can consume in a time step
 
 public:
-    prey(int preyInitialDensity, int preyTypeTag, int preyMaxMovingDistance, int preyMaintenanceCost, int preyReproductionCost, int LandscapeSize, int preyMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(preyInitialDensity, preyTypeTag, preyMaxMovingDistance, preyMaintenanceCost, preyReproductionCost, LandscapeSize, preyMaxOffspring, XYcoordinates, CellCodes) //
+    prey(int preyInitialDensity, int preyTypeTag, float preyMaxMovingDistance, int preyMaintenanceCost, int preyReproductionCost, int LandscapeSize, int preyMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(preyInitialDensity, preyTypeTag, preyMaxMovingDistance, preyMaintenanceCost, preyReproductionCost, LandscapeSize, preyMaxOffspring, XYcoordinates, CellCodes) //
     {
     }
 
@@ -1161,7 +1159,7 @@ protected:
     int conversionRate; // equivalent of a catch in resources
 
 public:
-    predator(int initialDensity, int typeTag, int maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring, XYcoordinates, CellCodes) //
+    predator(int initialDensity, int typeTag, float maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring, XYcoordinates, CellCodes) //
     {
     }
 
@@ -1357,9 +1355,6 @@ int main(int argc, char **argv)
     /* create prey pointer group */
     prey *preys[2] = {prey1, prey2};
 
-    // predator pred1(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[0], world.XYcoordinates, world.cellCode);
-    // pred1.assignPredatorVariables(predMaxConsume[0], predConvRate[0]);
-
     predator *pred1 = new predator(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[0], world.XYcoordinates, world.cellCode);
     pred1->assignPredatorVariables(predMaxConsume[0], predConvRate[0]);
 
@@ -1368,11 +1363,11 @@ int main(int argc, char **argv)
     pred1->getInfo();
     */
 
-    /* check create function : OK
-    prey1->getInfo();
-    prey2->getInfo();
-    pred1->getInfo();
-    */
+    /* check create function : OK*/
+    // prey1->getInfo();
+    // prey2->getInfo();
+    // pred1->getInfo();
+    
 
     /* ---- create results and snapshot csv files ---- */
 
@@ -1520,14 +1515,14 @@ int main(int argc, char **argv)
 
         /* preys */
         for (int i = 0; i < preyTypesNb; i++)
-            preys[i]->updatePopulationTable(false);
+            preys[i]->updatePopulationTable(timeStep, false);
 
         // prey1->getInfo();
         // prey2->getInfo();
 
         /* predators */
         if (timeStep >= predIntro[0])
-            pred1->updatePopulationTable(false);
+            pred1->updatePopulationTable(timeStep, false);
 
         // for (int i = 0; i < predatorTypesNb; i++)
         // {

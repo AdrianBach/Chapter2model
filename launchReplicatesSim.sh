@@ -21,7 +21,7 @@ make
 #### Parameter list: assign values ####
 
 # landscape variables
-size=3 # argv[2] world's side size
+size=4 # argv[2] world's side size
 res_nb=2 # argv[3] number of resource types
 max_res_1=10 # argv[4] max resource 1 per cell
 max_res_2=10 # argv[5] max resource 1 per cell
@@ -47,9 +47,9 @@ prd_init_1=5 # argv[20] predator 1 initial density in nb of individuals
 prd_move_1=0.3 # argv[21] predator 1 max movement range in fraction of size
 prd_cons_1=1 # argv[22] predator 1 max catches per time step in prey unit
 prd_conv_1=5 # argv[23] predator 1 conversion rate of 1 catch into resources
-prd_surv_1=5 # argv[24] predator 1 resource units needed to pass survival trial
+prd_surv_1=3 # argv[24] predator 1 resource units needed to pass survival trial
 prd_offs_1=2 # argv[25] predator 1 max number of offspring
-prd_repr_1=4 # argv[26] predator 1 resource units needed to pass reproduction trial
+prd_repr_1=5 # argv[26] predator 1 resource units needed to pass reproduction trial
 prd_intr_1=4 # argv[27] predator 1 time of introduction in the model
 
 # time variables
@@ -59,8 +59,8 @@ freq_repr=2 # argv[30] frequency of reproduction trials
 freq_surv=2 # argv[31] frequency of survival trials
 
 # frequency of assessment
-freq_rslt=2 # argv[32] frequency of landscape snap shot
-freq_snap=2 # argv[33] frequency of results measure
+freq_rslt=1 # argv[32] frequency of landscape snap shot
+freq_snap=5 # argv[33] frequency of results measure
 
 # name the simulation with only the variables of interest and their value
 sim_name="control-size$size-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry2init$pry_init_2-prdInit$prd_init_1" # argv[1]
@@ -70,17 +70,19 @@ rep=3
 
 #### Create useful directories ####
 
-# create a directory for the simulation
-mkdir $sim_name
-
-# if the directory exists, delete content?
+# if the directory exists, delete content? otherwise create it
 while true; do
-    read -p "The simulation directory already exists, its content will be deleted, continue?" yn
-    case $yn in
-        [Yy]* ) find $sim_name -mindepth 1 -delete; break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
+    if [ -d $sim_name ]; then
+        read -p "The simulation directory already exists, its content will be deleted, continue?" yn
+        case $yn in
+            [Yy]* ) find $sim_name -mindepth 1 -delete; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    else
+        # create a directory for the simulation
+        mkdir $sim_name
+    fi
 done
 
 # move the executable program there
