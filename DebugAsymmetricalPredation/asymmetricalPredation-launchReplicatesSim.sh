@@ -39,13 +39,13 @@ pry_offs_2=1 # argv[16] prey 2 max number of offspring
 prd_nb=1 # argv[19] number of predator types
 prd_move_1=0.25 # argv[21] predator 1 max movement range in fraction of size
 prd_offs_1=1 # argv[23] predator 1 max number of offspring
-prd_intr_1=2 # argv[25] predator 1 time of introduction in the model
+prd_intr_1=1 # argv[25] predator 1 time of introduction in the model
 
 # time variables
-simu_time=10 # argv[26] simulation time
+simu_time=4 # argv[26] simulation time
 burn_time=0 # argv[27] time steps to burn before lauching regular survival and reproduction trials
-freq_repr=2 # argv[28] frequency of reproduction trials
-freq_surv=2 # argv[29] frequency of survival trials
+freq_repr=1 # argv[28] frequency of reproduction trials
+freq_surv=1; echo "freq_surv = $freq_surv" # argv[29] frequency of survival trials
 
 # frequency of assessment
 freq_rslt=1 # argv[30] frequency of landscape snap shot
@@ -61,7 +61,7 @@ divide=$max_res_1; by=3; ((pry_cons_1=($divide+$by-1)/$by)); #echo "pry_cons_1 =
 # pry_cons_2= # argv[12] prey 2 max consumption
 divide=$max_res_2; by=3; ((pry_cons_2=($divide+$by-1)/$by)); # echo "pry_cons_2 = $pry_cons_2"
 # pry_surv_1= # argv[13] prey 1 resource units needed to pass survival trial. 
-divide=$freq_repr*$pry_cons_1; by=3; ((pry_surv_1=($divide+$by-1)/$by)); # echo "pry_surv_1 = $pry_surv_1" # by = max number of time step without eating.
+divide=$freq_repr*$pry_cons_1; by=3; ((pry_surv_1=($divide+$by-1)/$by)); echo "pry_surv_1 = $pry_surv_1" # by = max number of time step without eating.
 # pry_surv_2= # argv[14] prey 2 resource units needed to pass survival trial
 divide=$freq_repr*$pry_cons_2; by=3; ((pry_surv_2=($divide+$by-1)/$by)); # echo "pry_surv_2 = $pry_surv_2"
 pry_repr_1=$pry_surv_1; # echo "pry_repr_1 = $pry_repr_1" # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.

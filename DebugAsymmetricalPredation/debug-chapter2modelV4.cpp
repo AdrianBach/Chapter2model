@@ -237,7 +237,7 @@ void makeDietsTable() // this table allows for each member of the system to eat 
     /* Set to 1 when one feeds on the other */
     dietsTable[0][2] = 1; // prey1 feeds on resource1
     dietsTable[1][3] = 1; // prey2 feeds on resource2
-    dietsTable[2][4] = 5; // predator1 feeds on prey1 with a conversion rate  of 5
+    dietsTable[2][4] = 7; // predator1 feeds on prey1 with a conversion rate  of 5
     dietsTable[3][4] = 5; // predator1 feeds on prey2 with a conversion rate  of 5
 
     /* debug : OK
@@ -334,7 +334,7 @@ void sortWhileKeepingIndex(vector<int> ConversionRateVec, vector<int> IndexesVec
 
     while (row < (ConversionRateVec.size() - 1)) // until we reach the line before last
     {
-        if (ConversionRateVec[row] > ConversionRateVec[row + 1]) // if the focal element is greater than the next
+        if (ConversionRateVec[row] >= ConversionRateVec[row + 1]) // if the focal element is greater than the next
         {
             row++; // leave as is and go to next line
         }
@@ -1197,7 +1197,7 @@ public:
     {
     }
 
-    void getDietInfo()
+    void getDietInfo(bool debug)
     {
         /* get preys conversion rates in dietsTable */
         for (int i = 0; i < memberMatchingListsSize; i++)
@@ -1212,7 +1212,46 @@ public:
         /* compute max catches */
         for (int i = 0; i < conversionRates.size(); i++)
         {
-            maxCatches.push_back(ceil(maintenanceCost * 3 / (conversionRates[i] * freqSurv))); // HARD CODED number of days without eating
+            int res = ceil(float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv))); // HARD CODED number of days without eating
+
+            // if (debug == true)
+            //     cout << "maxCatches prey " << i+1  << endl;
+            //     cout << "maintenace cost * 3 should be 3*3=9 and is : " << maintenanceCost * 3 << endl;
+            //     cout << "conversionRates[i] * freqSurv should be 5*2=10 and is : " << conversionRates[i] * freqSurv << endl;
+            //     cout << "their division should be 9/10=0.9 and is : " << maintenanceCost * 3 / (conversionRates[i] * freqSurv) << endl;
+            //     cout << "after ceil : " << ceil(maintenanceCost * 3 / (conversionRates[i] * freqSurv)) << endl;
+            //     cout << "trying to force float type " << float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv)) << endl;
+            //     cout << "after ceil " << ceil(float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv))) << endl << endl;
+
+            maxCatches.push_back(res);
+        }
+
+        /* debug */
+        if (debug == true)
+        {
+            cout << "conversionRates contains: ";
+            for (int i = 0; i < conversionRates.size(); i++)
+            {
+                cout << conversionRates[i] << " ";
+            }
+            cout << endl
+                 << endl;
+
+            cout << "preysLandscapeIndexes contains: ";
+            for (int i = 0; i < preysLandscapeIndexes.size(); i++)
+            {
+                cout << preysLandscapeIndexes[i] << " ";
+            }
+            cout << endl
+                 << endl;
+
+            cout << "maxCatches contains: ";
+            for (int i = 0; i < maxCatches.size(); i++)
+            {
+                cout << maxCatches[i] << " ";
+            }
+            cout << endl
+                 << endl;
         }
     }
 
@@ -1255,8 +1294,8 @@ public:
                 shuffledIndexes.push_back(i);
             }
 
-            /* shuffle indexes and update conversionRates and maxCatches accordingly */
             random_shuffle(shuffledIndexes.begin(), shuffledIndexes.end());
+
             for (int i = 0; i < shuffledIndexes.size(); i++)
             {
                 int index = shuffledIndexes[i];
@@ -1265,19 +1304,134 @@ public:
                 shuffledMaxCatches.push_back(maxCatches[index]);
             }
 
+            // /* debug */
+            // if (debug == true)
+            // {
+            //     cout << "shuffledIndexes contains: ";
+            //     for (int i = 0; i < shuffledIndexes.size(); i++)
+            //     {
+            //         cout << shuffledIndexes[i] << " ";
+            //     }
+            //     cout << endl
+            //          << endl;
+
+            //     cout << "shuffledConversionRates contains: ";
+            //     for (int i = 0; i < shuffledConversionRates.size(); i++)
+            //     {
+            //         cout << shuffledConversionRates[i] << " ";
+            //     }
+            //     cout << endl
+            //          << endl;
+
+            //     cout << "shuffledPreysLandscapreIndexes contains: ";
+            //     for (int i = 0; i < shuffledPreysLandscapreIndexes.size(); i++)
+            //     {
+            //         cout << shuffledPreysLandscapreIndexes[i] << " ";
+            //     }
+            //     cout << endl
+            //          << endl;
+
+            //     cout << "shuffledMaxCatches contains: ";
+            //     for (int i = 0; i < shuffledMaxCatches.size(); i++)
+            //     {
+            //         cout << shuffledMaxCatches[i] << " ";
+            //     }
+            //     cout << endl
+            //          << endl;
+            // }
+
             /* sort the diet by conversion rate while keeping index info: if all the same, still random, otherwise most nourrishing prey first */
             vector<int> sortedIndexes = shuffledIndexes;
             vector<int> sortedConversionRates = shuffledConversionRates;
             vector<int> sortedPreyLandscapeIndexes;
             vector<int> sortedMaxCatches;
 
-            sortWhileKeepingIndex(sortedConversionRates, sortedIndexes);
+            /* debug */
+            if (debug == true)
+            {
+                cout << "sortedIndexes contains: ";
+                for (int i = 0; i < sortedIndexes.size(); i++)
+                {
+                    cout << sortedIndexes[i] << " ";
+                }
+                cout << endl
+                     << endl;
+
+                cout << "sortedConversionRates contains: ";
+                for (int i = 0; i < sortedConversionRates.size(); i++)
+                {
+                    cout << sortedConversionRates[i] << " ";
+                }
+                cout << endl
+                     << endl;
+            }
+
+            /* sorting according to conversion rate while keeping the indexes */
+            int row = 0; // initiate row count
+
+            while (row < (sortedConversionRates.size() - 1)) // until we reach the line before last
+            {
+                if (sortedConversionRates[row] >= sortedConversionRates[row + 1]) // if the focal element is greater than the next
+                {
+                    row++; // leave as is and go to next line
+                }
+                else // if not switch positions and restart to the first line
+                {
+                    int co1 = sortedConversionRates[row];
+                    int co2 = sortedConversionRates[row + 1];
+                    int in1 = sortedIndexes[row];
+                    int in2 = sortedIndexes[row + 1];
+
+                    sortedConversionRates[row] = co2;
+                    sortedConversionRates[row + 1] = co1;
+                    sortedIndexes[row] = in2;
+                    sortedIndexes[row + 1] = in1;
+
+                    row = 0; // restart row count
+                }
+            }
 
             for (int i = 0; i < sortedIndexes.size(); i++)
             {
                 int index = sortedIndexes[i];
-                sortedPreyLandscapeIndexes[i] = shuffledPreysLandscapreIndexes[index];
-                sortedMaxCatches[i] = shuffledMaxCatches[index];
+                sortedPreyLandscapeIndexes.push_back(preysLandscapeIndexes[index]);
+                sortedMaxCatches.push_back(maxCatches[index]);
+            }
+
+            /* debug */
+            if (debug == true)
+            {
+                cout << "sortedIndexes contains: ";
+                for (int i = 0; i < sortedIndexes.size(); i++)
+                {
+                    cout << sortedIndexes[i] << " ";
+                }
+                cout << endl
+                     << endl;
+
+                cout << "sortedConversionRates contains: ";
+                for (int i = 0; i < sortedConversionRates.size(); i++)
+                {
+                    cout << sortedConversionRates[i] << " ";
+                }
+                cout << endl
+                     << endl;
+
+                cout << "sortedPreyLandscapeIndexes contains: ";
+                for (int i = 0; i < sortedPreyLandscapeIndexes.size(); i++)
+                {
+                    cout << sortedPreyLandscapeIndexes[i] << " ";
+                }
+                cout << endl
+                     << endl;
+
+                cout << "sortedMaxCatches contains: ";
+                for (int i = 0; i < sortedMaxCatches.size(); i++)
+                {
+                    cout << sortedMaxCatches[i] << " ";
+                }
+                cout << endl
+                     << endl;
             }
 
             int catches = 0; // initialise a catch counter
@@ -1437,7 +1591,7 @@ int main(int argc, char **argv)
     prey *preys[2] = {prey1, prey2};
 
     predator *pred1 = new predator(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[0], world.XYcoordinates, world.cellCode);
-    pred1->getDietInfo();
+    pred1->getDietInfo(false);
 
     /* if more than one predator
     predator *predators[predatorTypesNb] = {};
@@ -1471,7 +1625,6 @@ int main(int argc, char **argv)
         /* debug*/
         cout << "time step " << timeStep << endl
              << endl;
-        
 
         if (timeStep > 0)
         {
