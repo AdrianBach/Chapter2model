@@ -38,18 +38,19 @@ int predatorTypesNb;              // Number of predators modelled
 vector<string> predatorTypes;     // res1..n
 vector<int> predInitialDensities; //
 vector<float> predMaxMove;        // NOT GOOD should rather be defined in % of landscape size CAREFUL the product has to stay int
-vector<int> predMaxConsume;       // in prey catches
-vector<int> predConvRate;         // conversion rate catches into resource units
+vector<int> predMaxConsume;       // in equivalent resources
+// vector<int> predConvRate;         // conversion rate catches into resource units
 vector<int> predMaintenanceCost;  //
 vector<int> predMaxOffspring;     //
 vector<int> predReproCost;        //
 vector<int> predIntro;            // time of introduction of the predator
+vector<int> predAsymm;
 // frequency of reproduction
 // frequency of survival trial
 
 /* time variables */
 int timeMaxi; // simulation time
-int timeBurn; // let the animals feed for a while before "daily" death trial
+// int timeBurn; // let the animals feed for a while before "daily" death trial
 int freqRepr; // frequency of reproduction trial
 int freqSurv; // frequency of survival trial
 int freqResu; // frequency of save of the results
@@ -201,7 +202,7 @@ int getMemberIndexFromTag(int TypeTag)
     return index; // returns the row index of the tag. It will be the same in all members matching lists.
 }
 
-void makeDietsTable() // this table allows for each member of the system to eat and be eaten by another
+void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio) // this table allows for each member of the system to eat and be eaten by another
 {
 
     int dietsTableSize = memberMatchingListsSize;
@@ -237,8 +238,8 @@ void makeDietsTable() // this table allows for each member of the system to eat 
     /* Set to 1 when one feeds on the other */
     dietsTable[0][2] = 1; // prey1 feeds on resource1
     dietsTable[1][3] = 1; // prey2 feeds on resource2
-    dietsTable[2][4] = 5; // predator1 feeds on prey1 with a conversion rate  of 5
-    dietsTable[3][4] = 5; // predator1 feeds on prey2 with a conversion rate  of 5
+    dietsTable[2][4] = ceil(2*Prey1MaxConsume); // predator1 feeds on prey1 with a conversion rate  of 5
+    dietsTable[3][4] = ceil(2*Prey1MaxConsume*ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of 5
 
     /* debug : OK
     cout << "dietsTable" << endl;
@@ -1191,13 +1192,14 @@ protected:
     vector<int> conversionRates;       // conversion of each prey catch in resources
     vector<int> preysLandscapeIndexes; //
     vector<int> maxCatches;            // max number of catches per day and per prey
+    int predMaxConsume;
 
 public:
     predator(int initialDensity, int typeTag, float maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring, XYcoordinates, CellCodes) //
     {
     }
 
-    void getDietInfo()
+    void getDietInfo() // int PredMaxConsume)
     {
         /* get preys conversion rates in dietsTable */
         for (int i = 0; i < memberMatchingListsSize; i++)
@@ -1215,6 +1217,9 @@ public:
             int res = ceil(float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv))); // HARD CODED number of days without eating
             maxCatches.push_back(res); // HARD CODED number of days without eating
         }
+
+        /* assign predMaxConsume */
+        // predMaxConsume = PredMaxConsume;
     }
 
     void hunt(int **LandscapeTable, bool debug)
@@ -1304,19 +1309,24 @@ public:
                 sortedMaxCatches.push_back(maxCatches[index]);
             }
 
-            int catches = 0; // initialise a catch counter
+            /* set maxConsume to the preys' highest conversion rate */
+            predMaxConsume = sortedConversionRates[0];
 
             /* iterate through prey columns and while catches < maxCatches and
                that there are prey available, catch them */
 
             for (int i = 0; i < sortedConversionRates.size(); i++)
             {
-                /* get density */
+                /* get preys info */
                 int densColumn = sortedPreyLandscapeIndexes[i];
                 int catchColumn = densColumn + preyTypesNb;
                 int dens = LandscapeTable[indCellCode][densColumn];
                 int convRate = sortedConversionRates[i];
                 int maxCatch = sortedMaxCatches[i];
+
+                int predCons = populationTablePtr[rowIndex][3]; // get predator resource pool
+
+                int catches = 0; // initialise a catch counter for this particular prey
 
                 if (debug == true)
                 {
@@ -1326,7 +1336,7 @@ public:
                          << endl;
                 }
 
-                if (dens > 0 && catches < maxCatch) // if prey present and maxCatches is not attained yet
+                if (dens > 0 && catches < maxCatch && predCons < predMaxConsume) // if prey present and maxCatches is not attained yet
                 {
                     LandscapeTable[indCellCode][catchColumn] += 1;   // increment corresponding catch cell in landscape table
                     LandscapeTable[indCellCode][densColumn] -= 1;    // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
@@ -1405,9 +1415,9 @@ int main(int argc, char **argv)
 
     predMaxMove.push_back(atof(argv[21]));
 
-    // predMaxConsume.push_back(atoi(argv[22]));
+    // predMaxConsume.push_back(atoi(argv[]));
 
-    // predConvRate.push_back(atoi(argv[23]));
+    // predConvRate.push_back(atoi(argv[]));
 
     predMaintenanceCost.push_back(atoi(argv[22]));
 
@@ -1417,11 +1427,13 @@ int main(int argc, char **argv)
 
     predIntro.push_back(atoi(argv[25]));
 
+    predAsymm.push_back(atoi(argv[26]));
+
     /* time variables */
-    timeMaxi = atoi(argv[26]); // simulation time
-    timeBurn = atoi(argv[27]); // let the animals feed for a while before "daily" death trial
-    freqRepr = atoi(argv[28]); //
-    freqSurv = atoi(argv[29]); //
+    timeMaxi = atoi(argv[27]); // simulation time
+    freqRepr = atoi(argv[28]); 
+    freqSurv = atoi(argv[29]); 
+    // timeBurn = atoi(argv[]); // let the animals feed for a while before "daily" death trial
 
     /* assessment frequency variables */
     freqResu = atoi(argv[30]);
@@ -1436,7 +1448,7 @@ int main(int argc, char **argv)
 
     assignTagsIndexes(); // creates individuals' matching tables. NEED 3 delete[] : OK
 
-    makeDietsTable(); // NEED 1 delete[] : OK
+    makeDietsTable(predMaxConsume[0], predAsymm[0]); // NEED 1 delete[] : OK
 
     srand(randomSeed); // set random generator seed with instant time
 
