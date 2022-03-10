@@ -28,6 +28,8 @@ res_nb=2 # argv[3] number of resource types
 max_res_1=10 # argv[4] max resource 1 per cell
 max_res_2=10 # argv[5] max resource 1 per cell
 
+max_cell=2.5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
+
 # prey variables
 pry_nb=2 # argv[6] number of prey types
 pry_move_1=0.25 # argv[9] prey 1 max movement range in fraction of size
@@ -44,8 +46,8 @@ prd_asym_1=1 # argv[26] asymmetry in prey1 to prey2 conversion rates
 
 # time variables
 simu_time=10 # argv[27] simulation time
-freq_repr=2 # argv[28] frequency of reproduction trials
-freq_surv=2 # argv[29] frequency of survival trials
+freq_repr=3 # argv[28] frequency of reproduction trials
+freq_surv=3 # argv[29] frequency of survival trials
 # burn_time=0 # argv[] time steps to burn before lauching regular survival and reproduction trials
 
 # frequency of assessment
@@ -58,17 +60,17 @@ rep=1
 ## Non user defined variables ##
 
 # pry_cons_1= # argv[11] prey 1 max consumption in resource units
-divide=$max_res_1; by=2.5; ((pry_cons_1=($divide+$by-1)/$by)); echo "pry_cons_1 = $pry_cons_1" # bash way to ceil a float. by = max expected number of animal per cell HARD CODED NOT IDEAL.
+divide=$max_res_1; by=$max_cell; pry_cons_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; echo "pry_cons_1 = $pry_cons_1" # bash way to ceil a float. by = max expected number of animal per cell HARD CODED NOT IDEAL.
 # pry_cons_2= # argv[12] prey 2 max consumption
-divide=$max_res_2; by=2.5; ((pry_cons_2=($divide+$by-1)/$by)); echo "pry_cons_2 = $pry_cons_2"
+divide=$max_res_2; by=$max_cell; pry_cons_2=`echo "scale=0; ($divide+$by-1)/$by" | bc`; echo "pry_cons_2 = $pry_cons_2"
 # pry_surv_1= # argv[13] prey 1 resource units needed to pass survival trial. 
-divide=$freq_surv*$pry_cons_1; by=3; ((pry_surv_1=($divide+$by-1)/$by)); echo "pry_surv_1 = $pry_surv_1" # by = a third of the max number of consecutive fasting days.
+divide=$freq_surv*$pry_cons_1; by=3; pry_surv_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; echo "pry_surv_1 = $pry_surv_1" # by = a third of the max number of consecutive fasting days.
 # pry_surv_2= # argv[14] prey 2 resource units needed to pass survival trial
-divide=$freq_surv*$pry_cons_2; by=3; ((pry_surv_2=($divide+$by-1)/$by)); echo "pry_surv_2 = $pry_surv_2"
+divide=$freq_surv*$pry_cons_2; by=3; pry_surv_2=`echo "scale=0; ($divide+$by-1)/$by" | bc`; echo "pry_surv_2 = $pry_surv_2"
 pry_repr_1=$pry_surv_1; # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduction trial
 
-prd_surv_1=$pry_surv_1*2; echo "prd_surv_1 = $prd_surv_1" # argv[22] predator1 resource units needed to pass survival trial # defined as a fraction of prey1's
+prd_surv_1=$(($pry_surv_1*2)); echo "prd_surv_1 = $prd_surv_1" # argv[22] predator1 resource units needed to pass survival trial # defined as a fraction of prey1's
 prd_repr_1=$prd_surv_1; echo "prd_repr_1 = $prd_repr_1" # argv[24] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 
 #### Simulation loop ####

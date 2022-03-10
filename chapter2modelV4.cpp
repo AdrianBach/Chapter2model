@@ -38,7 +38,7 @@ int predatorTypesNb;              // Number of predators modelled
 vector<string> predatorTypes;     // res1..n
 vector<int> predInitialDensities; //
 vector<float> predMaxMove;        // NOT GOOD should rather be defined in % of landscape size CAREFUL the product has to stay int
-vector<int> predMaxConsume;       // in equivalent resources
+// vector<int> predMaxConsume;       // in equivalent resources
 // vector<int> predConvRate;         // conversion rate catches into resource units
 vector<int> predMaintenanceCost;  //
 vector<int> predMaxOffspring;     //
@@ -1199,7 +1199,7 @@ public:
     {
     }
 
-    void getDietInfo() // int PredMaxConsume)
+    void getDietInfo()
     {
         /* get preys conversion rates in dietsTable */
         for (int i = 0; i < memberMatchingListsSize; i++)
@@ -1217,9 +1217,6 @@ public:
             int res = ceil(float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv))); // HARD CODED number of days without eating
             maxCatches.push_back(res); // HARD CODED number of days without eating
         }
-
-        /* assign predMaxConsume */
-        // predMaxConsume = PredMaxConsume;
     }
 
     void hunt(int **LandscapeTable, bool debug)
@@ -1336,7 +1333,7 @@ public:
                          << endl;
                 }
 
-                if (dens > 0 && catches < maxCatch && predCons < predMaxConsume) // if prey present and maxCatches is not attained yet
+                while(dens > 0 && catches < maxCatch && predCons < predMaxConsume) // if prey present and maxCatches is not attained yet
                 {
                     LandscapeTable[indCellCode][catchColumn] += 1;   // increment corresponding catch cell in landscape table
                     LandscapeTable[indCellCode][densColumn] -= 1;    // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
@@ -1351,7 +1348,7 @@ public:
                              << endl;
                     }
 
-                    if (catches == maxCatch)
+                    if (populationTablePtr[rowIndex][3] >= predMaxConsume)
                         break;
                 }
             }
@@ -1448,7 +1445,7 @@ int main(int argc, char **argv)
 
     assignTagsIndexes(); // creates individuals' matching tables. NEED 3 delete[] : OK
 
-    makeDietsTable(predMaxConsume[0], predAsymm[0]); // NEED 1 delete[] : OK
+    makeDietsTable(preyMaxConsume[0], predAsymm[0]); // NEED 1 delete[] : OK
 
     srand(randomSeed); // set random generator seed with instant time
 
