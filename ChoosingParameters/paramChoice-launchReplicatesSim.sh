@@ -11,7 +11,7 @@
 # to eventually get access 
 #   chmod u+x ./lauchreplicatesSim.sh
 # and execute
-#   bash ./lauchreplicatesSim.sh
+#   bash ./paramChoice-launchReplicatesSim.sh
 
 
 #### Parameter list: assign values ####
@@ -97,7 +97,8 @@ do
 
     # if the directory exists, delete content? otherwise create it
     while true; do
-        if [ -d "$sim_name" ]; then
+        if [ -d "$sim_name" ]
+        then
             read -p "The simulation directory already exists, its content will be deleted, continue?" yn
             case $yn in
                 [Yy]* ) find $sim_name -mindepth 1 -delete; break;;

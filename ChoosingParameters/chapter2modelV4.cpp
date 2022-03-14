@@ -784,7 +784,7 @@ public:
             cout << "the value that goes in the table is " << int(randomNumberGenerator(0, float(landscapeSize))) << endl;
             */
 
-            /* assign random coordinates between 0 and Size*/
+            /* assign random coordinates between 0 and Size */
             populationTablePtr[r][0] = int(randomNumberGenerator(0, landscapeSize - 1));
             populationTablePtr[r][1] = int(randomNumberGenerator(0, landscapeSize - 1));
 
