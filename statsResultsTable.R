@@ -40,7 +40,8 @@ boot_sd_ci <- function(x, confidence = 95, itr = 1000) {
 mergeResults <- function(path, keyword = c("Results", "Snapshot")) {
   
   # get the directory content
-  content <- list.files(paste("~/", path, sep = ""))
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
   
   # order alphabetically
   content <- content[order(content)]
@@ -52,7 +53,8 @@ mergeResults <- function(path, keyword = c("Results", "Snapshot")) {
   for (i in 1:length(content)) {
     
     # path to folder
-    folder = paste("~/", path, content[i], sep = "")
+    # folder = paste("~/", path, content[i], sep = "")
+    folder = paste(path, content[i], sep = "/")
     
     # get content
     sim = list.files(folder)
@@ -82,37 +84,30 @@ mergeResults <- function(path, keyword = c("Results", "Snapshot")) {
       replicate <- rep(j, times = dim(res)[1])
       res <- cbind(replicate, res)
       
-      repNA <- rep(NA, length.out = dim(res)[1])
+      # Compute growth rate
+      prey1growthRate <- 0
+      prey2growthRate <- 0
+      predatorGrowthRate <- 0
       
-      res <- cbind(res, repNA, repNA, repNA)
+      # loop over the lines
+      for (k in 2:dim(res)[1]) {
+        prey1growthRate     <- c(prey1growthRate, ifelse(res$prey1PopulationSize[k-1] != 0, 100*(res$prey1PopulationSize[k]-res$prey1PopulationSize[k-1])/res$prey1PopulationSize[k-1], 0))
+        prey2growthRate     <- c(prey2growthRate, ifelse(res$prey2PopulationSize[k-1] != 0, 100*(res$prey2PopulationSize[k]-res$prey2PopulationSize[k-1])/res$prey2PopulationSize[k-1], 0))
+        predatorGrowthRate  <- c(predatorGrowthRate, ifelse(res$predator1PopulationSize[k-1] != 0, 100*(res$predator1PopulationSize[k]-res$predator1PopulationSize[k-1])/res$predator1PopulationSize[k-1], 0))
+      } # end loop over lines
+      
+      res <- cbind(res, prey1growthRate, prey2growthRate, predatorGrowthRate)
       
       tab <- rbind(tab, res)
-      
-      rm(res) # no need for res now
     } # end loop over files (replicates)
     
     # name columns
     colnames(tab) <- headers
     
-    # Compute growth rate
-    tab$prey1growthRate[1] <- 0
-    tab$prey2growthRate[1] <- 0
-    tab$predatorGrowthRate[1] <- 0
-    
-    # loop over the lines
-    for (k in 2:dim(tab)[1]) {
-      tab$prey1growthRate[k] <- ifelse(tab$prey1PopulationSize[k-1] != 0, 100*(tab$prey1PopulationSize[k]-tab$prey1PopulationSize[k-1])/tab$prey1PopulationSize[k-1], 0)
-      tab$prey2growthRate[k] <- ifelse(tab$prey2PopulationSize[k-1] != 0, 100*(tab$prey2PopulationSize[k]-tab$prey2PopulationSize[k-1])/tab$prey2PopulationSize[k-1], 0)
-      tab$predatorGrowthRate[k] <- ifelse(tab$predator1PopulationSize[k-1] != 0, 100*(tab$predator1PopulationSize[k]-tab$predator1PopulationSize[k-1])/tab$predator1PopulationSize[k-1], 0)
-    } # end loop over lines
-    
     # create stats folder and save table
     newFolderDir <- paste(folder, "/stats-", content[i], sep = "")
     dir.create(path = newFolderDir)
     write.csv(tab, file = paste(newFolderDir, "/merged", keyword, "-", content[i], '.csv', sep = ""), row.names = FALSE)
-    
-    rm(tab) # no need for tab now
-    
   } # end loop over folders
   
 } # end of function
@@ -120,7 +115,8 @@ mergeResults <- function(path, keyword = c("Results", "Snapshot")) {
 statsResults <- function(path, keyword = c("Results", "Snapshot")) {
   
   # get the directory content
-  content <- list.files(paste("~/", path, sep = ""))
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
   
   # order alphabetically
   content <- content[order(content)]
@@ -132,7 +128,8 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
   for (i in 1:length(content)) {
     
     # path to folder
-    folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
     
     # get content
     sim = list.files(folder)
@@ -149,7 +146,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
     # read table
     stats <- read.csv(name)
     
-    # create table
+    ## create table
     
     # new headers
     headers <- colnames(stats)
@@ -162,26 +159,22 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
     tab <- data.frame(matrix(ncol = length(newHeaders), nrow = 0))
       
     # for loop making subset for each time step
-    ts <- seq(0,max(stats$timeStep))
+    ts <- levels(as.factor(stats$timeStep))
     for (j in 1:length(ts)) {
       
       # subset per ts number
-      sub <- subset(stats, stats$timeStep == ts[j])
+      sub <- subset(stats, stats$timeStep == as.numeric(ts[j]))
       
       # initiate new line with time step
-      newLine <- ts[j]
+      newLine <- as.numeric(ts[j])
       
       # apply stats to each column of measures
-      for (k in 3:(dim(sub)[2])) { # first line is ts
+      for (k in 3:(dim(sub)[2])) { # first line is rep, second is ts
         newLine <- c(newLine, mean(sub[,k]), boot_sd_ci(sub[,k])[2], boot_sd_ci(sub[,k])[3])
       }
       
       # rbind the line to tab
       tab <- rbind(tab, newLine)
-      
-      # reset newLine
-      sub <- NULL
-      newLine <- NULL
     }
     
     # column names
@@ -190,7 +183,11 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
     # write in the corresponding folder
     write.csv(tab, file = paste(folder, "/stats", keyword, "-", content[i], ".csv", sep = ""), row.names = FALSE)
     
-    rm(tab)
-    
   } # end of loop over folders
 } # end of function
+
+path = paste(getwd(), "ChoosingParameters", sep="/")
+keyword = "Results"
+
+mergeResults(path, keyword)
+statsResults(path, keyword)
