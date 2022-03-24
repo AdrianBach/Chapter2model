@@ -50,7 +50,7 @@ freq_rslt=$freq_repr    # argv[30] frequency of results snap shot
 freq_snap=10            # argv[31] frequency of snapshot measure
 
 # number of replicates
-rep=3
+rep=10
 
 ## Non user defined variables ##
 
@@ -186,6 +186,9 @@ do
         mv $sim_name-ResultsTable.csv rep$j-$sim_name-ResultsTable.csv
         mv $sim_name-SnapshotTable.csv rep$j-$sim_name-SnapshotTable.csv
     done
+
+    # no need for the executable afterwards
+    rm ./chapter2ibm.o
 
     echo "All replicates done, moving back to the upper directory"
 

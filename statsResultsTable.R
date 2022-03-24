@@ -150,7 +150,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
     
     # new headers
     headers <- colnames(stats)
-    newHeaders <- headers[2]
+    newHeaders <- c(headers[2], "repNb")
     for (k in 3:length(headers)) {
       newHeaders <- c(newHeaders, paste(headers[k], "Mean", sep = ""), paste(headers[k], "ICinf", sep = ""), paste(headers[k], "ICsup", sep = ""))
     }
@@ -166,7 +166,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
       sub <- subset(stats, stats$timeStep == as.numeric(ts[j]))
       
       # initiate new line with time step
-      newLine <- as.numeric(ts[j])
+      newLine <- c(as.numeric(ts[j]), dim(sub)[1])
       
       # apply stats to each column of measures
       for (k in 3:(dim(sub)[2])) { # first line is rep, second is ts
@@ -186,8 +186,104 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
   } # end of loop over folders
 } # end of function
 
-path = paste(getwd(), "ChoosingParameters", sep="/")
+getPosStab <- function(array, threshold, period) {
+  
+  posStab <- 1
+  
+  # initialise count
+  count <- 0
+  
+  # parse array
+  for (i in 1:length(array)) {
+    if (abs(array[i]) < threshold && abs(array[i]) > 0) {
+      count = count+1
+    } else {
+      count = 0
+    } 
+    
+    if (count >= period) {
+      posStab = i
+      break
+    }
+  }
+  
+  return(posStab)
+}
+
+posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), stabThreshold, stabPeriod) {
+  
+  # get the directory content
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
+  
+  # order alphabetically
+  content <- content[order(content)]
+  
+  # only the folders
+  content <- grep(pattern = c("choosing"), x = content, value = T)
+    
+  ## create table
+  # new headers
+  headers <- c("preyInit", "repNb", "threshold", "period", "pry1posStab", "pry2posStab", "prdPosStab", "prey1popEq", "prey2popEq", "predatorPopEq")
+  newHeaders <- headers[1:(length(headers)-3)]
+  for (k in (length(headers)-2):length(headers)) {
+    newHeaders <- c(newHeaders, paste(headers[k], "Mean", sep = ""), paste(headers[k], "ICinf", sep = ""), paste(headers[k], "ICsup", sep = ""))
+  }
+  
+  # create an empty table 
+  tab <- data.frame(matrix(ncol = length(newHeaders), nrow = 0))
+  
+  # loop over the folders
+  for (i in 1:length(content)) {
+    
+    # path to folder
+    # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
+    
+    # get content
+    results = list.files(folder)
+    
+    # select only csv files
+    results <- grep(pattern = c("stats"), x = results, value = T)
+    
+    # select only results files
+    results <- grep(pattern = c(keyword), x = results, value = T)
+    
+    # get name
+    name <- paste(folder, results, sep = "/")
+    
+    # read table
+    stats <- read.csv(name)
+    
+    # find growthRate stabilization time step
+    pry1tstab <- getPosStab(stats$prey1growthRateMean, stabThreshold, stabPeriod)
+    pry2tstab <- getPosStab(stats$prey2growthRateMean, stabThreshold, stabPeriod)
+    prdTstab <- getPosStab(stats$predatorGrowthRateMean, stabThreshold, stabPeriod)
+    
+    newLine <- c(stats$prey1PopulationSizeMean[1], stats$repNb[1], stabThreshold, stabPeriod, stats$timeStep[pry1tstab], stats$timeStep[pry2tstab], stats$timeStep[prdTstab], 
+                 stats$prey1PopulationSizeMean[pry1tstab], stats$prey1PopulationSizeICinf[pry1tstab], stats$prey1PopulationSizeICsup[pry1tstab], 
+                 stats$prey2PopulationSizeMean[pry2tstab], stats$prey2PopulationSizeICinf[pry2tstab], stats$prey2PopulationSizeICsup[pry2tstab], 
+                 stats$predator1PopulationSizeMean[prdTstab], stats$predator1PopulationSizeICinf[prdTstab], stats$predator1PopulationSizeICsup[prdTstab])
+      
+    # rbind the line to tab
+    tab <- rbind(tab, newLine)
+  } # end of loop over folders
+    
+  # column names
+  colnames(tab) <- newHeaders
+  
+  # write in the corresponding folder
+  write.csv(tab, file = paste(path, "equilibriumNoPred.csv", sep = "/"), row.names = FALSE)
+
+} # end of function
+
+path = paste(getwd(), "Duthie_Sims", sep="/")
 keyword = "Results"
 
 mergeResults(path, keyword)
 statsResults(path, keyword)
+
+stabPeriod = 5
+stabThreshold = 10
+
+posStabNoPred(path, keyword, stabThreshold, stabPeriod)

@@ -1,0 +1,5 @@
+timeStep,resource1amount,resource2amount,prey1PopulationSize,prey2PopulationSize,prey1catches,prey2catches,predator1PopulationSize
+0,160,160,20,20,0,0,0
+3,86,84,28,32,0,0,0
+6,84,60,41,43,0,0,0
+9,60,48,56,55,0,0,0
