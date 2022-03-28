@@ -19,12 +19,12 @@
 ## User defined variables ##
 
 # landscape variables
-size=100    # argv[2] world's side size
+size=25    # argv[2] world's side size
 res_nb=2     # argv[3] number of resource types
 max_res_1=10 # argv[4] max resource 1 per cell
 max_res_2=10 # argv[5] max resource 1 per cell
 
-max_cell=1.5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
+max_cell=2.5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
 
 # prey variables
 pry_nb=2        # argv[6] number of prey types
@@ -91,7 +91,7 @@ do
     echo "prey populations initial density are $pry_init_1 and $pry_init_2 and predators $prd_init_1"
 
     # name the simulation with only the variables of interest and their value
-    sim_name="choosingPreyInitialPop-size$size-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry2init$pry_init_2-prdInit$prd_init_1" # argv[1]
+    sim_name="choosingPreyInitialPop-size$size-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry1maxCons$pry_cons_1-prdInit$prd_init_1" # argv[1]
 
     ## Create useful directories ##
 

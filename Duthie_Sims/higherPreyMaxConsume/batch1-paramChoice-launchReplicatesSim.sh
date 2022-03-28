@@ -91,7 +91,7 @@ do
     echo "prey populations initial density are $pry_init_1 and $pry_init_2 and predators $prd_init_1"
 
     # name the simulation with only the variables of interest and their value
-    sim_name="choosingPreyInitialPop-size$size-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry2init$pry_init_2-prdInit$prd_init_1" # argv[1]
+    sim_name="choosingPreyInitialPop-size$size-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry1maxCons$pry_cons_1-prdInit$prd_init_1" # argv[1]
 
     ## Create useful directories ##
 
