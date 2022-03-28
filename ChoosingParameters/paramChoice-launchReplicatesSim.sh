@@ -24,7 +24,7 @@ res_nb=2     # argv[3] number of resource types
 max_res_1=10 # argv[4] max resource 1 per cell
 max_res_2=10 # argv[5] max resource 1 per cell
 
-max_cell=2.5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
+max_cell=1.2 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
 
 # prey variables
 pry_nb=2        # argv[6] number of prey types
@@ -101,7 +101,7 @@ do
         while true; do
             read -p "The simulation directory already exists, its content will be deleted, continue?" yn
             case $yn in
-                [Yy]* ) find $sim_name -mindepth 1 -delete; break;;
+                [Yy]* ) find $sim_name -mindepth 1 -delete; mkdir $sim_name; break;;
                 [Nn]* ) exit;;
                 * ) echo "Please answer yes or no.";;
             esac
@@ -186,6 +186,9 @@ do
         mv $sim_name-ResultsTable.csv rep$j-$sim_name-ResultsTable.csv
         mv $sim_name-SnapshotTable.csv rep$j-$sim_name-SnapshotTable.csv
     done
+
+    # no need for the executable afterwards
+    rm ./chapter2ibm.o
 
     echo "All replicates done, moving back to the upper directory"
 

@@ -114,7 +114,6 @@ vector<int> shuffleOrder(int populationSize)
     return popVector;
 }
 
-// NOT GOOD allocate memberTypes automatically
 void assignTagsIndexes() // matches names, tags and column index in landscapeTablePtr table.
 {
 
@@ -238,7 +237,7 @@ void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio) // this table allo
     /* Set to 1 when one feeds on the other */
     dietsTable[0][2] = 1; // prey1 feeds on resource1
     dietsTable[1][3] = 1; // prey2 feeds on resource2
-    dietsTable[2][4] = ceil(2*Prey1MaxConsume); // predator1 feeds on prey1 with a conversion rate  of 5
+    dietsTable[2][4] = ceil(2*Prey1MaxConsume); // predator1 feeds on prey1 with a conversion rate of . HARD CODED not good
     dietsTable[3][4] = ceil(2*Prey1MaxConsume*ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of 5
 
     /* debug : OK
