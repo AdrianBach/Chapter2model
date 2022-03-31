@@ -277,7 +277,12 @@ posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), stabThreshol
 
 } # end of function
 
-path = paste(getwd(), "Duthie_Sims", sep="/")
+# path to the simulation folder: example
+setwd("/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/Duthie_Sims/")
+
+# path = paste(getwd(), "higherPreyMaxConsume", sep="/")
+# path = paste(getwd(), "lowerSize", sep="/")
+path = paste(getwd(), "lowerSizeHigherMaxConsume", sep="/")
 keyword = "Results"
 
 mergeResults(path, keyword)
