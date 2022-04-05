@@ -44,6 +44,7 @@ prd_asym_1=1    # argv[26] asymmetry in prey1 to prey2 conversion rates
 simu_time=100   # argv[27] simulation time
 freq_repr=3     # argv[28] frequency of reproduction trials
 freq_surv=3     # argv[29] frequency of survival trials
+freq_rfll=2     # argv[30] frequency of landscape resources refill
 
 # frequency of assessment
 freq_rslt=$freq_repr    # argv[30] frequency of results snap shot
@@ -67,7 +68,6 @@ pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduc
 
 prd_surv_1=$(($pry_surv_1*2)); # echo "prd_surv_1 = $prd_surv_1" # argv[22] predator1 resource units needed to pass survival trial # defined as a fraction of prey1's
 prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[24] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
-
 
 #### Simulation loop ####
 
@@ -133,25 +133,25 @@ do
     printf "pry_init_2 = $pry_init_2 \t # argv[8] prey 2 initial density\n" >> paramFile.txt
     printf "pry_move_1 = $pry_move_1 \t # argv[9] prey 1 max movement range in fraction of size\n" >> paramFile.txt
     printf "pry_move_2 = $pry_move_2 \t # argv[10] prey 2 movement range\n" >> paramFile.txt
-    printf "pry_cons_1 = $pry_cons_1 \t\t # argv[11] prey 1 max consumption in resource units\n" >> paramFile.txt
-    printf "pry_cons_2 = $pry_cons_2 \t\t # argv[12] prey 2 max consumption\n" >> paramFile.txt
-    printf "pry_surv_1 = $pry_surv_1 \t\t # argv[13] prey 1 resource units needed to pass survival trial\n" >> paramFile.txt
-    printf "pry_surv_2 = $pry_surv_2 \t\t # argv[14] prey 2 resource units needed to pass survival trial\n" >> paramFile.txt
+    printf "pry_cons_1 = $pry_cons_1 \t # argv[11] prey 1 max consumption in resource units\n" >> paramFile.txt
+    printf "pry_cons_2 = $pry_cons_2 \t # argv[12] prey 2 max consumption\n" >> paramFile.txt
+    printf "pry_surv_1 = $pry_surv_1 \t # argv[13] prey 1 resource units needed to pass survival trial\n" >> paramFile.txt
+    printf "pry_surv_2 = $pry_surv_2 \t # argv[14] prey 2 resource units needed to pass survival trial\n" >> paramFile.txt
     printf "pry_offs_1 = $pry_offs_1 \t\t # argv[15] prey 1 max number of offspring\n" >> paramFile.txt
     printf "pry_offs_2 = $pry_offs_2 \t\t # argv[16] prey 2 max number of offspring\n" >> paramFile.txt
-    printf "pry_repr_1 = $pry_repr_1 \t\t # argv[17] prey 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
-    printf "pry_repr_2 = $pry_repr_2 \t\t # argv[18] prey 2 resource units needed to pass reproduction trial\n\n" >> paramFile.txt
+    printf "pry_repr_1 = $pry_repr_1 \t # argv[17] prey 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
+    printf "pry_repr_2 = $pry_repr_2 \t # argv[18] prey 2 resource units needed to pass reproduction trial\n\n" >> paramFile.txt
     printf "# predator variables\n" >> paramFile.txt
     printf "prd_nb = $prd_nb \t\t # argv[19] number of predator types\n" >> paramFile.txt
-    printf "prd_init_1 = $prd_init_1 \t # argv[20] predator 1 initial density in nb of individuals\n" >> paramFile.txt
+    printf "prd_init_1 = $prd_init_1 \t\t # argv[20] predator 1 initial density in nb of individuals\n" >> paramFile.txt
     printf "prd_move_1 = $prd_move_1 \t # argv[21] predator 1 max movement range in fraction of size\n" >> paramFile.txt
     printf "prd_surv_1 = $prd_surv_1 \t\t # argv[22] predator 1 resource units needed to pass survival trial\n" >> paramFile.txt
-    printf "prd_offs_1 = $prd_offs_1 \t\t # argv[23] predator 1 max number of offspring\n" >> paramFile.txt
+    printf "prd_offs_1 = $prd_offs_1 \t # argv[23] predator 1 max number of offspring\n" >> paramFile.txt
     printf "prd_repr_1 = $prd_repr_1 \t\t # argv[24] predator 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
-    printf "prd_intr_1 = $prd_intr_1 \t\t # argv[25] predator 1 time of introduction in the model\n" >> paramFile.txt
-    printf "prd_asym_1 = $prd_asym_1 \t\t # argv[26] predator 1 asymmetry in prey1 to prey2 conversion rates\n\n" >> paramFile.txt
+    printf "prd_intr_1 = $prd_intr_1 \t # argv[25] predator 1 time of introduction in the model\n" >> paramFile.txt
+    printf "prd_asym_1 = $prd_asym_1 \t # argv[26] predator 1 asymmetry in prey1 to prey2 conversion rates\n\n" >> paramFile.txt
     printf "# time variables\n" >> paramFile.txt
-    printf "simu_time = $simu_time \t\t # argv[27] simulation time\n" >> paramFile.txt
+    printf "simu_time = $simu_time \t # argv[27] simulation time\n" >> paramFile.txt
     printf "freq_repr = $freq_repr \t\t # argv[28] frequency of reproduction trials\n" >> paramFile.txt
     printf "freq_surv = $freq_surv \t\t # argv[29] frequency of survival trials\n\n" >> paramFile.txt
     printf "# frequency of assessment\n" >> paramFile.txt
@@ -175,7 +175,7 @@ do
         # rand_seed=$(date +%s) # argv[32] set the seed with a random number 
 
         start=$(date +%s)
-        ./chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_asym_1 $simu_time $freq_repr $freq_surv $freq_rslt $freq_snap $rand_seed
+        ./chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_asym_1 $simu_time $freq_repr $freq_surv $freq_rslt $freq_snap $freq_rfll $rand_seed
         end=$(date +%s)
 
         time_s=$(($end-$start))
