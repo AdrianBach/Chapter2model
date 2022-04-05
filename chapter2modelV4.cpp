@@ -55,6 +55,7 @@ int freqRepr; // frequency of reproduction trial
 int freqSurv; // frequency of survival trial
 int freqResu; // frequency of save of the results
 int freqSnap; // frequency of snapshot of the landscape
+int freqRfll; // frequency of resources replenishment
 
 /* seed for random number generator */
 unsigned int randomSeed;
@@ -507,7 +508,7 @@ public:                      // can be used / called in the main function
         */
     }
 
-    void resetLandscape() // function to reset resources to maximum and counts to 0
+    void resetCounts() // function to reset resources to maximum and counts to 0
     {
 
         /* debug
@@ -518,14 +519,28 @@ public:                      // can be used / called in the main function
         int r = 0;
         while (r < rowNb)
         {
-
-            /* refill resources */
-            for (int res = 0; res < resourceTypesNb; res++)
-                landscapeTablePtr[r][resColumnStart + res] = MaxResource[0];
-
             /* resetting counts to O */
             for (int col = preyColumnStart; col < columnNb; col++)
                 landscapeTablePtr[r][col] = 0;
+
+            r++;
+        }
+    }
+
+    void resetResources() // function to reset resources to maximum and counts to 0
+    {
+
+        /* debug
+        cout << "reinitialising landscape ..." << endl
+             << endl;
+        */
+
+        int r = 0;
+        while (r < rowNb)
+        {
+            /* refill resources */
+            for (int res = 0; res < resourceTypesNb; res++)
+                landscapeTablePtr[r][resColumnStart + res] = MaxResource[0];
 
             r++;
         }
@@ -1434,14 +1449,14 @@ int main(int argc, char **argv)
     timeMaxi = atoi(argv[27]); // simulation time
     freqRepr = atoi(argv[28]); 
     freqSurv = atoi(argv[29]); 
-    // timeBurn = atoi(argv[]); // let the animals feed for a while before "daily" death trial
+    freqRfll = atoi(argv[30]); // let the animals feed for a while before "daily" death trial
 
     /* assessment frequency variables */
-    freqResu = atoi(argv[30]);
-    freqSnap = atoi(argv[31]);
+    freqResu = atoi(argv[31]);
+    freqSnap = atoi(argv[32]);
 
     /* seed */
-    randomSeed = atoi(argv[32]);
+    randomSeed = atoi(argv[33]);
 
     /* ---- construct matching structures ---- */
 
@@ -1685,7 +1700,10 @@ int main(int argc, char **argv)
         }
 
         /* ---- reset landscape table ---- */
-        world.resetLandscape();
+        world.resetCounts();
+
+        if (timeStep % freqRfll == 0)
+            world.resetResources();
 
         timeStep++;
     }
