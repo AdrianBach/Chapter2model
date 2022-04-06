@@ -238,8 +238,8 @@ void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio) // this table allo
     /* Set to 1 when one feeds on the other */
     dietsTable[0][2] = 1;                                         // prey1 feeds on resource1
     dietsTable[1][3] = 1;                                         // prey2 feeds on resource2
-    dietsTable[2][4] = ceil(2 * Prey1MaxConsume);                 // predator1 feeds on prey1 with a conversion rate of . HARD CODED not good
-    dietsTable[3][4] = ceil(2 * Prey1MaxConsume * ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of 5
+    dietsTable[2][4] = 3*predMaintenanceCost[0]/freqSurv;                 // predator1 feeds on prey1 with a conversion rate of . HARD CODED not good
+    dietsTable[3][4] = ceil(dietsTable[2][4] * ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of 
 
     /* debug : OK */
     cout << "dietsTable" << endl;
@@ -1217,9 +1217,10 @@ class predator : public animals // predators are another type of animal object
 {
 
 protected:
+    int predMaxConsume;
+    int dailyPredMaxConsume;
     vector<int> conversionRates; // conversion of each prey catch in resources
     vector<int> maxCatches;      // max number of catches per day and per prey
-    int predMaxConsume;
 
 public:
     predator(int initialDensity, int typeTag, float maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring, XYcoordinates, CellCodes) //
@@ -1228,6 +1229,9 @@ public:
 
     void getDietInfo()
     {
+        /* set maxConsume */
+        predMaxConsume = 3*maintenanceCost;
+
         /* get preys conversion rates in dietsTable */
         for (int i = 0; i < memberMatchingListsSize; i++)
         {
@@ -1239,12 +1243,14 @@ public:
         for (int i = 0; i < conversionRates.size(); i++)
         {
             int res = ceil(float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv))); // HARD CODED number of days without eating
-            maxCatches.push_back(res);                                                             // HARD CODED number of days without eating
+            maxCatches.push_back(res);                                                             
         }
         
         /* debug */
         cout << "Max catches per day are " << maxCatches[0] << " " << maxCatches[1] << endl << endl;
      
+        /* set daily maxConsume */
+        dailyPredMaxConsume = conversionRates[0];
     }
 
     void hunt(int **LandscapeTable, bool debug)
@@ -1333,9 +1339,6 @@ public:
                 sortedPreyLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
                 sortedMaxCatches.push_back(maxCatches[index]);
             }
-
-            /* set maxConsume to the preys' highest conversion rate */
-            predMaxConsume = 3*maintenanceCost;
 
             /* iterate through prey columns and while catches < maxCatches and
                that there are prey available, catch them */

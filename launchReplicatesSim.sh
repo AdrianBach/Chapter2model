@@ -75,7 +75,7 @@ divide=$freq_surv*$pry_cons_2; by=3; pry_surv_2=`echo "scale=0; ($divide+$by-1)/
 pry_repr_1=$pry_surv_1; # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduction trial
 
-prd_surv_1=$(($pry_surv_1*2)); # echo "prd_surv_1 = $prd_surv_1" # argv[22] predator1 resource units needed to pass survival trial # defined as a fraction of prey1's
+prd_surv_1=$(($pry_surv_1*3)); # echo "prd_surv_1 = $prd_surv_1" # argv[22] predator1 resource units needed to pass survival trial # defined as a fraction of prey1's
 prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[24] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 
 # name the simulation with only the variables of interest and their value
