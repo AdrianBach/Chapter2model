@@ -1239,8 +1239,12 @@ public:
         for (int i = 0; i < conversionRates.size(); i++)
         {
             int res = ceil(float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv))); // HARD CODED number of days without eating
-            maxCatches.push_back(res);                                                                  // HARD CODED number of days without eating
+            maxCatches.push_back(res);                                                             // HARD CODED number of days without eating
         }
+        
+        /* debug */
+        cout << "Max catches per day are " << maxCatches[0] << " " << maxCatches[1] << endl << endl;
+     
     }
 
     void hunt(int **LandscapeTable, bool debug)
