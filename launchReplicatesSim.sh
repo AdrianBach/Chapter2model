@@ -57,7 +57,7 @@ freq_rfll=10     # argv[30] frequency of landscape resources refill
 
 # frequency of assessment
 freq_rslt=10    # argv[31] frequency of landscape results shot
-freq_snap=20   # argv[32] frequency of snap measure
+freq_snap=201   # argv[32] frequency of snap measure
 
 # number of replicates
 rep=1
