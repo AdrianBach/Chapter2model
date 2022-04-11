@@ -19,45 +19,44 @@
 ## User defined variables ##
 
 # landscape variables
-size=25 # argv[2] world's side size
+size=5 # argv[2] world's side size
 res_nb=2 # argv[3] number of resource types
-max_res_1=100 # argv[4] max resource 1 per cell
-max_res_2=100 # argv[5] max resource 2 per cell
+max_res_1=50 # argv[4] max resource 1 per cell
+max_res_2=50 # argv[5] max resource 2 per cell
 
 max_cell=5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
 
 # prey variables
 pry_nb=2 # argv[6] number of prey types
-pry_init_1=1000 # argv[7] prey 1 initial density in nb of individuals
-pry_init_2=1000 # argv[8] prey 2 initial density
+pry_init_1=10 # argv[7] prey 1 initial density in nb of individuals
+pry_init_2=10 # argv[8] prey 2 initial density
 pry_move_1=0.1 # argv[9] prey 1 max movement range in fraction of size
 pry_move_2=0.1 # argv[10] prey 2 movement range
 # pry_surv_1=3 # argv[13] prey 1 resource units needed to pass survival trial
 # pry_surv_2=3 # argv[14] prey 2 resource units needed to pass survival trial
-pry_offs_1=1 # argv[15] prey 1 max number of offspring
-pry_offs_2=1 # argv[16] prey 2 max number of offspring
+pry_offs_1=2 # argv[15] prey 1 max number of offspring
+pry_offs_2=2 # argv[16] prey 2 max number of offspring
 # pry_repr_1=5 # argv[17] prey 1 resource units needed to pass reproduction trial
 # pry_repr_2=5 # argv[18] prey 2 resource units needed to pass reproduction trial
 
 # predator variables
 prd_nb=1 # argv[19] number of predator types
-prd_init_1=100 # argv[20] predator 1 initial density in nb of individuals
+prd_init_1=0 # argv[20] predator 1 initial density in nb of individuals
 prd_move_1=0.1 # argv[21] predator 1 max movement range in fraction of size
-# prd_surv_1=3 # argv[22] predator 1 resource units needed to pass survival trial
-prd_offs_1=1 # argv[23] predator 1 max number of offspring
-# prd_repr_1=5 # argv[24] predator 1 resource units needed to pass reproduction trial
-prd_intr_1=101 # argv[25] predator 1 time of introduction in the model
-prd_asym_1=1    # argv[26] asymmetry in prey1 to prey2 conversion rates
+prd_offs_1=1 # argv[24] predator 1 max number of offspring
+prd_intr_1=0 # argv[26] predator 1 time of introduction in the model
+prd_asym_1=1    # argv[27] asymmetry in prey1 to prey2 conversion rates
+prd_ctch_1=0.5  # argv[28] predator catch probability
 
 # time variables
-simu_time=200    # argv[27] simulation time
-freq_repr=10     # argv[28] frequency of reproduction trials
-freq_surv=10     # argv[29] frequency of survival trials
-freq_rfll=10     # argv[30] frequency of landscape resources refill
+simu_time=20   # argv[29] simulation time
+freq_repr=10     # argv[30] frequency of reproduction trials
+freq_surv=10     # argv[31] frequency of survival trials
+freq_rfll=10     # argv[32] frequency of landscape resources refill
 
 # frequency of assessment
-freq_rslt=10    # argv[31] frequency of landscape results shot
-freq_snap=201   # argv[32] frequency of snap measure
+freq_rslt=1    # argv[33] frequency of landscape results shot
+freq_snap=201   # argv[34] frequency of snap measure
 
 # number of replicates
 rep=1
@@ -75,11 +74,13 @@ divide=$freq_surv*$pry_cons_2; by=3; pry_surv_2=`echo "scale=0; ($divide+$by-1)/
 pry_repr_1=$pry_surv_1; # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduction trial
 
-prd_surv_1=$(($pry_surv_1*3)); # echo "prd_surv_1 = $prd_surv_1" # argv[22] predator1 resource units needed to pass survival trial # defined as a fraction of prey1's
-prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[24] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
+prd_cons_1=$((3*$pry_cons_1)) # arg[22]
+divide=$prd_cons_1*$freq_surv; by=3; prd_surv_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # arg[23]
+prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[25] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
+# prd_intr_1=$(($simu_time/2+1)) # argv[25] predator 1 time of introduction in the model
 
 # name the simulation with only the variables of interest and their value
-sim_name="test-size$size-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry1cons$pry_cons_1-prdInit$prd_init_1" # argv[1]
+sim_name="test-size$size-simTime$simu_time-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry1cons$pry_cons_1-prdInit$prd_init_1-prdSurv$prd_surv_1-prdCtch$pred_ctch_1" # argv[1]
 
 
 #### Simulation loop ####
@@ -138,23 +139,25 @@ printf "# predator variables\n" >> paramFile.txt
 printf "prd_nb = $prd_nb \t\t # argv[19] number of predator types\n" >> paramFile.txt
 printf "prd_init_1 = $prd_init_1 \t\t # argv[20] predator 1 initial density in nb of individuals\n" >> paramFile.txt
 printf "prd_move_1 = $prd_move_1 \t # argv[21] predator 1 max movement range in fraction of size\n" >> paramFile.txt
-printf "prd_surv_1 = $prd_surv_1 \t\t # argv[22] predator 1 resource units needed to pass survival trial\n" >> paramFile.txt
-printf "prd_offs_1 = $prd_offs_1 \t # argv[23] predator 1 max number of offspring\n" >> paramFile.txt
-printf "prd_repr_1 = $prd_repr_1 \t\t # argv[24] predator 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
-printf "prd_intr_1 = $prd_intr_1 \t # argv[25] predator 1 time of introduction in the model\n" >> paramFile.txt
-printf "prd_asym_1 = $prd_asym_1 \t # argv[26] predator 1 asymmetry in prey1 to prey2 conversion rates\n\n" >> paramFile.txt
+printf "prd_cons_1 = $prd_cons_1 \t # argv[22] predator 1 max movement range in fraction of size\n" >> paramFile.txt
+printf "prd_surv_1 = $prd_surv_1 \t\t # argv[23] predator 1 resource units needed to pass survival trial\n" >> paramFile.txt
+printf "prd_offs_1 = $prd_offs_1 \t # argv[24] predator 1 max number of offspring\n" >> paramFile.txt
+printf "prd_repr_1 = $prd_repr_1 \t\t # argv[25] predator 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
+printf "prd_intr_1 = $prd_intr_1 \t # argv[26] predator 1 time of introduction in the model\n" >> paramFile.txt
+printf "prd_intr_1 = $prd_asym_1 \t # argv[27] predator 1 asymmetry in prey1 to prey2 conversion rates\n" >> paramFile.txt
+printf "prd_asym_1 = $prd_ctch_1 \t # argv[28] predator 1 predator catch probablility \n\n" >> paramFile.txt
 printf "# time variables\n" >> paramFile.txt
-printf "simu_time = $simu_time \t # argv[27] simulation time\n" >> paramFile.txt
-printf "freq_repr = $freq_repr \t\t # argv[28] frequency of reproduction trials\n" >> paramFile.txt
-printf "freq_surv = $freq_surv \t\t # argv[29] frequency of survival trials\n\n" >> paramFile.txt
+printf "simu_time = $simu_time \t # argv[29] simulation time\n" >> paramFile.txt
+printf "freq_repr = $freq_repr \t\t # argv[30] frequency of reproduction trials\n" >> paramFile.txt
+printf "freq_surv = $freq_surv \t\t # argv[31] frequency of survival trials\n\n" >> paramFile.txt
 printf "# frequency of assessment\n" >> paramFile.txt
-printf "freq_rslt = $freq_rslt \t\t # argv[30] frequency of landscape snap shot\n" >> paramFile.txt
-printf "freq_snap = $freq_snap \t\t # argv[31] frequency of results measure\n" >> paramFile.txt
-printf "freq_snap = $freq_rfll \t\t # argv[32] frequency of results measure\n\n" >> paramFile.txt
+printf "freq_rslt = $freq_rslt \t\t # argv[32] frequency of landscape snap shot\n" >> paramFile.txt
+printf "freq_snap = $freq_snap \t\t # argv[33] frequency of results measure\n" >> paramFile.txt
+printf "freq_rfll = $freq_rfll \t\t # argv[34] frequency of results measure\n\n" >> paramFile.txt
 printf "# number of replicates\n" >> paramFile.txt
 printf "rep = $rep\n\n" >> paramFile.txt
 printf "# Simulation infos \n\n" >> paramFile.txt
-printf "rep \t seed \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
+printf "rep \t seed argv[35] \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
 
 ## Start simulation replicates ##
 
@@ -164,11 +167,11 @@ do
     echo "lauching replicate #$j"
 
     # seed for random number generator
-    rand_seed=$RANDOM # argv[32] set the seed with a random number 
-    # rand_seed=$(date +%s) # argv[32] set the seed with a random number 
+    rand_seed=$RANDOM # argv[35] set the seed with a random number 
+    # rand_seed=$(date +%s) # argv[35] set the seed with a random number 
 
     start=$(date +%s)
-    ./test-chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_asym_1 $simu_time $freq_repr $freq_surv $freq_rfll $freq_rslt $freq_snap $rand_seed
+    ./test-chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_cons_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_asym_1 $prd_ctch_1 $simu_time $freq_repr $freq_surv $freq_rfll $freq_rslt $freq_snap $rand_seed
     end=$(date +%s)
 
     time_s=$(($end-$start))
