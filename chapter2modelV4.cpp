@@ -87,11 +87,18 @@ int sumColumn(int **table, int maxRow, int columnIndex) // sum of row values in 
     return sum;
 }
 
-double randomNumberGenerator(double min, double max) // generates a random number between min and max
+double randomNumberGenerator0to1(double min, double max) // generates a random number between min and max
 {
     double res;
     res = min + (double)(rand()) / (RAND_MAX / (max - min));
-    // FLOAT_MIN + (float)(rand()) / ((float)(RAND_MAX/(FLOAT_MAX - FLOAT_MIN))
+
+    return res;
+}
+
+double randomNumberGeneratorAny(double min, double max) // generates a random number between min and max
+{
+    double res;
+    res = min + (double)rand() * (max - min + 1) / (RAND_MAX - 1);
 
     return res;
 }
@@ -800,8 +807,8 @@ public:
             */
 
             /* assign random coordinates between 0 and Size */
-            populationTablePtr[r][0] = int(randomNumberGenerator(0, landscapeSize - 1));
-            populationTablePtr[r][1] = int(randomNumberGenerator(0, landscapeSize - 1));
+            populationTablePtr[r][0] = int(randomNumberGeneratorAny(0, landscapeSize - 1));
+            populationTablePtr[r][1] = int(randomNumberGeneratorAny(0, landscapeSize - 1));
 
             /* update populationTablePtr with prey info - columns indexes hard coded NOT GOOD */
             populationTablePtr[r][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, populationTablePtr[r][0], populationTablePtr[r][1]);
@@ -831,7 +838,7 @@ public:
 
     void randomMove(string *XYcoordinates, int *CellCodes)
     {
-        /* debug
+        /* debug 
         cout << memberTypes[membersMatchingListsIndex] << " are moving at random" << endl
              << endl;
         */
@@ -845,12 +852,27 @@ public:
             int xCell = populationTablePtr[ind][0];
             int yCell = populationTablePtr[ind][1];
 
-            xCell += randomNumberGenerator(-1 * maxMove, maxMove);
-            yCell += randomNumberGenerator(-1 * maxMove, maxMove);
+            /* debug 
+            cout << "individual #" << ind << " was on cell [" << xCell << ";" << yCell << "]" << endl;
+            */
+
+            double xRand = randomNumberGeneratorAny(-1 * maxMove, maxMove);
+            double yRand = randomNumberGeneratorAny(-1 * maxMove, maxMove);
+
+            /* debug 
+            cout << "individual #" << ind << " moved by [" << xCell << " + (" << xRand << ");" << yCell << " + (" << yRand << ")]" << endl;
+            */
+
+            xCell += xRand;
+            yCell += yRand;
 
             /* check boundaries */
             populationTablePtr[ind][0] = transmissiveBoundaries(xCell, landscapeSize); // xCell
             populationTablePtr[ind][1] = transmissiveBoundaries(yCell, landscapeSize); // yCell
+
+            /* debug        
+            cout << "after transmissive boundaries correction: [" << xCell << ";" << yCell << "]" << endl;
+            */
 
             populationTablePtr[ind][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, populationTablePtr[ind][0], populationTablePtr[ind][1]); // update cell code
 
@@ -907,7 +929,7 @@ public:
         {
             if (populationTablePtr[ind][4] == 1 && populationTablePtr[ind][3] >= reproductionCost) // if individual is alive
             {
-                populationTablePtr[ind][5] = randomNumberGenerator(0, maxOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
+                populationTablePtr[ind][5] = randomNumberGeneratorAny(0, maxOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
                 if (populationTablePtr[ind][5] > 0)
                     populationTablePtr[ind][3] -= reproductionCost; // if at least one offspring subtract reproduction cost from resource pool
             }
@@ -1372,7 +1394,7 @@ public:
                 while (dens > 0 && catches < maxCatch && dailyCons < dailyPredMaxConsumption && predCons < predMaxConsumption)
                 {
                     /* sample a random number between 0 and 1 in an uniform distribution */
-                    float randomNb = randomNumberGenerator(0, 1);
+                    float randomNb = randomNumberGenerator0to1(0, 1);
 
                     if (debug == true)
                         cout << "random sample is: " << randomNb << " ; proba is: " << predCatchProba[0] << endl << endl;
@@ -1579,10 +1601,10 @@ int main(int argc, char **argv)
 
     while (timeStep <= timeMaxi)
     {
-        /* debug */
+        /* debug 
         cout << "time step " << timeStep << endl
              << endl;
-        
+        */
 
         if (timeStep > 0)
         {
@@ -1634,8 +1656,8 @@ int main(int argc, char **argv)
             for (int i = 0; i < preyTypesNb; i++)
                 preys[i]->feed(world.landscapeTablePtr, false);
 
-            prey1->getInfo();
-            prey2->getInfo();
+            // prey1->getInfo();
+            // prey2->getInfo();
 
             /* predators */
             if (timeStep >= predIntro[0])
@@ -1706,7 +1728,7 @@ int main(int argc, char **argv)
 
         /* preys */
         for (int i = 0; i < preyTypesNb; i++)
-            preys[i]->updatePopulationTable(timeStep, true);
+            preys[i]->updatePopulationTable(timeStep, false);
 
         // prey1->getInfo();
         // prey2->getInfo();

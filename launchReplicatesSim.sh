@@ -19,17 +19,17 @@
 ## User defined variables ##
 
 # landscape variables
-size=5 # argv[2] world's side size
+size=25 # argv[2] world's side size
 res_nb=2 # argv[3] number of resource types
 max_res_1=50 # argv[4] max resource 1 per cell
 max_res_2=50 # argv[5] max resource 2 per cell
 
-max_cell=5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
+max_cell=2.5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
 
 # prey variables
 pry_nb=2 # argv[6] number of prey types
-pry_init_1=10 # argv[7] prey 1 initial density in nb of individuals
-pry_init_2=10 # argv[8] prey 2 initial density
+pry_init_1=50 # argv[7] prey 1 initial density in nb of individuals
+pry_init_2=50 # argv[8] prey 2 initial density
 pry_move_1=0.1 # argv[9] prey 1 max movement range in fraction of size
 pry_move_2=0.1 # argv[10] prey 2 movement range
 # pry_surv_1=3 # argv[13] prey 1 resource units needed to pass survival trial
@@ -41,15 +41,15 @@ pry_offs_2=2 # argv[16] prey 2 max number of offspring
 
 # predator variables
 prd_nb=1 # argv[19] number of predator types
-prd_init_1=0 # argv[20] predator 1 initial density in nb of individuals
+prd_init_1=5 # argv[20] predator 1 initial density in nb of individuals
 prd_move_1=0.1 # argv[21] predator 1 max movement range in fraction of size
 prd_offs_1=1 # argv[24] predator 1 max number of offspring
-prd_intr_1=0 # argv[26] predator 1 time of introduction in the model
+prd_intr_1=101 # argv[26] predator 1 time of introduction in the model
 prd_asym_1=1    # argv[27] asymmetry in prey1 to prey2 conversion rates
 prd_ctch_1=0.5  # argv[28] predator catch probability
 
 # time variables
-simu_time=20   # argv[29] simulation time
+simu_time=200   # argv[29] simulation time
 freq_repr=10     # argv[30] frequency of reproduction trials
 freq_surv=10     # argv[31] frequency of survival trials
 freq_rfll=10     # argv[32] frequency of landscape resources refill
