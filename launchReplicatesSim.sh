@@ -46,20 +46,20 @@ prd_move_1=0.1 # argv[21] predator 1 max movement range in fraction of size
 prd_offs_1=1 # argv[24] predator 1 max number of offspring
 prd_intr_1=101 # argv[26] predator 1 time of introduction in the model
 prd_asym_1=1    # argv[27] asymmetry in prey1 to prey2 conversion rates
-prd_ctch_1=0.5  # argv[28] predator catch probability
+prd_ctch_1=0.25  # argv[28] predator catch probability
 
 # time variables
-simu_time=200   # argv[29] simulation time
+simu_time=500   # argv[29] simulation time
 freq_repr=10     # argv[30] frequency of reproduction trials
-freq_surv=10     # argv[31] frequency of survival trials
-freq_rfll=10     # argv[32] frequency of landscape resources refill
+freq_surv=$freq_repr     # argv[31] frequency of survival trials
+freq_rfll=$freq_repr     # argv[32] frequency of landscape resources refill
 
 # frequency of assessment
-freq_rslt=1    # argv[33] frequency of landscape results shot
-freq_snap=201   # argv[34] frequency of snap measure
+freq_rslt=$freq_repr    # argv[33] frequency of landscape results shot
+freq_snap=100   # argv[34] frequency of snap measure
 
 # number of replicates
-rep=1
+rep=10
 
 ## Non user defined variables ##
 
@@ -80,12 +80,15 @@ prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[25] predator 1 
 # prd_intr_1=$(($simu_time/2+1)) # argv[25] predator 1 time of introduction in the model
 
 # name the simulation with only the variables of interest and their value
-sim_name="test-size$size-simTime$simu_time-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry1cons$pry_cons_1-prdInit$prd_init_1-prdSurv$prd_surv_1-prdCtch$pred_ctch_1" # argv[1]
+sim_name="test-size$size-simTime$simu_time-res1max$max_res_1-res2max$max_res_2-pry1init$pry_init_1-pry1cons$pry_cons_1-prdInit$prd_init_1-prdSurv$prd_surv_1-prdCtch$prd_ctch_1" # argv[1]
 
 
 #### Simulation loop ####
 
 echo "prey populations initial density are $pry_init_1 and $pry_init_2 and predators $prd_init_1"
+
+# Use make to compile the ibm
+make
 
 ## Create useful directories ##
 
@@ -104,9 +107,6 @@ else
     # create a directory for the simulation
     mkdir $sim_name
 fi
-
-# Use make to compile the ibm
-make
 
 # move the executable program there
 cp test-chapter2ibm.o $sim_name/test-chapter2ibm.o
@@ -142,7 +142,7 @@ printf "prd_move_1 = $prd_move_1 \t # argv[21] predator 1 max movement range in 
 printf "prd_cons_1 = $prd_cons_1 \t # argv[22] predator 1 max movement range in fraction of size\n" >> paramFile.txt
 printf "prd_surv_1 = $prd_surv_1 \t\t # argv[23] predator 1 resource units needed to pass survival trial\n" >> paramFile.txt
 printf "prd_offs_1 = $prd_offs_1 \t # argv[24] predator 1 max number of offspring\n" >> paramFile.txt
-printf "prd_repr_1 = $prd_repr_1 \t\t # argv[25] predator 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
+printf "prd_repr_1 = $prd_repr_1 \t # argv[25] predator 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
 printf "prd_intr_1 = $prd_intr_1 \t # argv[26] predator 1 time of introduction in the model\n" >> paramFile.txt
 printf "prd_intr_1 = $prd_asym_1 \t # argv[27] predator 1 asymmetry in prey1 to prey2 conversion rates\n" >> paramFile.txt
 printf "prd_asym_1 = $prd_ctch_1 \t # argv[28] predator 1 predator catch probablility \n\n" >> paramFile.txt
@@ -152,12 +152,12 @@ printf "freq_repr = $freq_repr \t\t # argv[30] frequency of reproduction trials\
 printf "freq_surv = $freq_surv \t\t # argv[31] frequency of survival trials\n\n" >> paramFile.txt
 printf "# frequency of assessment\n" >> paramFile.txt
 printf "freq_rslt = $freq_rslt \t\t # argv[32] frequency of landscape snap shot\n" >> paramFile.txt
-printf "freq_snap = $freq_snap \t\t # argv[33] frequency of results measure\n" >> paramFile.txt
+printf "freq_snap = $freq_snap \t # argv[33] frequency of results measure\n" >> paramFile.txt
 printf "freq_rfll = $freq_rfll \t\t # argv[34] frequency of results measure\n\n" >> paramFile.txt
 printf "# number of replicates\n" >> paramFile.txt
 printf "rep = $rep\n\n" >> paramFile.txt
 printf "# Simulation infos \n\n" >> paramFile.txt
-printf "rep \t seed argv[35] \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
+printf "rep \t seed \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
 
 ## Start simulation replicates ##
 

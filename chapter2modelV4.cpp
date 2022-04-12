@@ -250,7 +250,7 @@ void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio) // this table allo
     dietsTable[2][4] = freqSurv*predMaxConsume[0]/3;                      // predator1 feeds on prey1 with a conversion rate of . HARD CODED not good
     dietsTable[3][4] = ceil(dietsTable[2][4] * ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of
 
-    /* debug : OK */
+    /* debug : OK 
     cout << "dietsTable" << endl;
     for (int row = 0; row < dietsTableSize; row++)
     {
@@ -263,6 +263,7 @@ void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio) // this table allo
                 cout << " ";
         }
     }
+    */
 }
 
 vector<int> getDietLandscapeIndexes(int MembersMatchingListsIndex) // get the diet of a particular member of the food chain from its typeTag.
@@ -1273,9 +1274,10 @@ public:
             maxCatches.push_back(res);
         }
 
-        /* debug */
+        /* debug 
         cout << "Max catches per day are " << maxCatches[0] << " " << maxCatches[1] << endl
              << endl;
+        */
     }
 
     void hunt(int **LandscapeTable, bool debug)

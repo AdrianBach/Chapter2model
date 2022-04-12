@@ -37,7 +37,7 @@ boot_sd_ci <- function(x, confidence = 95, itr = 1000) {
   
 }
 
-mergeResults <- function(path, keyword = c("Results", "Snapshot")) {
+mergeResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -47,7 +47,7 @@ mergeResults <- function(path, keyword = c("Results", "Snapshot")) {
   content <- content[order(content)]
   
   # only the folders
-  content <- grep(pattern = c("choosing"), x = content, value = T)
+  content <- grep(pattern = Pattern, x = content, value = T)
   
   # loop over the folders
   for (i in 1:length(content)) {
@@ -112,7 +112,7 @@ mergeResults <- function(path, keyword = c("Results", "Snapshot")) {
   
 } # end of function
 
-statsResults <- function(path, keyword = c("Results", "Snapshot")) {
+statsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -122,7 +122,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot")) {
   content <- content[order(content)]
   
   # only the folders
-  content <- grep(pattern = c("choosing"), x = content, value = T)
+  content <- grep(pattern = c(Pattern), x = content, value = T)
 
   # loop over the folders
   for (i in 1:length(content)) {
@@ -210,7 +210,7 @@ getPosStab <- function(array, threshold, period) {
   return(posStab)
 }
 
-posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), stabThreshold, stabPeriod) {
+posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), Pattern, stabThreshold, stabPeriod) {
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -220,7 +220,7 @@ posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), stabThreshol
   content <- content[order(content)]
   
   # only the folders
-  content <- grep(pattern = c("choosing"), x = content, value = T)
+  content <- grep(pattern = c(Pattern), x = content, value = T)
     
   ## create table
   # new headers
@@ -277,13 +277,15 @@ posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), stabThreshol
 
 } # end of function
 
-path = paste(getwd(), "Duthie_Sims", sep="/")
+# path = paste(getwd(), "Duthie_Sims", sep="/")
+path = "/home/adrian/Documents/GitKraken/Chapter2model"
 keyword = "Results"
+Pattern = "test-size"
 
-mergeResults(path, keyword)
-statsResults(path, keyword)
+mergeResults(path, keyword, Pattern)
+statsResults(path, keyword, Pattern)
 
 stabPeriod = 5
 stabThreshold = 10
 
-posStabNoPred(path, keyword, stabThreshold, stabPeriod)
+posStabNoPred(path, keyword, Pattern, stabThreshold, stabPeriod)
