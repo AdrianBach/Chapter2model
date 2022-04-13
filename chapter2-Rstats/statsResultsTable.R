@@ -273,12 +273,13 @@ posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), Pattern, sta
   colnames(tab) <- newHeaders
   
   # write in the corresponding folder
-  write.csv(tab, file = paste(path, "equilibriumNoPred.csv", sep = "/"), row.names = FALSE)
+  write.csv(tab, file = paste(folder, "equilibriumNoPred.csv", sep = "/"), row.names = FALSE)
 
 } # end of function
 
 # path = paste(getwd(), "Duthie_Sims", sep="/")
-path = "/home/adrian/Documents/GitKraken/Chapter2model"
+path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/"
+# path = getwd()
 keyword = "Results"
 Pattern = "test-size"
 
