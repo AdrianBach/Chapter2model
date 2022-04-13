@@ -1,0 +1,62 @@
+sim_name = test-size25-simTime1000-res1max50-res2max50-pry1init50-pry1cons20-prdInit5-prdSurv200-prdCtch0.25 		 # argv[1] 
+
+# landscape variables
+size = 25 		 # argv[2] world's side size
+res_nb = 2 		 # argv[3] number of resource types
+max_res_1 = 50 		 # argv[4] max resource 1 per cell
+max_res_2 = 50 		 # argv[5] max resource 1 per cell
+
+# prey variables
+pry_nb = 2 		 # argv[6] number of prey types
+pry_init_1 = 50 	 # argv[7] prey 1 initial density in nb of individuals
+pry_init_2 = 50 	 # argv[8] prey 2 initial density
+pry_move_1 = 0.1 	 # argv[9] prey 1 max movement range in fraction of size
+pry_move_2 = 0.1 	 # argv[10] prey 2 movement range
+pry_cons_1 = 20 	 # argv[11] prey 1 max consumption in resource units
+pry_cons_2 = 20 	 # argv[12] prey 2 max consumption
+pry_surv_1 = 67 	 # argv[13] prey 1 resource units needed to pass survival trial
+pry_surv_2 = 67 	 # argv[14] prey 2 resource units needed to pass survival trial
+pry_offs_1 = 2 		 # argv[15] prey 1 max number of offspring
+pry_offs_2 = 2 		 # argv[16] prey 2 max number of offspring
+pry_repr_1 = 67 	 # argv[17] prey 1 resource units needed to pass reproduction trial
+pry_repr_2 = 67 	 # argv[18] prey 2 resource units needed to pass reproduction trial
+
+# predator variables
+prd_nb = 1 		 # argv[19] number of predator types
+prd_init_1 = 5 		 # argv[20] predator 1 initial density in nb of individuals
+prd_move_1 = 0.1 	 # argv[21] predator 1 max movement range in fraction of size
+prd_cons_1 = 60 	 # argv[22] predator 1 max movement range in fraction of size
+prd_surv_1 = 200 		 # argv[23] predator 1 resource units needed to pass survival trial
+prd_offs_1 = 1 	 # argv[24] predator 1 max number of offspring
+prd_repr_1 = 200 	 # argv[25] predator 1 resource units needed to pass reproduction trial
+prd_intr_1 = 201 	 # argv[26] predator 1 time of introduction in the model
+prd_intr_1 = 1 	 # argv[27] predator 1 asymmetry in prey1 to prey2 conversion rates
+prd_asym_1 = 0.25 	 # argv[28] predator 1 predator catch probablility 
+
+# time variables
+simu_time = 1000 	 # argv[29] simulation time
+freq_repr = 10 		 # argv[30] frequency of reproduction trials
+freq_surv = 10 		 # argv[31] frequency of survival trials
+
+# frequency of assessment
+freq_rslt = 10 		 # argv[32] frequency of landscape snap shot
+freq_snap = 100 	 # argv[33] frequency of results measure
+freq_rfll = 10 		 # argv[34] frequency of results measure
+
+# number of replicates
+rep = 10
+
+# Simulation infos 
+
+rep 	 seed 	 sim time (s) 	 sim time (h) 
+
+0 	 29197 	 6 		 0 
+1 	 19432 	 5 		 0 
+2 	 31201 	 6 		 0 
+3 	 6459 	 5 		 0 
+4 	 2150 	 6 		 0 
+5 	 18759 	 6 		 0 
+6 	 32005 	 6 		 0 
+7 	 13684 	 6 		 0 
+8 	 16571 	 5 		 0 
+9 	 11992 	 7 		 0 
