@@ -1509,153 +1509,153 @@ int main(int argc, char **argv)
 
     resourceTypesNb = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    p++; 
 
     for (int i = 0; i < resourceTypesNb; i++)
         resourceTypes.push_back("resource" + to_string(i + 1)); // res1..n
 
     maxResources.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     maxResources.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     /* prey variables */
     preyTypesNb = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    p++; 
 
     preyInitialDensities.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyInitialDensities.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     for (int i = 0; i < preyTypesNb; i++)
         preyTypes.push_back("prey" + to_string(i + 1)); // prey1..n
 
     preyMaxMove.push_back(atof(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyMaxMove.push_back(atof(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyMaxConsume.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyMaxConsume.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyMaintenanceCost.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyMaintenanceCost.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyMaxOffspring.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyMaxOffspring.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyReproCost.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     preyReproCost.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     /* predator variables */
     predatorTypesNb = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    p++; 
 
     for (int i = 0; i < predatorTypesNb; i++)
         predatorTypes.push_back("predator" + to_string(i + 1)); // res1..n
 
     predInitialDensities.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predMaxMove.push_back(atof(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predMaxConsume.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predMaintenanceCost.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predMaxOffspring.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predReproCost.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predIntro.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predAsymm.push_back(atof(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predCatchProba.push_back(atof(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     predOportunistic.push_back(atoi(argv[p]));
 
-    p++; // increment parameter counter
+    p++; 
 
     /* time variables */
     timeMaxi = atoi(argv[p]); // simulation time
 
-    p++; // increment parameter counter
+    p++; 
 
     freqRepr = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    p++; 
 
     freqSurv = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    p++; 
 
     freqRfll = atoi(argv[p]); // let the animals feed for a while before "daily" death trial
 
-    p++; // increment parameter counter
+    p++; 
 
     /* assessment frequency variables */
     freqResu = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    p++; 
 
     freqSnap = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    p++; 
 
     /* seed */
     randomSeed = atoi(argv[p]);
 
-    p++; // increment parameter counter
+    cout << "Total nb of parameters: " << p << endl << endl;
 
     /* ---- construct matching structures ---- */
 

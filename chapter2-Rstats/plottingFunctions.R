@@ -1,6 +1,6 @@
 library(ggplot2)
 
-path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/test-size25-simTime1000-res1max50-res2max50-pry1init250-pry1cons20-prdInit5-prdSurv200-prdCtch0.25/stats-test-size25-simTime1000-res1max50-res2max50-pry1init250-pry1cons20-prdInit5-prdSurv200-prdCtch0.25/statsResults-test-size25-simTime1000-res1max50-res2max50-pry1init250-pry1cons20-prdInit5-prdSurv200-prdCtch0.25.csv"
+path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/test-size25-simTime1000-res1max50-res2max50-pry1init50-pry1cons20-prdInit5-prdSurv200-prdCtch0.25/stats-test-size25-simTime1000-res1max50-res2max50-pry1init50-pry1cons20-prdInit5-prdSurv200-prdCtch0.25/statsResults-test-size25-simTime1000-res1max50-res2max50-pry1init50-pry1cons20-prdInit5-prdSurv200-prdCtch0.25.csv"
 
 data <- read.csv(path)
 
@@ -17,10 +17,10 @@ y3max = data$predator1PopulationSizeICsup
 y1c = "red"
 y2c = "blue"
 y3c = "orange"
-tIntro = 110
+tIntro = 210
 
 fig <- ggplot(data, aes(x)) + 
-  geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.2, fill = "lightgrey") +
+  geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
   geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
   geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
   geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
