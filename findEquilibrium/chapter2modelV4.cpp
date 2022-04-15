@@ -38,23 +38,22 @@ int predatorTypesNb;              // Number of predators modelled
 vector<string> predatorTypes;     // res1..n
 vector<int> predInitialDensities; //
 vector<float> predMaxMove;        // NOT GOOD should rather be defined in % of landscape size CAREFUL the product has to stay int
-// vector<int> predMaxConsume;       // in equivalent resources
-// vector<int> predConvRate;         // conversion rate catches into resource units
+vector<int> predMaxConsume;       // in equivalent resources
 vector<int> predMaintenanceCost;  //
 vector<int> predMaxOffspring;     //
 vector<int> predReproCost;        //
 vector<int> predIntro;            // time of introduction of the predator
-vector<int> predAsymm;
-// frequency of reproduction
-// frequency of survival trial
+vector<float> predAsymm;          // ratio of preys' catch conversion into resources
+vector<float> predCatchProba;     // pred catching probability
+vector<bool> predOportunistic;    // t/1 or f/0, is the predator generalist?
 
 /* time variables */
 int timeMaxi; // simulation time
-// int timeBurn; // let the animals feed for a while before "daily" death trial
 int freqRepr; // frequency of reproduction trial
 int freqSurv; // frequency of survival trial
 int freqResu; // frequency of save of the results
 int freqSnap; // frequency of snapshot of the landscape
+int freqRfll; // frequency of resources replenishment
 
 /* seed for random number generator */
 unsigned int randomSeed;
@@ -85,7 +84,15 @@ int sumColumn(int **table, int maxRow, int columnIndex) // sum of row values in 
     return sum;
 }
 
-double randomNumberGenerator(double min, double max) // generates a random number between min and max
+double randomNumberGenerator0to1(double min, double max) // generates a random number between min and max
+{
+    double res;
+    res = min + (double)(rand()) / (RAND_MAX / (max - min));
+
+    return res;
+}
+
+double randomNumberGeneratorAny(double min, double max) // generates a random number between min and max
 {
     double res;
     res = min + (double)rand() * (max - min + 1) / (RAND_MAX - 1);
@@ -114,7 +121,6 @@ vector<int> shuffleOrder(int populationSize)
     return popVector;
 }
 
-// NOT GOOD allocate memberTypes automatically
 void assignTagsIndexes() // matches names, tags and column index in landscapeTablePtr table.
 {
 
@@ -202,7 +208,7 @@ int getMemberIndexFromTag(int TypeTag)
     return index; // returns the row index of the tag. It will be the same in all members matching lists.
 }
 
-void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio) // this table allows for each member of the system to eat and be eaten by another
+void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio, bool display) // this table allows for each member of the system to eat and be eaten by another
 {
 
     int dietsTableSize = memberMatchingListsSize;
@@ -236,25 +242,26 @@ void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio) // this table allo
     }
 
     /* Set to 1 when one feeds on the other */
-    dietsTable[0][2] = 1; // prey1 feeds on resource1
-    dietsTable[1][3] = 1; // prey2 feeds on resource2
-    dietsTable[2][4] = ceil(2*Prey1MaxConsume); // predator1 feeds on prey1 with a conversion rate  of 5
-    dietsTable[3][4] = ceil(2*Prey1MaxConsume*ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of 5
+    dietsTable[0][2] = 1;                                             // prey1 feeds on resource1
+    dietsTable[1][3] = 1;                                             // prey2 feeds on resource2
+    dietsTable[2][4] = freqSurv * predMaxConsume[0] / 3;              // predator1 feeds on prey1 with a conversion rate of . HARD CODED not good
+    dietsTable[3][4] = ceil((float)dietsTable[2][4] * ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of
 
-    /* debug : OK
-    cout << "dietsTable" << endl;
-    for (int row = 0; row < dietsTableSize; row++)
+    if (display == true)
     {
-        for (int col = 0; col < dietsTableSize; col++)
+        cout << "dietsTable" << endl;
+        for (int row = 0; row < dietsTableSize; row++)
         {
-            cout << dietsTable[row][col];
-            if (col == (dietsTableSize - 1)) // last loop
-                cout << endl;
-            else
-                cout << " ";
+            for (int col = 0; col < dietsTableSize; col++)
+            {
+                cout << dietsTable[row][col];
+                if (col == (dietsTableSize - 1)) // last loop
+                    cout << endl;
+                else
+                    cout << " ";
+            }
         }
     }
-    */
 }
 
 vector<int> getDietLandscapeIndexes(int MembersMatchingListsIndex) // get the diet of a particular member of the food chain from its typeTag.
@@ -508,7 +515,7 @@ public:                      // can be used / called in the main function
         */
     }
 
-    void resetLandscape() // function to reset resources to maximum and counts to 0
+    void resetCounts() // function to reset resources to maximum and counts to 0
     {
 
         /* debug
@@ -519,14 +526,28 @@ public:                      // can be used / called in the main function
         int r = 0;
         while (r < rowNb)
         {
-
-            /* refill resources */
-            for (int res = 0; res < resourceTypesNb; res++)
-                landscapeTablePtr[r][resColumnStart + res] = MaxResource[0];
-
             /* resetting counts to O */
             for (int col = preyColumnStart; col < columnNb; col++)
                 landscapeTablePtr[r][col] = 0;
+
+            r++;
+        }
+    }
+
+    void resetResources() // function to reset resources to maximum and counts to 0
+    {
+
+        /* debug
+        cout << "reinitialising resources to maximum ..." << endl
+             << endl;
+        */
+
+        int r = 0;
+        while (r < rowNb)
+        {
+            /* refill resources */
+            for (int res = 0; res < resourceTypesNb; res++)
+                landscapeTablePtr[r][resColumnStart + res] = MaxResource[0];
 
             r++;
         }
@@ -785,8 +806,8 @@ public:
             */
 
             /* assign random coordinates between 0 and Size */
-            populationTablePtr[r][0] = int(randomNumberGenerator(0, landscapeSize - 1));
-            populationTablePtr[r][1] = int(randomNumberGenerator(0, landscapeSize - 1));
+            populationTablePtr[r][0] = int(randomNumberGeneratorAny(0, landscapeSize - 1));
+            populationTablePtr[r][1] = int(randomNumberGeneratorAny(0, landscapeSize - 1));
 
             /* update populationTablePtr with prey info - columns indexes hard coded NOT GOOD */
             populationTablePtr[r][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, populationTablePtr[r][0], populationTablePtr[r][1]);
@@ -830,12 +851,27 @@ public:
             int xCell = populationTablePtr[ind][0];
             int yCell = populationTablePtr[ind][1];
 
-            xCell += randomNumberGenerator(-1 * maxMove, maxMove);
-            yCell += randomNumberGenerator(-1 * maxMove, maxMove);
+            /* debug
+            cout << "individual #" << ind << " was on cell [" << xCell << ";" << yCell << "]" << endl;
+            */
+
+            double xRand = randomNumberGeneratorAny(-1 * maxMove, maxMove);
+            double yRand = randomNumberGeneratorAny(-1 * maxMove, maxMove);
+
+            /* debug
+            cout << "individual #" << ind << " moved by [" << xCell << " + (" << xRand << ");" << yCell << " + (" << yRand << ")]" << endl;
+            */
+
+            xCell += xRand;
+            yCell += yRand;
 
             /* check boundaries */
             populationTablePtr[ind][0] = transmissiveBoundaries(xCell, landscapeSize); // xCell
             populationTablePtr[ind][1] = transmissiveBoundaries(yCell, landscapeSize); // yCell
+
+            /* debug
+            cout << "after transmissive boundaries correction: [" << xCell << ";" << yCell << "]" << endl;
+            */
 
             populationTablePtr[ind][2] = getCellCode(XYcoordinates, CellCodes, landscapeSize, populationTablePtr[ind][0], populationTablePtr[ind][1]); // update cell code
 
@@ -892,7 +928,7 @@ public:
         {
             if (populationTablePtr[ind][4] == 1 && populationTablePtr[ind][3] >= reproductionCost) // if individual is alive
             {
-                populationTablePtr[ind][5] = randomNumberGenerator(0, maxOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
+                populationTablePtr[ind][5] = randomNumberGeneratorAny(0, maxOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
                 if (populationTablePtr[ind][5] > 0)
                     populationTablePtr[ind][3] -= reproductionCost; // if at least one offspring subtract reproduction cost from resource pool
             }
@@ -911,16 +947,16 @@ public:
 
         currentPopulationSize += newInds - deadInds; // update current population size/* debug */
 
-        /* make warnings if low pop */
-        if (initialDensity != 0)
-        {
-            if (float(currentPopulationSize) <= 0.1 * float(initialDensity))
-                cout << "time step #" << timeStep << ": " << memberTypes[membersMatchingListsIndex] << "'s population is under 10 percent of its initial size" << endl
-                     << endl;
-            if (currentPopulationSize == 0)
-                cout << "time step #" << timeStep << ": " << memberTypes[membersMatchingListsIndex] << "'s population has gone extinct" << endl
-                     << endl;
-        }
+        // /* make warnings if low pop */
+        // if (initialDensity != 0)
+        // {
+        //     if (float(currentPopulationSize) <= 0.1 * float(initialDensity))
+        //         cout << "time step #" << timeStep << ": " << memberTypes[membersMatchingListsIndex] << "'s population is under 10 percent of its initial size" << endl
+        //              << endl;
+        //     if (currentPopulationSize == 0)
+        //         cout << "time step #" << timeStep << ": " << memberTypes[membersMatchingListsIndex] << "'s population has gone extinct" << endl
+        //              << endl;
+        // }
 
         if (debug == true)
         {
@@ -1073,12 +1109,13 @@ public:
     {
 
         if (debug == true)
-            cout << memberTypes[membersMatchingListsIndex] << " are feeding" << endl << endl;
+            cout << memberTypes[membersMatchingListsIndex] << " are feeding" << endl
+                 << endl;
 
         /* shuffle the order of the individuals */
         vector<int> shuffledPop = shuffleOrder(currentPopulationSize);
 
-        int ind = 0;                        // initialise individual counter
+        int ind = 0;                     // initialise individual counter
         while (ind < shuffledPop.size()) // iterate through individuals
         {
 
@@ -1090,7 +1127,8 @@ public:
             int dietSize = dietLandscapeIndexes.size();
 
             if (debug == true)
-                cout << "prey #" << rowIndex << ", located on cell " << indCellCode << " feeds on " << dietSize << " kind of resources" << endl << endl;
+                cout << "prey #" << rowIndex << ", located on cell " << indCellCode << " feeds on " << dietSize << " kind of resources" << endl
+                     << endl;
 
             for (int i = 0; i < dietSize; i++)
             {
@@ -1100,25 +1138,32 @@ public:
                 int resourceAvailable = landscapeTable[indCellCode][resourceColIndex];
 
                 if (debug == true)
-                    cout << "feeding on resource situated col " << resourceColIndex << " of which " << resourceAvailable << "are left" << endl << endl;
+                    cout << "feeding on resource situated col " << resourceColIndex << " of which " << resourceAvailable << "are left" << endl
+                         << endl;
 
                 /* consumption */
+                int cons = 0;                            // initialise a consumption variable
                 if (resourceAvailable >= maxConsumption) // if there is more than maxConsumption rate, consume max
                 {
-                    landscapeTable[indCellCode][resourceColIndex] -= maxConsumption; // subtract to landscape cell
-                    populationTablePtr[rowIndex][3] += maxConsumption;
-
-                    if (debug == true)
-                        cout << "prey consumed" << maxConsumption << "resources, " << landscapeTable[indCellCode][resourceColIndex] << "left on this cell, prey resource pool is now" << populationTablePtr[rowIndex][3] << endl << endl;
+                    cons = randomNumberGeneratorAny(0, maxConsumption); // generate a random number between 0 and maxConsume
+                    // landscapeTable[indCellCode][resourceColIndex] -= maxConsumption; // subtract consumption to landscape cell
+                    landscapeTable[indCellCode][resourceColIndex] -= cons; // subtract consumption to landscape cell
+                    // populationTablePtr[rowIndex][3] += maxConsumption;
+                    populationTablePtr[rowIndex][3] += cons;
                 }
                 else // else consume what is left (should also work if resourceAvailable=0)
                 {
-                    landscapeTable[indCellCode][resourceColIndex] -= resourceAvailable;
-                    populationTablePtr[rowIndex][3] += resourceAvailable;
-
-                    if (debug == true)
-                        cout << "prey consumed" << resourceAvailable << "resources, " << landscapeTable[indCellCode][resourceColIndex] << "left on this cell, prey resource pool is now" << populationTablePtr[rowIndex][3] << endl << endl;
+                    cons = randomNumberGeneratorAny(0, resourceAvailable); // generate a random number between 0 and maxConsume
+                    // landscapeTable[indCellCode][resourceColIndex] -= resourceAvailable;
+                    // populationTablePtr[rowIndex][3] += resourceAvailable;
+                    landscapeTable[indCellCode][resourceColIndex] -= cons;
+                    populationTablePtr[rowIndex][3] += cons;
                 }
+
+                if (debug == true)
+                    // cout << "prey consumed" << maxConsumption << "resources, " << landscapeTable[indCellCode][resourceColIndex] << "left on this cell, prey resource pool is now" << populationTablePtr[rowIndex][3] << endl
+                    cout << "prey consumed" << cons << "resources, " << landscapeTable[indCellCode][resourceColIndex] << "left on this cell, prey resource pool is now" << populationTablePtr[rowIndex][3] << endl
+                         << endl;
             }
 
             ind++; // next individual
@@ -1176,8 +1221,8 @@ public:
                         if (debug == true)
                         {
                             cout << memberTypes[membersMatchingListsIndex] << " number " << popRow << "'s DoA status is now " << populationTablePtr[popRow][4] << endl;
-                            if (populationTablePtr[popRow][3] < maintenanceCost)
-                                cout << "but it did not have enough resources to survive anyway" << endl;
+                            // if (populationTablePtr[popRow][3] < maintenanceCost)
+                            //     cout << "but it did not have enough resources to survive anyway" << endl;
                             cout << catches << " " << memberTypes[membersMatchingListsIndex] << " catches left to count on cell " << landRow << endl
                                  << endl;
                         }
@@ -1198,9 +1243,10 @@ class predator : public animals // predators are another type of animal object
 {
 
 protected:
-    vector<int> conversionRates;       // conversion of each prey catch in resources
-    vector<int> maxCatches;            // max number of catches per day and per prey
-    int predMaxConsume;
+    int predMaxConsumption;
+    int dailyPredMaxConsumption;
+    vector<int> conversionRates; // conversion of each prey catch in resources
+    vector<int> maxCatches;      // max number of catches per day and per prey
 
 public:
     predator(int initialDensity, int typeTag, float maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring, XYcoordinates, CellCodes) //
@@ -1209,6 +1255,12 @@ public:
 
     void getDietInfo()
     {
+        /* set maxConsume */
+        predMaxConsumption = 3 * maintenanceCost;
+
+        /* set daily maxConsume */
+        dailyPredMaxConsumption = predMaxConsume[0];
+
         /* get preys conversion rates in dietsTable */
         for (int i = 0; i < memberMatchingListsSize; i++)
         {
@@ -1219,9 +1271,14 @@ public:
         /* compute max catches */
         for (int i = 0; i < conversionRates.size(); i++)
         {
-            int res = ceil(float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv))); // HARD CODED number of days without eating
-            maxCatches.push_back(res); // HARD CODED number of days without eating
+            int res = ceil(float(dailyPredMaxConsumption) / float(conversionRates[i]));
+            // int res = float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv));
+            maxCatches.push_back(res);
         }
+
+        /* debug */
+        cout << "Max catches per day are " << maxCatches[0] << " " << maxCatches[1] << endl
+             << endl;
     }
 
     void hunt(int **LandscapeTable, bool debug)
@@ -1252,10 +1309,16 @@ public:
                      << endl;
             }
 
+            /* generate vectors preys info */
+            vector<int> preysIndexes;
+            vector<int> preysConversionRates;
+            vector<int> preysLandscapeIndexes;
+            vector<int> preysMaxCatches;
+
             /* generate vector of indexes corresponding to conversion rates */
             vector<int> shuffledIndexes;
             vector<int> shuffledConversionRates;
-            vector<int> shuffledPreysLandscapreIndexes;
+            vector<int> shuffledpreysLandscapeIndexes;
             vector<int> shuffledMaxCatches;
 
             for (int i = 0; i < conversionRates.size(); i++)
@@ -1269,64 +1332,85 @@ public:
             {
                 int index = shuffledIndexes[i];
                 shuffledConversionRates.push_back(conversionRates[index]);
-                shuffledPreysLandscapreIndexes.push_back(dietLandscapeIndexes[index]);
+                shuffledpreysLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
                 shuffledMaxCatches.push_back(maxCatches[index]);
             }
 
-            /* sort the diet by conversion rate while keeping index info: if all the same, still random, otherwise most nourrishing prey first */
-            vector<int> sortedIndexes = shuffledIndexes;
-            vector<int> sortedConversionRates = shuffledConversionRates;
-            vector<int> sortedPreyLandscapeIndexes;
-            vector<int> sortedMaxCatches;
-
-            /* sorting according to conversion rate while keeping the indexes */
-            int row = 0; // initiate row count
-
-            while (row < (sortedConversionRates.size() - 1)) // until we reach the line before last
+            if (predOportunistic[0] == true)
             {
-                if (sortedConversionRates[row] >= sortedConversionRates[row + 1]) // if the focal element is greater than the next
-                {
-                    row++; // leave as is and go to next line
-                }
-                else // if not switch positions and restart to the first line
-                {
-                    int co1 = sortedConversionRates[row];
-                    int co2 = sortedConversionRates[row + 1];
-                    int in1 = sortedIndexes[row];
-                    int in2 = sortedIndexes[row + 1];
 
-                    sortedConversionRates[row] = co2;
-                    sortedConversionRates[row + 1] = co1;
-                    sortedIndexes[row] = in2;
-                    sortedIndexes[row + 1] = in1;
+                if (debug == true)
+                    cout << "predator is opportunistic: ranking preys per resources/catch instead of random." << endl
+                         << endl;
 
-                    row = 0; // restart row count
+                /* sort the diet by conversion rate while keeping index info: if all the same, still random, otherwise most nourrishing prey first */
+                vector<int> sortedIndexes = shuffledIndexes;
+                vector<int> sortedConversionRates = shuffledConversionRates;
+                vector<int> sortedPreyLandscapeIndexes;
+                vector<int> sortedMaxCatches;
+
+                /* sorting according to conversion rate while keeping the indexes */
+                int row = 0; // initiate row count
+
+                while (row < (sortedConversionRates.size() - 1)) // until we reach the line before last
+                {
+                    if (sortedConversionRates[row] >= sortedConversionRates[row + 1]) // if the focal element is greater than the next
+                    {
+                        row++; // leave as is and go to next line
+                    }
+                    else // if not switch positions and restart to the first line
+                    {
+                        int co1 = sortedConversionRates[row];
+                        int co2 = sortedConversionRates[row + 1];
+                        int in1 = sortedIndexes[row];
+                        int in2 = sortedIndexes[row + 1];
+
+                        sortedConversionRates[row] = co2;
+                        sortedConversionRates[row + 1] = co1;
+                        sortedIndexes[row] = in2;
+                        sortedIndexes[row + 1] = in1;
+
+                        row = 0; // restart row count
+                    }
                 }
+
+                for (int i = 0; i < sortedIndexes.size(); i++)
+                {
+                    int index = sortedIndexes[i];
+                    sortedPreyLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
+                    sortedMaxCatches.push_back(maxCatches[index]);
+                }
+
+                /* update vectors preys info */
+                preysIndexes = sortedIndexes;
+                preysConversionRates = sortedConversionRates;
+                preysLandscapeIndexes = sortedPreyLandscapeIndexes;
+                preysMaxCatches = sortedMaxCatches;
             }
-
-            for (int i = 0; i < sortedIndexes.size(); i++)
+            else
             {
-                int index = sortedIndexes[i];
-                sortedPreyLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
-                sortedMaxCatches.push_back(maxCatches[index]);
+                /* update vectors preys info */
+                preysIndexes = shuffledIndexes;
+                preysConversionRates = shuffledConversionRates;
+                preysLandscapeIndexes = shuffledpreysLandscapeIndexes;
+                preysMaxCatches = shuffledMaxCatches;
             }
-
-            /* set maxConsume to the preys' highest conversion rate */
-            predMaxConsume = sortedConversionRates[0];
 
             /* iterate through prey columns and while catches < maxCatches and
                that there are prey available, catch them */
 
-            for (int i = 0; i < sortedConversionRates.size(); i++)
+            int i = 0;                                      // initiate index for conversion rate
+            int dailyCons = 0;                              // initiate a tracker for pred consumption (in resources)
+            int predCons = populationTablePtr[rowIndex][3]; // get predator resource pool
+
+            while (i < preysConversionRates.size())
             {
                 /* get preys info */
-                int densColumn = sortedPreyLandscapeIndexes[i];
+                int densColumn = preysLandscapeIndexes[i];
                 int catchColumn = densColumn + preyTypesNb;
                 int dens = LandscapeTable[indCellCode][densColumn];
-                int convRate = sortedConversionRates[i];
-                int maxCatch = sortedMaxCatches[i];
-
-                int predCons = populationTablePtr[rowIndex][3]; // get predator resource pool
+                int convRate = preysConversionRates[i];
+                int maxCatch = preysMaxCatches[i];
 
                 int catches = 0; // initialise a catch counter for this particular prey
 
@@ -1338,30 +1422,71 @@ public:
                          << endl;
                 }
 
-                while(dens > 0 && catches < maxCatch && predCons < predMaxConsume) // while prey present and maxCatches is not attained yet and that predator did not attain maxConsume, hunt. If one of these condition is not met, switch to next prey in the diet.
+                while (dens > 0 && catches < maxCatch && dailyCons < dailyPredMaxConsumption && predCons < predMaxConsumption)
                 {
-                    LandscapeTable[indCellCode][catchColumn] += 1;   // increment corresponding catch cell in landscape table
-                    LandscapeTable[indCellCode][densColumn] -= 1;    // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
-                    populationTablePtr[rowIndex][3] += 1 * convRate; // increment predator resource pool
+                    /* sample a random number between 0 and 1 in an uniform distribution */
+                    float randomNb = randomNumberGenerator0to1(0, 1);
 
-                    catches++; // increment catches counter
-
-                    /* debug */
                     if (debug == true)
-                    {
-                        cout << "a " << memberTypes[membersMatchingListsIndex] << " caught a prey (situated column " << densColumn << " in landscape table) on cell " << indCellCode << endl
+                        cout << "random sample is: " << randomNb << " ; proba is: " << predCatchProba[0] << endl
                              << endl;
+
+                    /* compare to the catch probability, if < catch, if > fail */
+                    if (randomNb < predCatchProba[0])
+                    {
+                        LandscapeTable[indCellCode][catchColumn] += 1;  // increment corresponding catch cell in landscape table
+                        LandscapeTable[indCellCode][densColumn] -= 1;   // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
+                        populationTablePtr[rowIndex][3] += convRate;    // increment predator resource pool
+                                                                        //
+                        predCons = populationTablePtr[rowIndex][3];     // update predCons variable
+                        dailyCons += convRate;                          // update daily consuption variable
+                        catches++;                                      // increment catches counter
+                        dens = LandscapeTable[indCellCode][densColumn]; // update prey's density on this cell
+
+                        /* debug */
+                        if (debug == true)
+                        {
+                            cout << "a " << memberTypes[membersMatchingListsIndex] << " caught a prey (situated column " << densColumn << " in landscape table) on cell " << indCellCode << endl
+                                 << "its resource pool now got " << predCons << " in it" << endl;
+
+                            if (dens == 0)
+                                cout << "No more prey situated column " << densColumn << " in landscape table on cell " << indCellCode << "." << endl
+                                     << endl;
+                            else if (catches >= maxCatch)
+                                cout << memberTypes[membersMatchingListsIndex] << "situated on cell " << indCellCode << " has eaten enough prey situated column " << densColumn << " in landscape table for this time step." << endl
+                                     << endl;
+                            else if (dailyCons >= dailyPredMaxConsumption)
+                                cout << memberTypes[membersMatchingListsIndex] << "situated on cell " << indCellCode << " has eaten enough for this time step." << endl
+                                     << endl;
+                            else if (predCons >= predMaxConsumption)
+                                cout << memberTypes[membersMatchingListsIndex] << "situated on cell " << indCellCode << " has eaten enough for this moving+feeding sequence." << endl
+                                     << endl;
+                            // else
+                            //     cout << "Switching to next prey in diet." << endl
+                            //         << endl;
+                        }
+                    }
+                    else
+                    {
+                        catches++; // increase catches to prevent preadators to continue until they catch something
+
+                        if (debug == true)
+                            cout << "predator catch attempt failed" << endl
+                                 << endl;
                     }
 
-                    if (populationTablePtr[rowIndex][3] >= predMaxConsume)
-                        break;
-                }
-            }
+                } // end of while loop over conditions for hunting
+
+                i++; // increment prey index
+
+            } // end of while loop over preys
 
             ind++; // next individual
-        }
-    }
-};
+
+        } // end of while loop over predators
+
+    } // end of hunt function
+};    // end of predator class
 
 /* ------------------------------ Main program ------------------------------ */
 
@@ -1370,79 +1495,167 @@ int main(int argc, char **argv)
 
     /* ---- assign values to the variables from the command line ---- */
 
+    int p = 1; // initialize parameter counter
+
     /* give a name to the simulation */
-    simulationName = argv[1];
+    simulationName = argv[p];
+
+    p++; // increment parameter counter
 
     /* landscape variables */
-    worldSize = atoi(argv[2]);
-    resourceTypesNb = atoi(argv[3]);
+    worldSize = atoi(argv[p]);
+
+    p++; // increment parameter counter
+
+    resourceTypesNb = atoi(argv[p]);
+
+    p++; 
 
     for (int i = 0; i < resourceTypesNb; i++)
         resourceTypes.push_back("resource" + to_string(i + 1)); // res1..n
 
-    maxResources.push_back(atoi(argv[4]));
-    maxResources.push_back(atoi(argv[5]));
+    maxResources.push_back(atoi(argv[p]));
+
+    p++; 
+
+    maxResources.push_back(atoi(argv[p]));
+
+    p++; 
 
     /* prey variables */
-    preyTypesNb = atoi(argv[6]);
+    preyTypesNb = atoi(argv[p]);
 
-    preyInitialDensities.push_back(atoi(argv[7]));
-    preyInitialDensities.push_back(atoi(argv[8]));
+    p++; 
+
+    preyInitialDensities.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyInitialDensities.push_back(atoi(argv[p]));
+
+    p++; 
 
     for (int i = 0; i < preyTypesNb; i++)
         preyTypes.push_back("prey" + to_string(i + 1)); // prey1..n
 
-    preyMaxMove.push_back(atof(argv[9]));
-    preyMaxMove.push_back(atof(argv[10]));
+    preyMaxMove.push_back(atof(argv[p]));
 
-    preyMaxConsume.push_back(atoi(argv[11]));
-    preyMaxConsume.push_back(atoi(argv[12]));
+    p++; 
 
-    preyMaintenanceCost.push_back(atoi(argv[13]));
-    preyMaintenanceCost.push_back(atoi(argv[14]));
+    preyMaxMove.push_back(atof(argv[p]));
 
-    preyMaxOffspring.push_back(atoi(argv[15]));
-    preyMaxOffspring.push_back(atoi(argv[16]));
+    p++; 
 
-    preyReproCost.push_back(atoi(argv[17]));
-    preyReproCost.push_back(atoi(argv[18]));
+    preyMaxConsume.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyMaxConsume.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyMaintenanceCost.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyMaintenanceCost.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyMaxOffspring.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyMaxOffspring.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyReproCost.push_back(atoi(argv[p]));
+
+    p++; 
+
+    preyReproCost.push_back(atoi(argv[p]));
+
+    p++; 
 
     /* predator variables */
-    predatorTypesNb = atoi(argv[19]);
+    predatorTypesNb = atoi(argv[p]);
+
+    p++; 
 
     for (int i = 0; i < predatorTypesNb; i++)
         predatorTypes.push_back("predator" + to_string(i + 1)); // res1..n
 
-    predInitialDensities.push_back(atoi(argv[20]));
+    predInitialDensities.push_back(atoi(argv[p]));
 
-    predMaxMove.push_back(atof(argv[21]));
+    p++; 
 
-    // predMaxConsume.push_back(atoi(argv[]));
+    predMaxMove.push_back(atof(argv[p]));
 
-    // predConvRate.push_back(atoi(argv[]));
+    p++; 
 
-    predMaintenanceCost.push_back(atoi(argv[22]));
+    predMaxConsume.push_back(atoi(argv[p]));
 
-    predMaxOffspring.push_back(atoi(argv[23]));
+    p++; 
 
-    predReproCost.push_back(atoi(argv[24]));
+    predMaintenanceCost.push_back(atoi(argv[p]));
 
-    predIntro.push_back(atoi(argv[25]));
+    p++; 
 
-    predAsymm.push_back(atoi(argv[26]));
+    predMaxOffspring.push_back(atoi(argv[p]));
+
+    p++; 
+
+    predReproCost.push_back(atoi(argv[p]));
+
+    p++; 
+
+    predIntro.push_back(atoi(argv[p]));
+
+    p++; 
+
+    predAsymm.push_back(atof(argv[p]));
+
+    p++; 
+
+    predCatchProba.push_back(atof(argv[p]));
+
+    p++; 
+
+    predOportunistic.push_back(atoi(argv[p]));
+
+    p++; 
 
     /* time variables */
-    timeMaxi = atoi(argv[27]); // simulation time
-    freqRepr = atoi(argv[28]); 
-    freqSurv = atoi(argv[29]); 
-    // timeBurn = atoi(argv[]); // let the animals feed for a while before "daily" death trial
+    timeMaxi = atoi(argv[p]); // simulation time
+
+    p++; 
+
+    freqRepr = atoi(argv[p]);
+
+    p++; 
+
+    freqSurv = atoi(argv[p]);
+
+    p++; 
+
+    freqRfll = atoi(argv[p]); // let the animals feed for a while before "daily" death trial
+
+    p++; 
 
     /* assessment frequency variables */
-    freqResu = atoi(argv[30]);
-    freqSnap = atoi(argv[31]);
+    freqResu = atoi(argv[p]);
+
+    p++; 
+
+    freqSnap = atoi(argv[p]);
+
+    p++; 
 
     /* seed */
-    randomSeed = atoi(argv[32]);
+    randomSeed = atoi(argv[p]);
+
+    cout << "Total nb of parameters: " << p << endl << endl;
 
     /* ---- construct matching structures ---- */
 
@@ -1450,7 +1663,7 @@ int main(int argc, char **argv)
 
     assignTagsIndexes(); // creates individuals' matching tables. NEED 3 delete[] : OK
 
-    makeDietsTable(preyMaxConsume[0], predAsymm[0]); // NEED 1 delete[] : OK
+    makeDietsTable(preyMaxConsume[0], predAsymm[0], true); // NEED 1 delete[] : OK
 
     srand(randomSeed); // set random generator seed with instant time
 
@@ -1561,8 +1774,8 @@ int main(int argc, char **argv)
             for (int i = 0; i < preyTypesNb; i++)
                 preys[i]->feed(world.landscapeTablePtr, false);
 
-            // prey1.getInfo();
-            // prey2.getInfo();
+            // prey1->getInfo();
+            // prey2->getInfo();
 
             /* predators */
             if (timeStep >= predIntro[0])
@@ -1678,15 +1891,18 @@ int main(int argc, char **argv)
 
         /* ---- check extinctions ---- */
         // if (prey1->currentPopulationSize == 0 | prey2->currentPopulationSize == 0 | pred1->currentPopulationSize == 0)
-        if (prey1->currentPopulationSize == 0 && prey1->initialDensity != 0 | prey2->currentPopulationSize == 0 && prey2->initialDensity != 0 | pred1->currentPopulationSize == 0 && pred1->initialDensity != 0)
-        {
-            cout << "Time step #" << timeStep << ": at least one population got extinct, stop simulation" << endl
-                 << endl;
-            // break;
-        }
+        // if (prey1->currentPopulationSize == 0 && prey1->initialDensity != 0 | prey2->currentPopulationSize == 0 && prey2->initialDensity != 0 | pred1->currentPopulationSize == 0 && pred1->initialDensity != 0)
+        // {
+        //     cout << "Time step #" << timeStep << ": at least one population got extinct, stop simulation" << endl
+        //          << endl;
+        //     // break;
+        // }
 
         /* ---- reset landscape table ---- */
-        world.resetLandscape();
+        world.resetCounts();
+
+        if (timeStep % freqRfll == 0)
+            world.resetResources();
 
         timeStep++;
     }
