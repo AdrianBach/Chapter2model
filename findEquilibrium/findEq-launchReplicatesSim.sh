@@ -44,16 +44,17 @@ prd_intr_1=201  # argv[26] predator 1 time of introduction in the model
 prd_asym_1=1  # argv[27] asymmetry in prey1 to prey2 conversion rates
 # prd_ctch_1=0.5  # argv[28] predator catch probability
 prd_oprt_1=0    # argv[29] is predator oportunistic? (0 or 1)
+prd_spcf_1=0    # argv[30] is predator specific? (0 or 1)
 
 # time variables
-simu_time=1000   # argv[30] simulation time
-freq_repr=10     # argv[31] frequency of reproduction trials
-freq_surv=$freq_repr     # argv[32] frequency of survival trials
-freq_rfll=$freq_repr     # argv[33] frequency of landscape resources refill
+simu_time=1000   # argv[31] simulation time
+freq_repr=40     # argv[32] frequency of reproduction trials
+freq_surv=$(($freq_repr/4))     # argv[33] frequency of survival trials
+freq_rfll=$freq_repr     # argv[34] frequency of landscape resources refill
 
 # frequency of assessment
-freq_rslt=$freq_repr    # argv[34] frequency of landscape results shot
-freq_snap=100   # argv[35] frequency of snapshot measure
+freq_rslt=$freq_repr    # argv[35] frequency of landscape results shot
+freq_snap=100   # argv[36] frequency of snapshot measure
 
 # number of replicates
 rep=10
@@ -179,19 +180,20 @@ do
         printf "prd_intr_1 = $prd_intr_1 \t # argv[26] predator 1 time of introduction in the model\n" >> paramFile.txt
         printf "prd_asym_1 = $prd_asym_1 \t # argv[27] predator 1 asymmetry in prey1 to prey2 conversion rates\n" >> paramFile.txt
         printf "prd_ctch_1 = $prd_ctch_1 \t # argv[28] predator 1 predator catch probablility \n" >> paramFile.txt
-        printf "prd_gnrl_1 = $prd_oprt_1 \t # argv[29] predator 1 oportunistic? (0 or 1) \n\n" >> paramFile.txt
+        printf "prd_oprt_1 = $prd_oprt_1 \t # argv[29] predator 1 oportunistic? (0 or 1) \n" >> paramFile.txt
+        printf "prd_spcf_1 = $prd_spcf_1 \t # argv[30] predator 1 specific? (0 or 1) \n\n" >> paramFile.txt
         printf "# time variables\n" >> paramFile.txt
-        printf "simu_time = $simu_time \t # argv[30] simulation time\n" >> paramFile.txt
-        printf "freq_repr = $freq_repr \t # argv[31] frequency of reproduction trials\n" >> paramFile.txt
-        printf "freq_surv = $freq_surv \t # argv[32] frequency of survival trials\n" >> paramFile.txt
-        printf "freq_rfll = $freq_rfll \t # argv[33] frequency of results measure\n\n" >> paramFile.txt
+        printf "simu_time = $simu_time \t # argv[31] simulation time\n" >> paramFile.txt
+        printf "freq_repr = $freq_repr \t # argv[32] frequency of reproduction trials\n" >> paramFile.txt
+        printf "freq_surv = $freq_surv \t # argv[33] frequency of survival trials\n" >> paramFile.txt
+        printf "freq_rfll = $freq_rfll \t # argv[34] frequency of results measure\n\n" >> paramFile.txt
         printf "# frequency of assessment\n" >> paramFile.txt
-        printf "freq_rslt = $freq_rslt \t # argv[34] frequency of landscape snap shot\n" >> paramFile.txt
-        printf "freq_snap = $freq_snap \t # argv[35] frequency of results measure\n\n" >> paramFile.txt
+        printf "freq_rslt = $freq_rslt \t # argv[35] frequency of landscape snap shot\n" >> paramFile.txt
+        printf "freq_snap = $freq_snap \t # argv[36] frequency of results measure\n\n" >> paramFile.txt
         printf "# number of replicates\n" >> paramFile.txt
         printf "rep = $rep\n\n" >> paramFile.txt
         printf "# Simulation infos \n\n" >> paramFile.txt
-        printf "rep \t seed (arg[36]) \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
+        printf "rep \t seed (arg[37]) \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
 
         ## Start simulation replicates ##
 
@@ -201,11 +203,11 @@ do
             echo "lauching replicate #$j"
 
             # seed for random number generator
-            rand_seed=$RANDOM # argv[36] set the seed with a random number 
-            # rand_seed=$(date +%s) # argv[36] set the seed with a random number 
+            rand_seed=$RANDOM # argv[37] set the seed with a random number 
+            # rand_seed=$(date +%s) # argv[37] set the seed with a random number 
 
             start=$(date +%s)
-            ./test-chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_cons_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_asym_1 $prd_ctch_1 $prd_oprt_1 $simu_time $freq_repr $freq_surv $freq_rfll $freq_rslt $freq_snap $rand_seed
+            ./test-chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_cons_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_asym_1 $prd_ctch_1 $prd_oprt_1 $prd_spcf $simu_time $freq_repr $freq_surv $freq_rfll $freq_rslt $freq_snap $rand_seed
             end=$(date +%s)
 
             time_s=$(($end-$start))
