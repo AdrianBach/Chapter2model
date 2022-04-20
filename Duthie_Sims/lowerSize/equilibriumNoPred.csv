@@ -1,0 +1,4 @@
+"preyInit","repNb","threshold","period","pry1posStab","pry2posStab","prdPosStab","prey1popEqMean","prey1popEqICinf","prey1popEqICsup","prey2popEqMean","prey2popEqICinf","prey2popEqICsup","predatorPopEqMean","predatorPopEqICinf","predatorPopEqICsup"
+10,10,10,5,66,66,0,4641.7,4616,4672.9,4649,4626.7,4669.8,0,0,0
+100,10,10,5,48,48,0,4676.5,4654.9,4694.7,4673.6,4649.6,4695.4,0,0,0
+1000,10,10,5,30,30,0,4515,4498.9,4529.8,4515,4498.6,4532,0,0,0
