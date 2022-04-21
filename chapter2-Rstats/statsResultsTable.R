@@ -346,6 +346,8 @@ gridFig <- function(path, XparamName, YparamName) {
     Yparam = strg[which(str_detect(strg, YparamName) == TRUE)] # search for XparamName in the list
     Yparam = sub(x = Yparam, pattern = paste(YparamName, "*", sep = ""), replacement = "") # get everything after XparamName
     
+    # if (Xparam == 1) {next}
+    
     # read one file to get column number and headers
     res <- read.csv(paste(path, content[i], sep = "/"))
       
@@ -373,7 +375,49 @@ gridFig <- function(path, XparamName, YparamName) {
   # save table in case
   write.csv(tab, file = paste(path,"/", XparamName, "X", YparamName, "MergedTable.csv", sep = ""), row.names = FALSE)
   
-  # plot
+  # plot grid
+  # Base Plot# plot and save figure
+  # data <- tab
+  data <- subset(tab, tab$pry1Cons != 1)
+  
+  x = data$timeStep
+  y1 = data$prey1PopulationSizeMean
+  y2 = data$prey2PopulationSizeMean
+  y3 = data$predator1PopulationSizeMean
+  y1min = data$prey1PopulationSizeICinf
+  y2min = data$prey2PopulationSizeICinf
+  y3min = data$predator1PopulationSizeICinf
+  y1max = data$prey1PopulationSizeICsup
+  y2max = data$prey2PopulationSizeICsup
+  y3max = data$predator1PopulationSizeICsup
+  y1c = "red"
+  y2c = "blue"
+  y3c = "orange"
+  tIntro = 210
+  
+  fig <- ggplot(data, aes(x)) + 
+    geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+    geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+    geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+    geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+    geom_line(aes(y = y1), color = y1c) +
+    geom_line(aes(y = y2), color = y2c) +
+    geom_line(aes(y = y3), color = y3c) +
+    # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+    # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+    # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+    # labs(x = "Time steps", y = "Population size") +
+    labs(title="Predators' catch probability VS preys' max consumption", x = "Time steps", y = "Population size", caption = "other parameters here?") # + #, subtitle="Ggplot2 - Facet Grid - Multiple plots in one figure"
+    # scale_colour_manual(name='Populations',
+                        # breaks=c('Prey 1', 'Prey 2', 'Predator'),
+                        # values=c(y1c, y2c, y3c))
+  
+  # Add Facet Grid
+  grid <- fig + facet_grid(data$pry1Cons ~ data$prdCtch)  # cyl in rows and class in columns.
+  # plot(grid)
+  
+  # save plot in this folder
+  ggsave(filename = "gridFigure", path = path, plot = grid, limitsize = TRUE)
   
 } # end of function
 
