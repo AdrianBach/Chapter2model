@@ -1,6 +1,6 @@
 library(ggplot2)
 
-path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/test-size25-simTime1000-res1max50-res2max50-pry1init50-pry1cons20-prdInit5-prdSurv200-prdCtch0.25/stats-test-size25-simTime1000-res1max50-res2max50-pry1init50-pry1cons20-prdInit5-prdSurv200-prdCtch0.25/statsResults-test-size25-simTime1000-res1max50-res2max50-pry1init50-pry1cons20-prdInit5-prdSurv200-prdCtch0.25.csv"
+path = "/home/adrian/Documents/GitKraken/Chapter2model/findEquilibrium/findEq-size25-res1max50-pry1init250-pry1Cons1-prdInit25-prdSurv10-prdCtch0.05/stats-findEq-size25-res1max50-pry1init250-pry1Cons1-prdInit25-prdSurv10-prdCtch0.05/statsResults-findEq-size25-res1max50-pry1init250-pry1Cons1-prdInit25-prdSurv10-prdCtch0.05.csv"
 
 data <- read.csv(path)
 
@@ -35,3 +35,5 @@ fig <- ggplot(data, aes(x)) +
                      breaks=c('Prey 1', 'Prey 2', 'Predator'),
                      values=c(y1c, y2c, y3c))
 fig
+
+ggsave(filename = "test.pdf", plot = fig, path = "/home/adrian/Documents/GitKraken/Chapter2model/findEquilibrium/findEq-size25-res1max50-pry1init250-pry1Cons1-prdInit25-prdSurv10-prdCtch0.05/stats-findEq-size25-res1max50-pry1init250-pry1Cons1-prdInit25-prdSurv10-prdCtch0.05/", limitsize = TRUE)
