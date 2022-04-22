@@ -46,7 +46,8 @@ vector<int> predExpectedOffspring; //
 vector<int> predReproCost;         //
 vector<int> predIntro;             // time of introduction of the predator
 vector<float> predAsymm;           // ratio of preys' catch conversion into resources
-vector<float> predCatchProba;      // pred catching probability
+vector<float> predCatchProbaPrey1;      // pred catching probability
+vector<float> predCatchProbaPrey2;      // pred catching probability
 vector<bool> predOportunistic;     // t/1 or f/0, is the predator oportunistic? (ranked prey types by conversion rate)
 vector<bool> predSpecific;         // t/1 or f/0, is the predator specific? (hunts prey 1 in priority regardless of conversion rates)
 
@@ -946,9 +947,10 @@ public:
             {
                 populationTablePtr[ind][5] = randomSampleFromPoissonDist(expectedOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
 
-                /* debug */
+                /* debug 
                 cout << "animal of type " << typeTag << " #" << ind << "has enough resources to reproduce. Offspring nb: " << populationTablePtr[ind][5] << endl
                      << endl;
+                */
 
                 if (populationTablePtr[ind][5] > 0)
                     populationTablePtr[ind][3] -= reproductionCost; // if at least one offspring subtract reproduction cost from resource pool
@@ -1268,6 +1270,7 @@ protected:
     int dailyPredMaxConsumption;
     vector<int> conversionRates; // conversion of each prey catch in resources
     vector<int> maxCatches;      // max number of catches per day and per prey
+    vector<float> catchProbas;   // catch probability of each prey in diet
 
 public:
     predator(int initialDensity, int typeTag, float maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorExpectedOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorExpectedOffspring, XYcoordinates, CellCodes) //
@@ -1300,6 +1303,9 @@ public:
         /* debug */
         cout << "Max catches per day should be ceil " << 3 * dailyPredMaxConsumption << "/" << conversionRates[0] << ";" << 3 * dailyPredMaxConsumption << "/" << conversionRates[1] << " and are " << maxCatches[0] << " " << maxCatches[1] << endl
              << endl;
+
+        catchProbas.push_back(predCatchProbaPrey1[0]);
+        catchProbas.push_back(predCatchProbaPrey2[0]);
     }
 
     void hunt(int **LandscapeTable, bool debug)
@@ -1335,6 +1341,7 @@ public:
             vector<int> preysConversionRates;
             vector<int> preysLandscapeIndexes;
             vector<int> preysMaxCatches;
+            vector<float> preysCatchProbas;
 
             for (int i = 0; i < conversionRates.size(); i++)
             {
@@ -1351,6 +1358,7 @@ public:
                 vector<int> shuffledConversionRates;
                 vector<int> shuffledpreysLandscapeIndexes;
                 vector<int> shuffledMaxCatches;
+                vector<float> shuffledCatchProbas;
 
                 /* shuffle indexes and update conversionRates and maxCatches accordingly */
                 random_shuffle(shuffledIndexes.begin(), shuffledIndexes.end());
@@ -1360,6 +1368,7 @@ public:
                     shuffledConversionRates.push_back(conversionRates[index]);
                     shuffledpreysLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
                     shuffledMaxCatches.push_back(maxCatches[index]);
+                    shuffledCatchProbas.push_back(catchProbas[index]);
                 }
 
                 if (predOportunistic[0] == true)
@@ -1372,6 +1381,7 @@ public:
                     vector<int> sortedConversionRates = shuffledConversionRates;
                     vector<int> sortedPreyLandscapeIndexes;
                     vector<int> sortedMaxCatches;
+                    vector<float> sortedCatchProbas;
 
                     /* sorting according to conversion rate while keeping the indexes */
                     int row = 0; // initiate row count
@@ -1403,6 +1413,7 @@ public:
                         int index = sortedIndexes[i];
                         sortedPreyLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
                         sortedMaxCatches.push_back(maxCatches[index]);
+                        sortedCatchProbas.push_back(catchProbas[index]);
                     }
 
                     /* update vectors preys info */
@@ -1410,6 +1421,16 @@ public:
                     preysConversionRates = sortedConversionRates;
                     preysLandscapeIndexes = sortedPreyLandscapeIndexes;
                     preysMaxCatches = sortedMaxCatches;
+                    preysCatchProbas = sortedCatchProbas;
+                } // end if opportunistic 
+                else 
+                {
+                    /* update vectors preys info */
+                    preysIndexes = shuffledIndexes;
+                    preysConversionRates = shuffledConversionRates;
+                    preysLandscapeIndexes = shuffledpreysLandscapeIndexes;
+                    preysMaxCatches = shuffledMaxCatches;
+                    preysCatchProbas = shuffledCatchProbas;
                 }
             }
             else
@@ -1422,6 +1443,7 @@ public:
                 preysConversionRates = conversionRates;
                 preysLandscapeIndexes = dietLandscapeIndexes;
                 preysMaxCatches = maxCatches;
+                preysCatchProbas = catchProbas;
             }
 
             /* iterate through prey columns and while catches < maxCatches and
@@ -1439,6 +1461,7 @@ public:
                 int dens = LandscapeTable[indCellCode][densColumn];
                 int convRate = preysConversionRates[i];
                 int maxCatch = preysMaxCatches[i];
+                float catchProb = preysCatchProbas[i];
 
                 int catches = 0; // initialise a catch counter for this particular prey
 
@@ -1456,11 +1479,11 @@ public:
                     float randomNb = randomNumberGenerator0to1(0, 1);
 
                     if (debug == true)
-                        cout << "random sample is: " << randomNb << " ; proba is: " << predCatchProba[0] << endl
+                        cout << "random sample is: " << randomNb << " ; proba is: " << catchProb << endl
                              << endl;
 
                     /* compare to the catch probability, if < catch, if > fail */
-                    if (randomNb < predCatchProba[0])
+                    if (randomNb < catchProb)
                     {
                         LandscapeTable[indCellCode][catchColumn] += 1;  // increment corresponding catch cell in landscape table
                         LandscapeTable[indCellCode][densColumn] -= 1;   // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
@@ -1643,8 +1666,12 @@ int main(int argc, char **argv)
 
     p++;
 
-    predCatchProba.push_back(atof(argv[p]));
+    predCatchProbaPrey1.push_back(atof(argv[p]));
 
+    p++;
+
+    predCatchProbaPrey2.push_back(atof(argv[p]));
+    
     p++;
 
     predOportunistic.push_back(atoi(argv[p]));
