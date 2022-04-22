@@ -9,9 +9,15 @@
 # - the makefile
 
 # to eventually get access 
+<<<<<<< HEAD
+#   chmod u+x ./lauchreplicatesSim.sh
+# and execute
+#   bash ./paramChoice-launchReplicatesSim.sh
+=======
 #   chmod u+x ./findEq-lauchreplicatesSim.sh
 # and execute
 #   bash ./findEq-launchReplicatesSim.sh
+>>>>>>> 4d41de9d087131b41367c863911583527b76af34
 
 
 #### Parameter list: assign values ####
