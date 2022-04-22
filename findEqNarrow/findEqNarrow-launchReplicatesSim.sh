@@ -49,8 +49,8 @@ prd_spcf_1=0    # argv[30] is predator specific? (0 or 1)
 
 # time variables
 simu_time=1000   # argv[31] simulation time
-freq_repr=10     # argv[32] frequency of reproduction trials
-freq_surv=$(($freq_repr))     # argv[33] frequency of survival trials
+freq_repr=40     # argv[32] frequency of reproduction trials
+freq_surv=$(($freq_repr/4))     # argv[33] frequency of survival trials
 freq_rfll=$freq_repr     # argv[34] frequency of landscape resources refill
 
 # frequency of assessment
@@ -58,7 +58,7 @@ freq_rslt=$freq_repr    # argv[35] frequency of landscape results shot
 freq_snap=100   # argv[36] frequency of snapshot measure
 
 # number of replicates
-rep=100
+rep=10
 
 ## Non user defined variables ##
 
@@ -84,8 +84,8 @@ make
 #### Simulation loop ####
 
 # pop_array=($(seq 10 10 30)) # hard coded for now
-pryMaxCellArray=(1 2.5 5 10 $max_res_1) # hard coded for now
-prdCtchProbaArray=(0.05 0.1 0.25 0.5 1)
+pryMaxCellArray=(10 6.6 5 4) # hard coded for now
+prdCtchProbaArray=(0.1 0.15 0.20 0.25 0.3)
 
 echo "pryMaxCellArray is ${pryMaxCellArray[*]}"
 echo "pryMaxCellArray size is ${#pryMaxCellArray[@]}"
@@ -118,9 +118,10 @@ do
     # loop over prdCatchProb
     for ((k=0 ; k<${#prdCtchProbaArray[@]} ; k++))
     do
-        prd_ctch_1=${prdCtchProbaArray[$k]} 
+        prd_ctch_pry1_1=${prdCtchProbaArray[$k]} 
+        prd_ctch_pry2_1=$prd_ctch_pry1_1
 
-        echo "preys maxCell: $max_cell ; predators catch proba: $prd_ctch_1"
+        echo "preys maxCell: $max_cell ; predators catch proba : $prd_ctch_pry1_1 and $prd_ctch_pry2_1"
 
         # name the simulation with only the variables of interest and their value
         sim_name="findEqNarrow-size$size-simTime$simu_time-res1max$max_res_1-predOprt$prd_oprt_1-predSpcf$prd_spcf_1-pry1cons$pry_cons_1-prdSurv$prd_surv_1-prdCtchProb1$prd_ctch_pry1_1-prdCtchProb2$prd_ctch_pry2_1" # argv[1]
@@ -150,90 +151,90 @@ do
         cd $sim_name
 
         # write a txt file with all the parameter values
-p=1
-printf "sim_name = $sim_name \t # argv[$p] \n\n" >> paramFile.txt
-p=$(($p+1))
-printf "# landscape variables\n" >> paramFile.txt
-printf "size = $size \t # argv[$p] world's side size\n" >> paramFile.txt
-p=$(($p+1))
-printf "res_nb = $res_nb \t # argv[$p] number of resource types\n" >> paramFile.txt
-p=$(($p+1))
-printf "max_res_1 = $max_res_1 \t # argv[$p] max resource 1 per cell\n" >> paramFile.txt
-p=$(($p+1))
-printf "max_res_2 = $max_res_2 \t # argv[$p] max resource 1 per cell\n\n" >> paramFile.txt
-p=$(($p+1))
-printf "# prey variables\n" >> paramFile.txt
-printf "pry_nb = $pry_nb \t # argv[$p] number of prey types\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_init_1 = $pry_init_1 \t # argv[$p] prey 1 initial density in nb of individuals\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_init_2 = $pry_init_2 \t # argv[$p] prey 2 initial density\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_move_1 = $pry_move_1 \t # argv[$p] prey 1 max movement range in fraction of size\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_move_2 = $pry_move_2 \t # argv[$p] prey 2 movement range\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_cons_1 = $pry_cons_1 \t # argv[$p] prey 1 max consumption in resource units\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_cons_2 = $pry_cons_2 \t # argv[$p] prey 2 max consumption\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_surv_1 = $pry_surv_1 \t # argv[$p] prey 1 resource units needed to pass survival trial\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_surv_2 = $pry_surv_2 \t # argv[$p] prey 2 resource units needed to pass survival trial\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_offs_1 = $pry_offs_1 \t # argv[$p] prey 1 max number of offspring\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_offs_2 = $pry_offs_2 \t # argv[$p] prey 2 max number of offspring\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_repr_1 = $pry_repr_1 \t # argv[$p] prey 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
-p=$(($p+1))
-printf "pry_repr_2 = $pry_repr_2 \t # argv[$p] prey 2 resource units needed to pass reproduction trial\n\n" >> paramFile.txt
-p=$(($p+1))
-printf "# predator variables\n" >> paramFile.txt
-printf "prd_nb = $prd_nb \t # argv[$p] number of predator types\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_init_1 = $prd_init_1 \t # argv[$p] predator 1 initial density in nb of individuals\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_move_1 = $prd_move_1 \t # argv[$p] predator 1 max movement range in fraction of size\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_cons_1 = $prd_cons_1 \t # argv[$p] predator 1 max movement range in fraction of size\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_surv_1 = $prd_surv_1 \t # argv[$p] predator 1 resource units needed to pass survival trial\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_offs_1 = $prd_offs_1 \t # argv[$p] predator 1 max number of offspring\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_repr_1 = $prd_repr_1 \t # argv[$p] predator 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_intr_1 = $prd_intr_1 \t # argv[$p] predator 1 time of introduction in the model\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_asym_1 = $prd_asym_1 \t # argv[$p] predator 1 asymmetry in prey1 to prey2 conversion rates\n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_ctch_pry1_1 = $prd_ctch_pry1_1 \t # argv[$p] predator 1 prey 1 catch probablility \n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_ctch_pry2_1 = $prd_ctch_pry2_1 \t # argv[$p] predator 1 prey 2 catch probablility \n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_oprt_1 = $prd_oprt_1 \t # argv[$p] predator 1 oportunistic? (0 or 1) \n" >> paramFile.txt
-p=$(($p+1))
-printf "prd_spcf_1 = $prd_spcf_1 \t # argv[$p] predator 1 specific? (0 or 1) \n\n" >> paramFile.txt
-p=$(($p+1))
-printf "# time variables\n" >> paramFile.txt
-printf "simu_time = $simu_time \t # argv[$p] simulation time\n" >> paramFile.txt
-p=$(($p+1))
-printf "freq_repr = $freq_repr \t # argv[$p] frequency of reproduction trials\n" >> paramFile.txt
-p=$(($p+1))
-printf "freq_surv = $freq_surv \t # argv[$p] frequency of survival trials\n" >> paramFile.txt
-p=$(($p+1))
-printf "freq_rfll = $freq_rfll \t # argv[$p] frequency of results measure\n\n" >> paramFile.txt
-p=$(($p+1))
-printf "# frequency of assessment\n" >> paramFile.txt
-printf "freq_rslt = $freq_rslt \t # argv[$p] frequency of landscape snap shot\n" >> paramFile.txt
-p=$(($p+1))
-printf "freq_snap = $freq_snap \t # argv[$p] frequency of results measure\n\n" >> paramFile.txt
-p=$(($p+1))
-printf "# number of replicates\n" >> paramFile.txt
-printf "rep = $rep\n\n" >> paramFile.txt
-printf "# Simulation infos \n\n" >> paramFile.txt
-printf "rep \t seed (arg[$p]) \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
+        p=1
+        printf "sim_name = $sim_name \t # argv[$p] \n\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "# landscape variables\n" >> paramFile.txt
+        printf "size = $size \t # argv[$p] world's side size\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "res_nb = $res_nb \t # argv[$p] number of resource types\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "max_res_1 = $max_res_1 \t # argv[$p] max resource 1 per cell\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "max_res_2 = $max_res_2 \t # argv[$p] max resource 1 per cell\n\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "# prey variables\n" >> paramFile.txt
+        printf "pry_nb = $pry_nb \t # argv[$p] number of prey types\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_init_1 = $pry_init_1 \t # argv[$p] prey 1 initial density in nb of individuals\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_init_2 = $pry_init_2 \t # argv[$p] prey 2 initial density\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_move_1 = $pry_move_1 \t # argv[$p] prey 1 max movement range in fraction of size\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_move_2 = $pry_move_2 \t # argv[$p] prey 2 movement range\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_cons_1 = $pry_cons_1 \t # argv[$p] prey 1 max consumption in resource units\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_cons_2 = $pry_cons_2 \t # argv[$p] prey 2 max consumption\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_surv_1 = $pry_surv_1 \t # argv[$p] prey 1 resource units needed to pass survival trial\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_surv_2 = $pry_surv_2 \t # argv[$p] prey 2 resource units needed to pass survival trial\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_offs_1 = $pry_offs_1 \t # argv[$p] prey 1 max number of offspring\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_offs_2 = $pry_offs_2 \t # argv[$p] prey 2 max number of offspring\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_repr_1 = $pry_repr_1 \t # argv[$p] prey 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "pry_repr_2 = $pry_repr_2 \t # argv[$p] prey 2 resource units needed to pass reproduction trial\n\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "# predator variables\n" >> paramFile.txt
+        printf "prd_nb = $prd_nb \t # argv[$p] number of predator types\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_init_1 = $prd_init_1 \t # argv[$p] predator 1 initial density in nb of individuals\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_move_1 = $prd_move_1 \t # argv[$p] predator 1 max movement range in fraction of size\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_cons_1 = $prd_cons_1 \t # argv[$p] predator 1 max movement range in fraction of size\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_surv_1 = $prd_surv_1 \t # argv[$p] predator 1 resource units needed to pass survival trial\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_offs_1 = $prd_offs_1 \t # argv[$p] predator 1 max number of offspring\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_repr_1 = $prd_repr_1 \t # argv[$p] predator 1 resource units needed to pass reproduction trial\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_intr_1 = $prd_intr_1 \t # argv[$p] predator 1 time of introduction in the model\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_asym_1 = $prd_asym_1 \t # argv[$p] predator 1 asymmetry in prey1 to prey2 conversion rates\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_ctch_pry1_1 = $prd_ctch_pry1_1 \t # argv[$p] predator 1 prey 1 catch probablility \n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_ctch_pry2_1 = $prd_ctch_pry2_1 \t # argv[$p] predator 1 prey 2 catch probablility \n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_oprt_1 = $prd_oprt_1 \t # argv[$p] predator 1 oportunistic? (0 or 1) \n" >> paramFile.txt
+        p=$(($p+1))
+        printf "prd_spcf_1 = $prd_spcf_1 \t # argv[$p] predator 1 specific? (0 or 1) \n\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "# time variables\n" >> paramFile.txt
+        printf "simu_time = $simu_time \t # argv[$p] simulation time\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "freq_repr = $freq_repr \t # argv[$p] frequency of reproduction trials\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "freq_surv = $freq_surv \t # argv[$p] frequency of survival trials\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "freq_rfll = $freq_rfll \t # argv[$p] frequency of results measure\n\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "# frequency of assessment\n" >> paramFile.txt
+        printf "freq_rslt = $freq_rslt \t # argv[$p] frequency of landscape snap shot\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "freq_snap = $freq_snap \t # argv[$p] frequency of results measure\n\n" >> paramFile.txt
+        p=$(($p+1))
+        printf "# number of replicates\n" >> paramFile.txt
+        printf "rep = $rep\n\n" >> paramFile.txt
+        printf "# Simulation infos \n\n" >> paramFile.txt
+        printf "rep \t seed (arg[$p]) \t sim time (s) \t sim time (h) \n\n" >> paramFile.txt
 
         ## Start simulation replicates ##
 
