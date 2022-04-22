@@ -2,10 +2,12 @@
 #include <string>    // manipulate char strings
 #include <fstream>   // handle files
 #include <time.h>    // get the time for random number generator
-#include <stdlib.h>  // random generator tools
+#include <stdlib.h>  // some random generator tools
 #include <algorithm> // random shuffle
-#include <vector>    // needed for random shuffle
+#include <vector>    // use vector objects (useful for short lists bc no need for data management)
 #include <cmath>     // ceil
+#include <random>    // random generation functions
+#include <chrono>    // other needed tools for random generetion
 
 using namespace std; // not to have to write std:: in front of every call
 
@@ -21,32 +23,32 @@ vector<string> resourceTypes; // res1..n
 vector<int> maxResources;     // maximum resources per cell
 
 /* prey variables */
-int preyTypesNb;                  // Number of preys modelled
-vector<int> preyInitialDensities; //
-vector<string> preyTypes;         // prey1..n
-vector<float> preyMaxMove;        // NOT GOOD should rather be defined in % of landscape size
-vector<int> preyMaxConsume;       // in resource units
-vector<int> preyMaintenanceCost;  //
-vector<int> preyMaxOffspring;     //
-vector<int> preyReproCost;        //
+int preyTypesNb;                   // Number of preys modelled
+vector<int> preyInitialDensities;  //
+vector<string> preyTypes;          // prey1..n
+vector<float> preyMaxMove;         // NOT GOOD should rather be defined in % of landscape size
+vector<int> preyMaxConsume;        // in resource units
+vector<int> preyMaintenanceCost;   //
+vector<int> preyExpectedOffspring; //
+vector<int> preyReproCost;         //
 // add time of introduction?
 // frequency of reproduction
 // frequency of survival trial
 
 /* predator variables */
-int predatorTypesNb;              // Number of predators modelled
-vector<string> predatorTypes;     // res1..n
-vector<int> predInitialDensities; //
-vector<float> predMaxMove;        // NOT GOOD should rather be defined in % of landscape size CAREFUL the product has to stay int
-vector<int> predMaxConsume;       // in equivalent resources
-vector<int> predMaintenanceCost;  //
-vector<int> predMaxOffspring;     //
-vector<int> predReproCost;        //
-vector<int> predIntro;            // time of introduction of the predator
-vector<float> predAsymm;          // ratio of preys' catch conversion into resources
-vector<float> predCatchProba;     // pred catching probability
-vector<bool> predOportunistic;    // t/1 or f/0, is the predator oportunistic? (ranked prey types by conversion rate)
-vector<bool> predSpecific;        // t/1 or f/0, is the predator specific? (hunts prey 1 in priority regardless of conversion rates)
+int predatorTypesNb;               // Number of predators modelled
+vector<string> predatorTypes;      // res1..n
+vector<int> predInitialDensities;  //
+vector<float> predMaxMove;         // NOT GOOD should rather be defined in % of landscape size CAREFUL the product has to stay int
+vector<int> predMaxConsume;        // in equivalent resources
+vector<int> predMaintenanceCost;   //
+vector<int> predExpectedOffspring; //
+vector<int> predReproCost;         //
+vector<int> predIntro;             // time of introduction of the predator
+vector<float> predAsymm;           // ratio of preys' catch conversion into resources
+vector<float> predCatchProba;      // pred catching probability
+vector<bool> predOportunistic;     // t/1 or f/0, is the predator oportunistic? (ranked prey types by conversion rate)
+vector<bool> predSpecific;         // t/1 or f/0, is the predator specific? (hunts prey 1 in priority regardless of conversion rates)
 
 /* time variables */
 int timeMaxi; // simulation time
@@ -97,6 +99,19 @@ double randomNumberGeneratorAny(double min, double max) // generates a random nu
 {
     double res;
     res = min + (double)rand() * (max - min + 1) / (RAND_MAX - 1);
+
+    return res;
+}
+
+int randomSampleFromPoissonDist(int Mean)
+{
+    int res;
+
+    default_random_engine generator(randomNumberGeneratorAny(0, 99999999)); // random sample
+
+    poisson_distribution<int> distribution(Mean); // generate a Poisson distribution
+
+    res = distribution(generator); // random sample from the distribution
 
     return res;
 }
@@ -747,10 +762,10 @@ private:
     int columnNb; // number of info stored in the table
 
     /* population level constants that might have different values according to animal types */
-    int typeTag;          // a integer tag for each animal type
-    float maxMove;        // max number of cells an animal can move by in each direction
-    int reproductionCost; // resources needed to reproduce
-    int maxOffspring;     // max number of offspring when passing reproduction trial
+    int typeTag;           // a integer tag for each animal type
+    float maxMove;         // max number of cells an animal can move by in each direction
+    int reproductionCost;  // resources needed to reproduce
+    int expectedOffspring; // max number of offspring when passing reproduction trial
 
 protected:
     int landscapeSize;
@@ -766,14 +781,14 @@ public:
     int initialDensity;
     int **populationTablePtr; //
 
-    animals(int InitialDensity, int TypeTag, float MaxMove, int MaintenanceCost, int ReproductionCost, int LandscapeSize, int MaxOffspring, string *XYcoordinates, int *CellCodes) // initialise the constants shared by all animal types
+    animals(int InitialDensity, int TypeTag, float MaxMove, int MaintenanceCost, int ReproductionCost, int LandscapeSize, int ExpectedOffspring, string *XYcoordinates, int *CellCodes) // initialise the constants shared by all animal types
     {
 
         initialDensity = InitialDensity;
         typeTag = TypeTag;
         reproductionCost = ReproductionCost;
         maintenanceCost = MaintenanceCost;
-        maxOffspring = MaxOffspring;
+        expectedOffspring = ExpectedOffspring;
         landscapeSize = LandscapeSize;
         maxMove = ceil(MaxMove * (float)landscapeSize);
 
@@ -927,9 +942,14 @@ public:
 
         while (ind < currentPopulationSize)
         {
-            if (populationTablePtr[ind][4] == 1 && populationTablePtr[ind][3] >= reproductionCost) // if individual is alive
+            if (populationTablePtr[ind][4] == 1 && populationTablePtr[ind][3] >= reproductionCost) // if individual is alive and has enough resources to reproduce
             {
-                populationTablePtr[ind][5] = randomNumberGeneratorAny(0, maxOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
+                populationTablePtr[ind][5] = randomSampleFromPoissonDist(expectedOffspring); // even if it has the resource it might not reproduce (and thus not paying the cost)
+
+                /* debug */
+                cout << "animal of type " << typeTag << " #" << ind << "has enough resources to reproduce. Offspring nb: " << populationTablePtr[ind][5] << endl
+                     << endl;
+
                 if (populationTablePtr[ind][5] > 0)
                     populationTablePtr[ind][3] -= reproductionCost; // if at least one offspring subtract reproduction cost from resource pool
             }
@@ -1097,7 +1117,7 @@ private:
     int maxConsumption; // max resource units the prey can consume in a time step
 
 public:
-    prey(int preyInitialDensity, int preyTypeTag, float preyMaxMovingDistance, int preyMaintenanceCost, int preyReproductionCost, int LandscapeSize, int preyMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(preyInitialDensity, preyTypeTag, preyMaxMovingDistance, preyMaintenanceCost, preyReproductionCost, LandscapeSize, preyMaxOffspring, XYcoordinates, CellCodes) //
+    prey(int preyInitialDensity, int preyTypeTag, float preyMaxMovingDistance, int preyMaintenanceCost, int preyReproductionCost, int LandscapeSize, int preyExpectedOffspring, string *XYcoordinates, int *CellCodes) : animals(preyInitialDensity, preyTypeTag, preyMaxMovingDistance, preyMaintenanceCost, preyReproductionCost, LandscapeSize, preyExpectedOffspring, XYcoordinates, CellCodes) //
     {
     }
 
@@ -1250,7 +1270,7 @@ protected:
     vector<int> maxCatches;      // max number of catches per day and per prey
 
 public:
-    predator(int initialDensity, int typeTag, float maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorMaxOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorMaxOffspring, XYcoordinates, CellCodes) //
+    predator(int initialDensity, int typeTag, float maxMovingDistance, int predatorMaintenanceCost, int predatorReproductionCost, int LandscapeSize, int predatorExpectedOffspring, string *XYcoordinates, int *CellCodes) : animals(initialDensity, typeTag, maxMovingDistance, predatorMaintenanceCost, predatorReproductionCost, LandscapeSize, predatorExpectedOffspring, XYcoordinates, CellCodes) //
     {
     }
 
@@ -1272,13 +1292,13 @@ public:
         /* compute max catches */
         for (int i = 0; i < conversionRates.size(); i++)
         {
-            int res = ceil(float(3*dailyPredMaxConsumption) / float(conversionRates[i]));
+            int res = ceil(float(3 * dailyPredMaxConsumption) / float(conversionRates[i]));
             // int res = float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv));
             maxCatches.push_back(res);
         }
 
         /* debug */
-        cout << "Max catches per day should be ceil " << 3*dailyPredMaxConsumption << "/" << conversionRates[0] << ";" << 3*dailyPredMaxConsumption << "/" << conversionRates[1] << " and are " << maxCatches[0] << " " << maxCatches[1] << endl
+        cout << "Max catches per day should be ceil " << 3 * dailyPredMaxConsumption << "/" << conversionRates[0] << ";" << 3 * dailyPredMaxConsumption << "/" << conversionRates[1] << " and are " << maxCatches[0] << " " << maxCatches[1] << endl
              << endl;
     }
 
@@ -1311,15 +1331,15 @@ public:
             }
 
             /* generate vectors preys info */
-            vector<int> preysIndexes;          
-            vector<int> preysConversionRates;  
-            vector<int> preysLandscapeIndexes; 
-            vector<int> preysMaxCatches;    
+            vector<int> preysIndexes;
+            vector<int> preysConversionRates;
+            vector<int> preysLandscapeIndexes;
+            vector<int> preysMaxCatches;
 
             for (int i = 0; i < conversionRates.size(); i++)
             {
                 preysIndexes.push_back(i);
-            }   
+            }
 
             if (predSpecific[0] == false)
             {
@@ -1393,9 +1413,10 @@ public:
                 }
             }
             else
-            {   
+            {
                 if (debug == true)
-                cout << "Predator is specific: always hunts in diets order" << endl << endl;
+                    cout << "Predator is specific: always hunts in diets order" << endl
+                         << endl;
 
                 /* update vectors preys info */
                 preysConversionRates = conversionRates;
@@ -1566,11 +1587,11 @@ int main(int argc, char **argv)
 
     p++;
 
-    preyMaxOffspring.push_back(atoi(argv[p]));
+    preyExpectedOffspring.push_back(atoi(argv[p]));
 
     p++;
 
-    preyMaxOffspring.push_back(atoi(argv[p]));
+    preyExpectedOffspring.push_back(atoi(argv[p]));
 
     p++;
 
@@ -1606,7 +1627,7 @@ int main(int argc, char **argv)
 
     p++;
 
-    predMaxOffspring.push_back(atoi(argv[p]));
+    predExpectedOffspring.push_back(atoi(argv[p]));
 
     p++;
 
@@ -1684,16 +1705,16 @@ int main(int argc, char **argv)
 
     /* ---- construct animals populations ---- */
 
-    prey *prey1 = new prey(preyInitialDensities[0], 201, preyMaxMove[0], preyMaintenanceCost[0], preyReproCost[0], worldSize, preyMaxOffspring[0], world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    prey *prey1 = new prey(preyInitialDensities[0], 201, preyMaxMove[0], preyMaintenanceCost[0], preyReproCost[0], worldSize, preyExpectedOffspring[0], world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
     prey1->assignPreyVariables(preyMaxConsume[0]);
 
-    prey *prey2 = new prey(preyInitialDensities[1], 202, preyMaxMove[1], preyMaintenanceCost[1], preyReproCost[1], worldSize, preyMaxOffspring[1], world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
+    prey *prey2 = new prey(preyInitialDensities[1], 202, preyMaxMove[1], preyMaintenanceCost[1], preyReproCost[1], worldSize, preyExpectedOffspring[1], world.XYcoordinates, world.cellCode); // construct prey1 population = assigning values to the constants, intitialise some variables, compute others
     prey2->assignPreyVariables(preyMaxConsume[1]);
 
     /* create prey pointer group */
     prey *preys[2] = {prey1, prey2};
 
-    predator *pred1 = new predator(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predMaxOffspring[0], world.XYcoordinates, world.cellCode);
+    predator *pred1 = new predator(predInitialDensities[0], 301, predMaxMove[0], predMaintenanceCost[0], predReproCost[0], worldSize, predExpectedOffspring[0], world.XYcoordinates, world.cellCode);
     pred1->getDietInfo();
 
     /* if more than one predator
@@ -1725,10 +1746,10 @@ int main(int argc, char **argv)
 
     while (timeStep <= timeMaxi)
     {
-        /* debug
+        /* debug*/
         cout << "time step " << timeStep << endl
              << endl;
-        */
+        
 
         if (timeStep > 0)
         {

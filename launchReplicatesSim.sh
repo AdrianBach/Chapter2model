@@ -21,10 +21,10 @@
 # landscape variables
 size=5       # argv[2] world's side size
 res_nb=2     # argv[3] number of resource types
-max_res_1=10 # argv[4] max resource 1 per cell
-max_res_2=10 # argv[5] max resource 2 per cell
+max_res_1=50 # argv[4] max resource 1 per cell
+max_res_2=50 # argv[5] max resource 2 per cell
 
-max_cell=2.5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
+max_cell=5 # max expected number of preys of each kind per cell # if 2.5, between 2 and 3 animals per cell
 
 # prey variables
 pry_nb=2        # argv[6] number of prey types
