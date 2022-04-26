@@ -49,12 +49,12 @@ prd_spcf_1=0    # argv[30] is predator specific? (0 or 1)
 
 # time variables
 simu_time=1000   # argv[31] simulation time
-freq_repr=40     # argv[32] frequency of reproduction trials
-freq_surv=$(($freq_repr/4))     # argv[33] frequency of survival trials
+freq_repr=10     # argv[32] frequency of reproduction trials
+freq_surv=$freq_repr     # argv[33] frequency of survival trials
 freq_rfll=$freq_repr     # argv[34] frequency of landscape resources refill
 
 # frequency of assessment
-freq_rslt=$freq_repr    # argv[35] frequency of landscape results shot
+freq_rslt=$freq_surv    # argv[35] frequency of landscape results shot
 freq_snap=100   # argv[36] frequency of snapshot measure
 
 # number of replicates
@@ -84,7 +84,7 @@ make
 #### Simulation loop ####
 
 # pop_array=($(seq 10 10 30)) # hard coded for now
-pryMaxCellArray=(10 6.6 5 4) # hard coded for now
+pryMaxCellArray=(5 3.3 2.5 2) # hard coded for now
 prdCtchProbaArray=(0.1 0.15 0.20 0.25 0.3)
 
 echo "pryMaxCellArray is ${pryMaxCellArray[*]}"
