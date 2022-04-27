@@ -1,4 +1,4 @@
-\documentclass{standalone}
+\documentclass[border=5pt]{standalone}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -30,13 +30,13 @@
 \node (dec3) [decision, below of=io2] {Survival trial?};
 \node (pro5) [process,  right of=dec3, xshift=2.5cm] {Preys survival trial};
 \node (dec4) [decision, below of=pro5] {Predators introduced?};
-\node (fdot1) [fdot, below of=dec4] {};
+%\node (fdot1) [fdot, below of=dec4] {};
 \node (pro6) [process,  right of=dec4, xshift=2.5cm] {Predator survival trial};
 \node (fdot2) [fdot, below of=dec3, yshift=-3cm] {};
 \node (dec5) [decision, below of=fdot2] {Reproduction trial?};
 \node (pro7) [process,  right of=dec5, xshift=2.5cm] {Preys reproduction trial};
 \node (dec6) [decision, below of=pro7] {Predators introduced?};
-\node (fdot3) [fdot, below of=dec6] {};
+%\node (fdot3) [fdot, below of=dec6] {};
 \node (pro8) [process,  right of=dec6, xshift=2.5cm] {Predator reproduction trial};
 \node (fdot4) [fdot, below of=dec5, yshift=-3cm] {};
 \node (io3) [io, below of=fdot4, yshift=1.5cm] {Count births deaths};
@@ -67,17 +67,16 @@
 \draw [line] (dec3) -- node[anchor=east] {no} (fdot2);
 \draw [arrow] (pro5) -- (dec4);
 \draw [arrow] (dec4) -- node[anchor=south] {yes} (pro6);
-\draw [arrow] (dec4) -- node[anchor=east] {no} (fdot1);
-\draw [line] (pro6) |- (fdot1);
-\draw [arrow] (fdot1) -- (fdot2);
+\draw [arrow] (dec4) node[anchor=east, yshift=-2.5cm] {no} |- (fdot2);
+\draw [line] (pro6) |- (fdot2);
+%\draw [arrow] (fdot1) -- (fdot2);
 \draw [arrow] (fdot2) -- (dec5);
 \draw [arrow] (dec5) -- node[anchor=south] {yes} (pro7);
 \draw [line] (dec5) -- node[anchor=east] {no} (fdot4);
 \draw [arrow] (pro7) -- (dec6);
 \draw [arrow] (dec6) -- node[anchor=south] {yes} (pro8);
-\draw [arrow] (dec6) -- node[anchor=east] {no} (fdot3);
-\draw [line] (pro8) |- (fdot3);
-\draw [arrow] (fdot3) -- (fdot4);
+\draw [arrow] (dec6) node[anchor=east, yshift=-2.5cm] {no} |- (fdot4);
+\draw [line] (pro8) |- (fdot4);
 \draw [arrow] (fdot4) -- (io3);
 \draw [arrow] (io3) -- (io4);
 \draw [arrow] (io4) -- (dec8);

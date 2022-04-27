@@ -905,7 +905,7 @@ public:
 
         /* iterate through individuals */
         int ind = 0;
-        int zz = 0;
+        int zz = 0; // deaths counter
 
         while (ind < currentPopulationSize)
         {
