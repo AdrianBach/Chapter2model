@@ -11,7 +11,7 @@
 \tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
 \tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
 \tikzstyle{arrow} = [thick,->,>=stealth]
-\tikzstyle{fdot} = [circle, minimum width=8pt, fill]
+\tikzstyle{fdot} = [circle, minimum width=4pt, fill]
 \tikzstyle{line} = [thick,>=stealth]
 
 \begin{document}
@@ -20,75 +20,79 @@
 
 \node (start) [startstop] {Start};
 \node (pro1) [process, below of=start, yshift=1cm] {Preys move};
-\node (dec1) [decision, below of=pro1, yshift=-1cm] {Predators introduced?};
+\node (dec1) [decision, below of=pro1, yshift=-0.5cm] {Predators introduced?};
 \node (pro2) [process,  right of=dec1, xshift=2.5cm] {Predotors move};
-\node (io1) [io, below of=dec1, yshift=-1cm] {Measure densities/cell};
+\node (io1) [io, below of=dec1, yshift=-0.5cm] {Measure densities/cell};
 \node (pro3) [process, below of=io1, yshift=1cm] {Preys feed};
-\node (dec2) [decision, below of=pro3, yshift=-1cm] {Predators introduced?};
+\node (dec2) [decision, below of=pro3, yshift=-0.5cm] {Predators introduced?};
 \node (pro4) [process,  right of=dec2, xshift=2.5cm] {Predotors hunt};
-\node (io2) [io, below of=dec2, yshift=-1cm] {Count catches/cell};
+\node (io2) [io, below of=dec2, yshift=-0.5cm] {Count catches/cell};
 \node (dec3) [decision, below of=io2] {Survival trial?};
-\node (pro5) [process,  right of=dec3] {Preys survival trial};
-\node (fdot1) [fdot, below of=pro5] {};
+\node (pro5) [process,  right of=dec3, xshift=2.5cm] {Preys survival trial};
 \node (dec4) [decision, below of=pro5] {Predators introduced?};
-\node (pro6) [process,  right of=dec4] {Predator survival trial};
-\node (fdot2) [fdot, below of=dec3] {};
+\node (fdot1) [fdot, below of=dec4] {};
+\node (pro6) [process,  right of=dec4, xshift=2.5cm] {Predator survival trial};
+\node (fdot2) [fdot, below of=dec3, yshift=-3cm] {};
 \node (dec5) [decision, below of=fdot2] {Reproduction trial?};
-\node (pro7) [process,  right of=dec5] {Preys reproduction trial};
+\node (pro7) [process,  right of=dec5, xshift=2.5cm] {Preys reproduction trial};
 \node (dec6) [decision, below of=pro7] {Predators introduced?};
 \node (fdot3) [fdot, below of=dec6] {};
-\node (pro8) [process,  right of=dec6] {Predator reproduction trial};
-\node (fdot4) [fdot, below of=dec5] {};
-\node (io3) [io, below of=dec5] {Count births deaths};
-\node (io4) [io, below of=io3] {Measure densities/cell};
-\node (dec7) [decision, below of=io4] {Refill?};
-\node (pro9) [process,  right of=dec7] {Landscape refill};
-\node (fdot5) [fdot, below of=dec7] {};
-\node (dec8) [decision, below of=fdot5] {Save results?};
-\node (pro10) [decision, right of=dec8] {Save results};
-\node (fdot6) [fdot, below of=dec8] {};
-\node (dec9) [decision, below of=fdot6] {Save snapshot?};
-\node (pro11) [decision, right of=dec9] {Save snapshot};
-\node (fdot7) [fdot, below of=dec9] {};
-\node (stop) [startstop, below of=fdot7] {Next time step};
+\node (pro8) [process,  right of=dec6, xshift=2.5cm] {Predator reproduction trial};
+\node (fdot4) [fdot, below of=dec5, yshift=-3cm] {};
+\node (io3) [io, below of=fdot4, yshift=1.5cm] {Count births deaths};
+\node (io4) [io, below of=io3, yshift=1cm] {Measure densities/cell};
+\node (dec8) [decision, below of=io4, yshift=0.25cm] {Save results?};
+\node (pro10) [process, right of=dec8, xshift=2.5cm] {Save results};
+\node (fdot6) [fdot, below of=dec8, yshift=1cm] {};
+\node (dec9) [decision, below of=fdot6, yshift=0.75cm] {Save snapshot?};
+\node (pro11) [process, right of=dec9, xshift=2.5cm] {Save snapshot};
+\node (fdot7) [fdot, below of=dec9, yshift=0.5cm] {};
+\node (dec7) [decision, below of=fdot7, yshift=1.5cm] {Refill?};
+\node (pro9) [process,  right of=dec7, xshift=2.5cm] {Landscape refill};
+\node (fdot5) [fdot, below of=dec7, yshift=1.5cm] {};
+\node (stop) [startstop, below of=fdot5, yshift=1.5cm] {Next time step};
 
 \draw [arrow] (start) -- (pro1);
 \draw [arrow] (pro1) -- (dec1);
-\draw [arrow] (dec1) -- node[anchor=north] {yes} (pro2);
+\draw [arrow] (dec1) -- node[anchor=south] {yes} (pro2);
 \draw [arrow] (dec1) -- node[anchor=east] {no} (io1);
 \draw [arrow] (pro2) |- (io1);
 \draw [arrow] (io1) -- (pro3);
 \draw [arrow] (pro3) -- (dec2);
-\draw [arrow] (dec2) -- node[anchor=north] {yes} (pro4);
+\draw [arrow] (dec2) -- node[anchor=south] {yes} (pro4);
 \draw [arrow] (dec2) -- node[anchor=east] {no} (io2);
 \draw [arrow] (pro4) |- (io2);
 \draw [arrow] (io2) -- (dec3);
-\draw [arrow] (dec3) -- node[anchor=north] {yes} (pro5);
-\draw [arrow] (dec3) -- node[anchor=west] {no} (fdot2);
-\draw [line] (pro5) -- (fdot1);
-\draw [arrow] (dec4) -- node[anchor=north] {yes} (pro6);
+\draw [arrow] (dec3) -- node[anchor=south] {yes} (pro5);
+\draw [line] (dec3) -- node[anchor=east] {no} (fdot2);
+\draw [arrow] (pro5) -- (dec4);
+\draw [arrow] (dec4) -- node[anchor=south] {yes} (pro6);
+\draw [arrow] (dec4) -- node[anchor=east] {no} (fdot1);
 \draw [line] (pro6) |- (fdot1);
-\draw [line] (fdot1) -- (fdot2);
+\draw [arrow] (fdot1) -- (fdot2);
 \draw [arrow] (fdot2) -- (dec5);
-\draw [arrow] (dec5) -- node[anchor=north] {yes} (pro7);
-\draw [arrow] (dec5) -- node[anchor=west] {no} (fdot4);
-\draw [line] (pro7) -- (fdot3);
-\draw [arrow] (dec6) -- node[anchor=north] {yes} (pro8);
+\draw [arrow] (dec5) -- node[anchor=south] {yes} (pro7);
+\draw [line] (dec5) -- node[anchor=east] {no} (fdot4);
+\draw [arrow] (pro7) -- (dec6);
+\draw [arrow] (dec6) -- node[anchor=south] {yes} (pro8);
+\draw [arrow] (dec6) -- node[anchor=east] {no} (fdot3);
 \draw [line] (pro8) |- (fdot3);
-\draw [line] (fdot3) -- (fdot4);
-\draw [arrow] (fdot4) -- (dec7);
-\draw [arrow] (dec7) -- node[anchor=north] {yes} (pro9);
-\draw [arrow] (dec5) -- node[anchor=west] {no} (fdot5);
-\draw [line] (pro9) |- (fdot5);
-\draw [arrow] (fdot5) -- (dec8);
+\draw [arrow] (fdot3) -- (fdot4);
+\draw [arrow] (fdot4) -- (io3);
+\draw [arrow] (io3) -- (io4);
+\draw [arrow] (io4) -- (dec8);
 \draw [arrow] (dec8) -- node[anchor=north] {yes} (pro10);
-\draw [arrow] (dec8) -- node[anchor=west] {no} (fdot6);
-\draw [line] (pro10) |- (fdot6);
+\draw [line] (dec8) -- node[anchor=east] {no} (fdot6);
+\draw [arrow] (pro10) |- (fdot6);
 \draw [arrow] (fdot6) -- (dec9);
 \draw [arrow] (dec9) -- node[anchor=north] {yes} (pro11);
-\draw [arrow] (dec9) -- node[anchor=west] {no} (fdot7);
-\draw [line] (pro11) |- (fdot7);
-\draw [arrow] (fdot7) -- (stop);
+\draw [line] (dec9) -- node[anchor=east] {no} (fdot7);
+\draw [arrow] (pro11) |- (fdot7);
+\draw [arrow] (fdot7) -- (dec7);
+\draw [arrow] (dec7) -- node[anchor=south] {yes} (pro9);
+\draw [line] (dec7) -- node[anchor=east] {no} (fdot5);
+\draw [arrow] (pro9) |- (fdot5);
+\draw [arrow] (fdot5) -- (stop);
 
 \end{tikzpicture}
 
