@@ -1170,18 +1170,16 @@ public:
                 {
                     cons = randomNumberGeneratorAny(0, maxConsumption); // generate a random number between 0 and maxConsume
                     // landscapeTable[indCellCode][resourceColIndex] -= maxConsumption; // subtract consumption to landscape cell
-                    landscapeTable[indCellCode][resourceColIndex] -= cons; // subtract consumption to landscape cell
                     // populationTablePtr[rowIndex][3] += maxConsumption;
-                    populationTablePtr[rowIndex][3] += cons;
                 }
                 else // else consume what is left (should also work if resourceAvailable=0)
                 {
                     cons = randomNumberGeneratorAny(0, resourceAvailable); // generate a random number between 0 and maxConsume
                     // landscapeTable[indCellCode][resourceColIndex] -= resourceAvailable;
                     // populationTablePtr[rowIndex][3] += resourceAvailable;
-                    landscapeTable[indCellCode][resourceColIndex] -= cons;
-                    populationTablePtr[rowIndex][3] += cons;
                 }
+                landscapeTable[indCellCode][resourceColIndex] -= cons; // subtract consumption to landscape cell
+                populationTablePtr[rowIndex][3] += cons;
 
                 if (debug == true)
                     // cout << "prey consumed" << maxConsumption << "resources, " << landscapeTable[indCellCode][resourceColIndex] << "left on this cell, prey resource pool is now" << populationTablePtr[rowIndex][3] << endl

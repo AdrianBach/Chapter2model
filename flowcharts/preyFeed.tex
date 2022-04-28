@@ -1,0 +1,59 @@
+\documentclass[border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
+\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow} = [thick,->,>=stealth, rounded corners]
+\tikzstyle{fdot} = [circle, minimum width=4pt, fill]
+\tikzstyle{line} = [thick,>=stealth, rounded corners]
+
+\begin{document}
+
+\begin{tikzpicture}[node distance=3cm]
+
+\node (start) [startstop] {Start};
+\node (pro1) [process, below of=start, yshift=1cm] {Shuffle pop table};
+\node (pro2) [process, below of=pro1, yshift=1cm] {index = 0};
+\node (dec1) [decision, below of=pro2] {index $<$ popSize};
+\node (in1) [io, below of=dec1] {Get diet vector};
+\node (pro3) [process, below of=in1, yshift=1cm] {dietIndex = 0};
+\node (dec2) [decision, below of=pro3, yshift=-0.5cm] {dietIndex $<$ dietSize};
+\node (in2) [io, below of=dec2, yshift=-0.5cm] {Get cell resource nb};
+\node (dec3) [decision, below of=in2, yshift=-0.5cm] {cellRes $\geq$ maxCons};
+\node (pro4) [process, right of=dec3, xshift=2.5cm] {Gen. random int in [0;cellRes]};
+\node (pro5) [process, below of=dec3, yshift=-0.5cm] {Gen. random int in [0;maxCons]};
+\node (out1) [io, below of=pro5, yshift=1cm] {individual $+=$ randNb};
+\node (out2) [io, below of=out1, yshift=1cm] {cellRes $-=$ randNb};
+\node (pro6) [process, below of=out2, yshift=1cm] {dietIndex ++};
+\node (pro7) [process, below of=pro6, yshift=1cm] {index ++};
+\node (stop) [startstop, below of=pro7, yshift=1cm] {End};
+
+\draw [arrow] (start) -- (pro1);
+\draw [arrow] (pro1) -- (pro2);
+\draw [arrow] (pro2) -- (dec1);
+\draw [arrow] (dec1) -- node[anchor=east] {yes} (in1);
+\draw [arrow] (dec1) -| node[anchor=south, xshift=-4cm] {no} + (9,-0.5) |- (stop);
+\draw [arrow] (in1) -- (pro3);
+\draw [arrow] (pro3) -- (dec2);
+\draw [arrow] (dec2) -- node[anchor=east] {yes} (in2);
+\draw [arrow] (dec2) -| node[anchor=south, xshift=-3.5cm] {no} + (8.5,-0.5) |- (pro7);
+\draw [arrow] (in2) -- (dec3);
+\draw [arrow] (dec3) -- node[anchor=east] {yes} (pro5);
+\draw [arrow] (dec3) -- node[anchor=south, xshift=0cm] {no} (pro4);
+\draw [arrow] (pro4) |- (out1);
+\draw [arrow] (pro5) -- (out1);
+\draw [arrow] (out1) -- (out2);
+\draw [arrow] (out2) -- (pro6);
+\draw [arrow] (pro6) -| + (-4.5,0) |- (dec2);
+\draw [arrow] (pro7) -| + (-5,0) |- (dec1);
+
+\end{tikzpicture}
+
+\end{document}
