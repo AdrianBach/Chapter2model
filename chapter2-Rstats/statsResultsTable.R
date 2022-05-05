@@ -238,10 +238,11 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
     } # end of loop over folders
   } # end of function
 
-plotsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
+plotDensity <- function(path, Pattern) {
   
-  # create a global stats folder
-  dir.create(path = paste(path, "allStatsAndPlots", sep = "/"))
+  # create a folder for figures
+  dirPath = paste(path, "density", sep = "")
+  dir.create(path = dirPath)
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -253,26 +254,29 @@ plotsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
   # only the folders
   content <- grep(pattern = c(Pattern), x = content, value = T)
   
-  # loop over the folders
+  # only the csv
+  content <- grep(pattern = c(".csv"), x = content, value = T)
+  
+  # loop over content
   for (i in 1:length(content)) {
     
-    # path to folder
-    # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
-    folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
+    # # path to folder
+    # # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    # folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
     
-    # get content
-    results = list.files(folder)
+    # # get content
+    # results = list.files(folder)
     
-    # select only results csv files
-    results <- grep(pattern = c(keyword), x = results, value = T)
-    results <- grep(pattern = c("stats"), x = results, value = T)
-    results <- grep(pattern = c(".csv"), x = results, value = T)
+    # # select only results csv files
+    # results <- grep(pattern = c(keyword), x = results, value = T)
+    # results <- grep(pattern = c("stats"), x = results, value = T)
+    # results <- grep(pattern = c(".csv"), x = results, value = T)
     
-    # copy in the global stats folder
-    file.copy(from = paste(folder, results, sep = "/"), to = paste(path, "allStatsAndPlots", sep = "/"))
-    
+    # # copy in the global stats folder
+    # file.copy(from = paste(folder, results, sep = "/"), to = paste(path, "allStatsAndPlots", sep = "/"))
+  
     # plot and save figure
-    data <- read.csv(paste(folder, results, sep = "/"))
+    data <- read.csv(paste(path, content[i], sep = ""))
     
     x = data$timeStep
     y1 = data$prey1PopulationSizeMean
@@ -290,7 +294,7 @@ plotsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
     tIntro = 210
     
     fig <- ggplot(data, aes(x)) + 
-      geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+      geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(y1max), alpha=0.5, fill = "lightgrey") +
       geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
       geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
       geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
@@ -305,17 +309,92 @@ plotsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
                           breaks=c('Prey 1', 'Prey 2', 'Predator'),
                           values=c(y1c, y2c, y3c))
     
-    # save plot in this folder
-    ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = folder, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    # # save plot in this folder
+    # ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = folder, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
     
     # and in the global stats folder
-    ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = paste(path, "allStatsAndPlots", sep = "/"), plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    ggsave(filename = paste("density", "-", content[i], ".pdf", sep = ""), path = dirPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
     
-    
-  } # end of loop over folders
+  } # end of loop over content
 } # end of function
 
-gridFig <- function(path, XparamName, YparamName) {
+plotCatches <- function(path, Pattern) {
+  
+  # create a folder for figures
+  dirPath = paste(path, "catches", sep = "")
+  dir.create(path = dirPath)
+  
+  # get the directory content
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
+  
+  # order alphabetically
+  content <- content[order(content)]
+  
+  # only the folders
+  content <- grep(pattern = c(Pattern), x = content, value = T)
+  
+  # only the csv
+  content <- grep(pattern = c(".csv"), x = content, value = T)
+  
+  # loop over content
+  for (i in 1:length(content)) {
+    
+    # # path to folder
+    # # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    # folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
+    
+    # # get content
+    # results = list.files(folder)
+    
+    # # select only results csv files
+    # results <- grep(pattern = c(keyword), x = results, value = T)
+    # results <- grep(pattern = c("stats"), x = results, value = T)
+    # results <- grep(pattern = c(".csv"), x = results, value = T)
+    
+    # # copy in the global stats folder
+    # file.copy(from = paste(folder, results, sep = "/"), to = paste(path, "allStatsAndPlots", sep = "/"))
+    
+    # plot and save figure
+    data <- read.csv(paste(path, content[i], sep = ""))
+    
+    x = data$timeStep
+    y1 = data$prey1catchesMean
+    y2 = data$prey2catchesMean
+    y1min = data$prey1catchesICinf
+    y2min = data$prey2catchesICinf
+    y1max = data$prey1catchesICsup
+    y2max = data$prey2catchesICsup
+    y1c = "red"
+    y2c = "blue"
+    tIntro = 210
+    
+    fig <- ggplot(data, aes(x)) + 
+      geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(y1max)), alpha=0.5, fill = "lightgrey") +
+      geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+      geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+      # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+      geom_line(aes(y = y1), color = y1c) +
+      geom_line(aes(y = y2), color = y2c) +
+      # geom_line(aes(y = y3), color = y3c) +
+      # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+      # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+      # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+      labs(x = "Time steps", y = "Nb of catches") # +
+      # scale_colour_manual(name='Populations',
+                          # breaks=c('Prey 1', 'Prey 2', 'Predator'),
+                          # values=c(y1c, y2c, y3c))
+    
+    # # save plot in this folder
+    # ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = folder, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+    # and in the global stats folder
+    ggsave(filename = paste("catches", "-", content[i], ".pdf", sep = ""), path = dirPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+  } # end of loop over content
+} # end of function
+
+gridFigDensity <- function(path, XparamName, YparamName) {
   
   # first merge all results
   
@@ -393,7 +472,7 @@ gridFig <- function(path, XparamName, YparamName) {
   tIntro = 210
   
   fig <- ggplot(data, aes(x)) + 
-    geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+    geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(y1max)), alpha=0.5, fill = "lightgrey") +
     geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
     geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
     geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
@@ -433,7 +512,7 @@ getPosStab <- function(array, threshold, period) {
   
   return(posStab)
 }
-
+  
 posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), Pattern, stabThreshold, stabPeriod) {
   
   # get the directory content
@@ -509,14 +588,17 @@ Pattern = "findEqNarrow-size"
 
 mergeResults(path, keyword, Pattern)
 statsResults(path, keyword, Pattern)
-plotsResults(path, keyword, Pattern)
 
 stabPeriod = 5
 stabThreshold = 10
 
 posStabNoPred(path, keyword, Pattern, stabThreshold, stabPeriod)
 
-path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/"
+path = "/home/adrian/Documents/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/"
+
+plotCatches(path, Pattern)
+
+path = "/home/adrian/Documents/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/catches/"
 XparamName = "pry1cons"
 YparamName = "prdCtchProb1"
 
