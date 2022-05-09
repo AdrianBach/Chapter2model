@@ -45,21 +45,21 @@ prd_init_1=5    # argv[20] predator 1 initial density in nb of individuals
 prd_move_1=0.1  # argv[21] predator 1 max movement range in fraction of size
 prd_offs_1=1    # argv[24] predator 1 max number of offspring
 prd_intr_1=0    # argv[26] predator 1 time of introduction in the model
-prd_asym_1=1  # argv[27] asymmetry in prey1 to prey2 conversion rates
-prd_ctch_pry1_1=0.25  # argv[28] predator 1 prey1 catch probability
-prd_ctch_pry2_1=0.25  # argv[29] predator 1 prey2 catch probability
-prd_oprt_1=0    # argv[30] is predator oportunistic? (0 or 1)
-prd_spcf_1=0    # argv[31] is predator specific? (0 or 1)
+# prd_asym_1=1  # argv[] asymmetry in prey1 to prey2 conversion rates
+prd_ctch_pry1_1=0.25  # argv[27] predator 1 prey1 catch probability
+prd_ctch_pry2_1=0.25  # argv[28] predator 1 prey2 catch probability
+prd_oprt_1=0    # argv[31] is predator oportunistic? (0 or 1)
+prd_spcf_1=1    # argv[32] is predator specific? (0 or 1)
 
 # time variables
-simu_time=20    # argv[32] simulation time
-freq_repr=10    # argv[33] frequency of reproduction trials
-freq_surv=$freq_repr    # argv[34] frequency of survival trials
-freq_rfll=$freq_repr    # argv[35] frequency of landscape resources refill
+simu_time=20    # argv[33] simulation time
+freq_repr=10    # argv[34] frequency of reproduction trials
+freq_surv=$freq_repr    # argv[35] frequency of survival trials
+freq_rfll=$freq_repr    # argv[36] frequency of landscape resources refill
 
 # frequency of assessment
-freq_rslt=1    # argv[36] frequency of landscape results shot
-freq_snap=101  # argv[37] frequency of snap measure
+freq_rslt=1    # argv[37] frequency of landscape results shot
+freq_snap=101  # argv[38] frequency of snap measure
 
 # number of replicates
 rep=1
@@ -80,6 +80,9 @@ pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduc
 prd_cons_1=$((3*$pry_cons_1)) # arg[22]
 divide=$prd_cons_1*$freq_surv; by=3; prd_surv_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # arg[23]
 prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[25] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
+prd_cvrt_pry1_1=$(($freq_surv * $prd_cons_1/3))  # argv[29] predator 1 prey1 resources/catch
+ratio=1
+prd_cvrt_pry2_1=$(($ratio*$prd_cvrt_pry1_1))  # argv[30] predator 1 prey1 resources/catch
 
 # name the simulation with only the variables of interest and their value
 sim_name="test-size$size-simTime$simu_time-res1max$max_res_1-predOprt$prd_oprt_1-predSpcf$prd_spcf_1-pry1cons$pry_cons_1-prdSurv$prd_surv_1-prdCtchProb1$prd_ctch_pry1_1-prdCtchProb2$prd_ctch_pry2_1" # argv[1]
@@ -120,6 +123,7 @@ cd $sim_name
 p=1
 printf "sim_name = $sim_name \t # argv[$p] \n\n" >> paramFile.txt
 p=$(($p+1))
+printf "model version v0.5.0 \n\n" >> paramFile.txt
 printf "# landscape variables\n" >> paramFile.txt
 printf "size = $size \t # argv[$p] world's side size\n" >> paramFile.txt
 p=$(($p+1))
@@ -173,11 +177,15 @@ printf "prd_repr_1 = $prd_repr_1 \t # argv[$p] predator 1 resource units needed 
 p=$(($p+1))
 printf "prd_intr_1 = $prd_intr_1 \t # argv[$p] predator 1 time of introduction in the model\n" >> paramFile.txt
 p=$(($p+1))
-printf "prd_asym_1 = $prd_asym_1 \t # argv[$p] predator 1 asymmetry in prey1 to prey2 conversion rates\n" >> paramFile.txt
-p=$(($p+1))
+# printf "prd_asym_1 = $prd_asym_1 \t # argv[$p] predator 1 asymmetry in prey1 to prey2 conversion rates\n" >> paramFile.txt
+# p=$(($p+1))
 printf "prd_ctch_pry1_1 = $prd_ctch_pry1_1 \t # argv[$p] predator 1 prey 1 catch probablility \n" >> paramFile.txt
 p=$(($p+1))
 printf "prd_ctch_pry2_1 = $prd_ctch_pry2_1 \t # argv[$p] predator 1 prey 2 catch probablility \n" >> paramFile.txt
+p=$(($p+1))
+printf "prd_ctch_pry1_1 = $prd_cvrt_pry1_1 \t # argv[$p] predator 1 prey 1 catch resources/catch \n" >> paramFile.txt
+p=$(($p+1))
+printf "prd_ctch_pry2_1 = $prd_cvrt_pry2_1 \t # argv[$p] predator 1 prey 2 catch resources/catch \n" >> paramFile.txt
 p=$(($p+1))
 printf "prd_oprt_1 = $prd_oprt_1 \t # argv[$p] predator 1 oportunistic? (0 or 1) \n" >> paramFile.txt
 p=$(($p+1))
@@ -216,7 +224,7 @@ do
     # echo "rand seed: $rand_seed" 
 
     start=$(date +%s)
-    ./test-chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_cons_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_asym_1 $prd_ctch_pry1_1 $prd_ctch_pry2_1 $prd_oprt_1 $prd_spcf_1 $simu_time $freq_repr $freq_surv $freq_rfll $freq_rslt $freq_snap $rand_seed
+    ./test-chapter2ibm.o $sim_name $size $res_nb $max_res_1 $max_res_2 $pry_nb $pry_init_1 $pry_init_2 $pry_move_1 $pry_move_2 $pry_cons_1 $pry_cons_2 $pry_surv_1 $pry_surv_2 $pry_offs_1 $pry_offs_2 $pry_repr_1 $pry_repr_2 $prd_nb $prd_init_1 $prd_move_1 $prd_cons_1 $prd_surv_1 $prd_offs_1 $prd_repr_1 $prd_intr_1 $prd_ctch_pry1_1 $prd_ctch_pry2_1 $prd_cvrt_pry1_1 $prd_cvrt_pry2_1 $prd_oprt_1 $prd_spcf_1 $simu_time $freq_repr $freq_surv $freq_rfll $freq_rslt $freq_snap $rand_seed
     end=$(date +%s)
 
     time_s=$(($end-$start))
