@@ -543,7 +543,7 @@ plotRelativeGR <- function(path, Pattern) {
       # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
       # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
       # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
-      labs(x = "Time steps", y = "Prey1 to prey2 relative growth rate") # +
+      labs(x = "Time steps", y = "Prey1 to prey2 relative mean growth rate") # +
     # scale_colour_manual(name='Populations',
     # breaks=c('Prey 1', 'Prey 2', 'Predator'),
     # values=c(y1c, y2c, y3c))
@@ -553,6 +553,166 @@ plotRelativeGR <- function(path, Pattern) {
     
     # and in the global stats folder
     ggsave(filename = paste("relativeGR", "-", content[i], ".pdf", sep = ""), path = dirPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+  } # end of loop over content
+} # end of function
+
+plotRelativeDensities <- function(path, Pattern) {
+  
+  # create a folder for figures
+  dirPath = paste(path, "relativeDensities", sep = "")
+  dir.create(path = dirPath)
+  
+  # get the directory content
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
+  
+  # order alphabetically
+  content <- content[order(content)]
+  
+  # only the folders
+  content <- grep(pattern = c(Pattern), x = content, value = T)
+  
+  # only the csv
+  content <- grep(pattern = c(".csv"), x = content, value = T)
+  
+  # loop over content
+  for (i in 1:length(content)) {
+    
+    # # path to folder
+    # # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    # folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
+    
+    # # get content
+    # results = list.files(folder)
+    
+    # # select only results csv files
+    # results <- grep(pattern = c(keyword), x = results, value = T)
+    # results <- grep(pattern = c("stats"), x = results, value = T)
+    # results <- grep(pattern = c(".csv"), x = results, value = T)
+    
+    # # copy in the global stats folder
+    # file.copy(from = paste(folder, results, sep = "/"), to = paste(path, "allStatsAndPlots", sep = "/"))
+    
+    # plot and save figure
+    data <- read.csv(paste(path, content[i], sep = ""))
+    
+    x = data$timeStep
+    y1 = (data$prey1PopulationSizeMean)/(data$prey2PopulationSizeMean)
+    # y2 = data$prey2PopulationSizeMean
+    y3 = data$predatorPopulationSizeMean
+    y1min = (data$prey1PopulationSizeICinf)/(data$prey2PopulationSizeICinf)
+    # y2min = data$prey2PopulationSizeICinf
+    y3min = data$predatorPopulationSizeICinf
+    y1max = (data$prey1PopulationSizeICsup)/(data$prey2PopulationSizeICsup)
+    # y2max = data$prey2PopulationSizeICsup
+    y3max = data$predatorPopulationSizeICsup
+    y1c = "black"
+    # y2c = "blue"
+    y3c = "orange"
+    tIntro = 210
+    
+    fig <- ggplot(data, aes(x)) + 
+      geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0.99*min(1/y1), ymax = 1.05*max(1/y1)), alpha=0.5, fill = "lightgrey") +
+      # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+      # geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+      # geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+      # geom_line(aes(y = y3), color = y3c) +
+      geom_line(aes(y = 1), color = "darkgreen", linetype="dashed", size = 1) +
+      geom_line(aes(y = 1/y1), color = y1c) +
+      # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+      # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+      # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+      labs(x = "Time steps", y = "Prey2 to prey1 relative mean densities") # +
+    # scale_colour_manual(name='Populations',
+    # breaks=c('Prey 1', 'Prey 2', 'Predator'),
+    # values=c(y1c, y2c, y3c))
+    
+    # # save plot in this folder
+    # ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = folder, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+    # and in the global stats folder
+    ggsave(filename = paste("relativeDensity", "-", content[i], ".pdf", sep = ""), path = dirPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+  } # end of loop over content
+} # end of function
+
+plotRelativeCatches <- function(path, Pattern) {
+  
+  # create a folder for figures
+  dirPath = paste(path, "relativeCatches", sep = "")
+  dir.create(path = dirPath)
+  
+  # get the directory content
+  # content <- list.files(paste("~/", path, sep = ""))
+  content <- list.files(path)
+  
+  # order alphabetically
+  content <- content[order(content)]
+  
+  # only the folders
+  content <- grep(pattern = c(Pattern), x = content, value = T)
+  
+  # only the csv
+  content <- grep(pattern = c(".csv"), x = content, value = T)
+  
+  # loop over content
+  for (i in 1:length(content)) {
+    
+    # # path to folder
+    # # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    # folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
+    
+    # # get content
+    # results = list.files(folder)
+    
+    # # select only results csv files
+    # results <- grep(pattern = c(keyword), x = results, value = T)
+    # results <- grep(pattern = c("stats"), x = results, value = T)
+    # results <- grep(pattern = c(".csv"), x = results, value = T)
+    
+    # # copy in the global stats folder
+    # file.copy(from = paste(folder, results, sep = "/"), to = paste(path, "allStatsAndPlots", sep = "/"))
+    
+    # plot and save figure
+    data <- read.csv(paste(path, content[i], sep = ""))
+    
+    x = data$timeStep
+    y1 = (data$prey1catchesMean)/(data$prey2catchesMean)
+    # y2 = data$prey2catchesMean
+    y3 = data$predatorcatchesMean
+    y1min = (data$prey1catchesICinf)/(data$prey2catchesICinf)
+    # y2min = data$prey2catchesICinf
+    y3min = data$predatorcatchesICinf
+    y1max = (data$prey1catchesICsup)/(data$prey2catchesICsup)
+    # y2max = data$prey2catchesICsup
+    y3max = data$predatorcatchesICsup
+    y1c = "black"
+    # y2c = "blue"
+    y3c = "orange"
+    tIntro = 210
+    
+    fig <- ggplot(data, aes(x)) + 
+      geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0.99*min(1/y1, na.rm = T), ymax = 1.05*max(1/y1, na.rm = T)), alpha=0.5, fill = "lightgrey") +
+      # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+      # geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+      # geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+      # geom_line(aes(y = y3), color = y3c) +
+      geom_line(aes(y = 1), color = "darkgreen", linetype="dashed", size = 1) +
+      geom_line(aes(y = 1/y1), color = y1c) +
+      # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+      # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+      # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+      labs(x = "Time steps", y = "Prey2 to prey1 relative mean catches") # +
+    # scale_colour_manual(name='Populations',
+    # breaks=c('Prey 1', 'Prey 2', 'Predator'),
+    # values=c(y1c, y2c, y3c))
+    
+    # # save plot in this folder
+    # ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = folder, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+    # and in the global stats folder
+    ggsave(filename = paste("relativeCatches", "-", content[i], ".pdf", sep = ""), path = dirPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
     
   } # end of loop over content
 } # end of function
@@ -757,11 +917,13 @@ stabThreshold = 10
 
 posStabNoPred(path, keyword, Pattern, stabThreshold, stabPeriod)
 
-path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/"
+path = "/home/adrian/Documents/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/"
 
 plotCatches(path, Pattern)
 plotGR(path, Pattern)
 plotRelativeGR(path, Pattern)
+plotRelativeDensities(path, Pattern)
+plotRelativeCatches(path, Pattern)
 
 path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/"
 XparamName = "pry1cons"
