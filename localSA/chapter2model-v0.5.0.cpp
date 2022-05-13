@@ -45,9 +45,9 @@ vector<int> predMaintenanceCost;   //
 vector<int> predExpectedOffspring; //
 vector<int> predReproCost;         //
 vector<int> predIntro;             // time of introduction of the predator
-vector<float> predAsymm;           // ratio of preys' catch conversion into resources
-vector<float> predCatchProbaPrey1;      // pred catching probability
-vector<float> predCatchProbaPrey2;      // pred catching probability
+// vector<float> predAsymm;           // ratio of preys' catch conversion into resources
+vector<float> predCatchProba;      // pred catching probability
+vector<int> predConvRate;         // number of resources a pred gets from 
 vector<bool> predOportunistic;     // t/1 or f/0, is the predator oportunistic? (ranked prey types by conversion rate)
 vector<bool> predSpecific;         // t/1 or f/0, is the predator specific? (hunts prey 1 in priority regardless of conversion rates)
 
@@ -225,7 +225,7 @@ int getMemberIndexFromTag(int TypeTag)
     return index; // returns the row index of the tag. It will be the same in all members matching lists.
 }
 
-void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio, bool display) // this table allows for each member of the system to eat and be eaten by another
+void makeDietsTable(bool display) // this table allows for each member of the system to eat and be eaten by another
 {
 
     int dietsTableSize = memberMatchingListsSize;
@@ -261,8 +261,8 @@ void makeDietsTable(int Prey1MaxConsume, float ConvRateRatio, bool display) // t
     /* Set to 1 when one feeds on the other */
     dietsTable[0][2] = 1;                                             // prey1 feeds on resource1
     dietsTable[1][3] = 1;                                             // prey2 feeds on resource2
-    dietsTable[2][4] = freqSurv * predMaxConsume[0] / 3;              // predator1 feeds on prey1 with a conversion rate of . HARD CODED not good
-    dietsTable[3][4] = ceil((float)dietsTable[2][4] * ConvRateRatio); // predator1 feeds on prey2 with a conversion rate  of
+    dietsTable[2][4] = predConvRate[0];     // predator1 feeds on prey1 with a conversion rate of . HARD CODED not good
+    dietsTable[3][4] = predConvRate[1];     // predator1 feeds on prey2 with a conversion rate  of
 
     if (display == true)
     {
@@ -1283,11 +1283,17 @@ public:
         /* set daily maxConsume */
         dailyPredMaxConsumption = predMaxConsume[0];
 
-        /* get preys conversion rates in dietsTable */
-        for (int i = 0; i < memberMatchingListsSize; i++)
+        // /* get preys conversion rates in dietsTable */
+        // for (int i = 0; i < memberMatchingListsSize; i++)
+        // {
+        //     if (dietsTable[i][membersMatchingListsIndex] > 0)
+        //         conversionRates.push_back(dietsTable[i][membersMatchingListsIndex]);
+        // }
+
+        /* get preys conversion rates from parameters A AMELIORER */
+        for (int i = 0; i < predConvRate.size(); i++)
         {
-            if (dietsTable[i][membersMatchingListsIndex] > 0)
-                conversionRates.push_back(dietsTable[i][membersMatchingListsIndex]);
+            conversionRates.push_back(predConvRate[i]);
         }
 
         /* compute max catches */
@@ -1302,8 +1308,8 @@ public:
         cout << "Max catches per day should be ceil " << 3 * dailyPredMaxConsumption << "/" << conversionRates[0] << ";" << 3 * dailyPredMaxConsumption << "/" << conversionRates[1] << " and are " << maxCatches[0] << " " << maxCatches[1] << endl
              << endl;
 
-        catchProbas.push_back(predCatchProbaPrey1[0]);
-        catchProbas.push_back(predCatchProbaPrey2[0]);
+        catchProbas.push_back(predCatchProba[0]);
+        catchProbas.push_back(predCatchProba[1]);
     }
 
     void hunt(int **LandscapeTable, bool debug)
@@ -1623,6 +1629,7 @@ int main(int argc, char **argv)
     preyReproCost.push_back(atoi(argv[p]));
 
     p++;
+    
 
     /* predator variables */
     predatorTypesNb = atoi(argv[p]);
@@ -1660,20 +1667,28 @@ int main(int argc, char **argv)
 
     p++;
 
-    predAsymm.push_back(atof(argv[p]));
+    // predAsymm.push_back(atof(argv[p]));
+
+    // p++;
+
+    predCatchProba.push_back(atof(argv[p]));
 
     p++;
 
-    predCatchProbaPrey1.push_back(atof(argv[p]));
+    predCatchProba.push_back(atof(argv[p]));
+    
+    p++;
+
+    predConvRate.push_back(atoi(argv[p]));
 
     p++;
 
-    predCatchProbaPrey2.push_back(atof(argv[p]));
+    predConvRate.push_back(atoi(argv[p]));
     
     p++;
 
     predOportunistic.push_back(atoi(argv[p]));
-
+    
     p++;
 
     predSpecific.push_back(atoi(argv[p]));
@@ -1715,7 +1730,7 @@ int main(int argc, char **argv)
 
     assignTagsIndexes(); // creates individuals' matching tables. NEED 3 delete[] : OK
 
-    makeDietsTable(preyMaxConsume[0], predAsymm[0], true); // NEED 1 delete[] : OK
+    makeDietsTable(true); // NEED 1 delete[] : OK
 
     srand(randomSeed); // set random generator seed with instant time
 
