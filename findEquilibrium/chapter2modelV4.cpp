@@ -45,7 +45,8 @@ vector<int> predReproCost;        //
 vector<int> predIntro;            // time of introduction of the predator
 vector<float> predAsymm;          // ratio of preys' catch conversion into resources
 vector<float> predCatchProba;     // pred catching probability
-vector<bool> predOportunistic;    // t/1 or f/0, is the predator generalist?
+vector<bool> predOportunistic;    // t/1 or f/0, is the predator oportunistic? (ranked prey types by conversion rate)
+vector<bool> predSpecific;        // t/1 or f/0, is the predator specific? (hunts prey 1 in priority regardless of conversion rates)
 
 /* time variables */
 int timeMaxi; // simulation time
@@ -1310,90 +1311,92 @@ public:
             }
 
             /* generate vectors preys info */
-            vector<int> preysIndexes;
-            vector<int> preysConversionRates;
-            vector<int> preysLandscapeIndexes;
-            vector<int> preysMaxCatches;
+            vector<int> preysIndexes;          //
+            vector<int> preysConversionRates;  //
+            vector<int> preysLandscapeIndexes; //
+            vector<int> preysMaxCatches;       //
 
-            /* generate vector of indexes corresponding to conversion rates */
-            vector<int> shuffledIndexes;
-            vector<int> shuffledConversionRates;
-            vector<int> shuffledpreysLandscapeIndexes;
-            vector<int> shuffledMaxCatches;
-
-            for (int i = 0; i < conversionRates.size(); i++)
+            if (predSpecific[0] == false)
             {
-                shuffledIndexes.push_back(i);
-            }
+                /* generate vector of indexes corresponding to conversion rates */
+                vector<int> shuffledIndexes;
+                vector<int> shuffledConversionRates;
+                vector<int> shuffledpreysLandscapeIndexes;
+                vector<int> shuffledMaxCatches;
 
-            /* shuffle indexes and update conversionRates and maxCatches accordingly */
-            random_shuffle(shuffledIndexes.begin(), shuffledIndexes.end());
-            for (int i = 0; i < shuffledIndexes.size(); i++)
-            {
-                int index = shuffledIndexes[i];
-                shuffledConversionRates.push_back(conversionRates[index]);
-                shuffledpreysLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
-                shuffledMaxCatches.push_back(maxCatches[index]);
-            }
-
-            if (predOportunistic[0] == true)
-            {
-
-                if (debug == true)
-                    cout << "predator is opportunistic: ranking preys per resources/catch instead of random." << endl
-                         << endl;
-
-                /* sort the diet by conversion rate while keeping index info: if all the same, still random, otherwise most nourrishing prey first */
-                vector<int> sortedIndexes = shuffledIndexes;
-                vector<int> sortedConversionRates = shuffledConversionRates;
-                vector<int> sortedPreyLandscapeIndexes;
-                vector<int> sortedMaxCatches;
-
-                /* sorting according to conversion rate while keeping the indexes */
-                int row = 0; // initiate row count
-
-                while (row < (sortedConversionRates.size() - 1)) // until we reach the line before last
+                for (int i = 0; i < conversionRates.size(); i++)
                 {
-                    if (sortedConversionRates[row] >= sortedConversionRates[row + 1]) // if the focal element is greater than the next
-                    {
-                        row++; // leave as is and go to next line
-                    }
-                    else // if not switch positions and restart to the first line
-                    {
-                        int co1 = sortedConversionRates[row];
-                        int co2 = sortedConversionRates[row + 1];
-                        int in1 = sortedIndexes[row];
-                        int in2 = sortedIndexes[row + 1];
-
-                        sortedConversionRates[row] = co2;
-                        sortedConversionRates[row + 1] = co1;
-                        sortedIndexes[row] = in2;
-                        sortedIndexes[row + 1] = in1;
-
-                        row = 0; // restart row count
-                    }
+                    shuffledIndexes.push_back(i);
                 }
 
-                for (int i = 0; i < sortedIndexes.size(); i++)
+                /* shuffle indexes and update conversionRates and maxCatches accordingly */
+                random_shuffle(shuffledIndexes.begin(), shuffledIndexes.end());
+                for (int i = 0; i < shuffledIndexes.size(); i++)
                 {
-                    int index = sortedIndexes[i];
-                    sortedPreyLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
-                    sortedMaxCatches.push_back(maxCatches[index]);
+                    int index = shuffledIndexes[i];
+                    shuffledConversionRates.push_back(conversionRates[index]);
+                    shuffledpreysLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
+                    shuffledMaxCatches.push_back(maxCatches[index]);
                 }
 
-                /* update vectors preys info */
-                preysIndexes = sortedIndexes;
-                preysConversionRates = sortedConversionRates;
-                preysLandscapeIndexes = sortedPreyLandscapeIndexes;
-                preysMaxCatches = sortedMaxCatches;
+                if (predOportunistic[0] == true)
+                {
+
+                    if (debug == true)
+                        cout << "predator is opportunistic: ranking preys per resources/catch instead of random." << endl
+                             << endl;
+
+                    /* sort the diet by conversion rate while keeping index info: if all the same, still random, otherwise most nourrishing prey first */
+                    vector<int> sortedIndexes = shuffledIndexes;
+                    vector<int> sortedConversionRates = shuffledConversionRates;
+                    vector<int> sortedPreyLandscapeIndexes;
+                    vector<int> sortedMaxCatches;
+
+                    /* sorting according to conversion rate while keeping the indexes */
+                    int row = 0; // initiate row count
+
+                    while (row < (sortedConversionRates.size() - 1)) // until we reach the line before last
+                    {
+                        if (sortedConversionRates[row] >= sortedConversionRates[row + 1]) // if the focal element is greater than the next
+                        {
+                            row++; // leave as is and go to next line
+                        }
+                        else // if not switch positions and restart to the first line
+                        {
+                            int co1 = sortedConversionRates[row];
+                            int co2 = sortedConversionRates[row + 1];
+                            int in1 = sortedIndexes[row];
+                            int in2 = sortedIndexes[row + 1];
+
+                            sortedConversionRates[row] = co2;
+                            sortedConversionRates[row + 1] = co1;
+                            sortedIndexes[row] = in2;
+                            sortedIndexes[row + 1] = in1;
+
+                            row = 0; // restart row count
+                        }
+                    }
+
+                    for (int i = 0; i < sortedIndexes.size(); i++)
+                    {
+                        int index = sortedIndexes[i];
+                        sortedPreyLandscapeIndexes.push_back(dietLandscapeIndexes[index]);
+                        sortedMaxCatches.push_back(maxCatches[index]);
+                    }
+
+                    /* update vectors preys info */
+                    preysIndexes = sortedIndexes;
+                    preysConversionRates = sortedConversionRates;
+                    preysLandscapeIndexes = sortedPreyLandscapeIndexes;
+                    preysMaxCatches = sortedMaxCatches;
+                }
             }
             else
             {
                 /* update vectors preys info */
-                preysIndexes = shuffledIndexes;
-                preysConversionRates = shuffledConversionRates;
-                preysLandscapeIndexes = shuffledpreysLandscapeIndexes;
-                preysMaxCatches = shuffledMaxCatches;
+                preysConversionRates = conversionRates;
+                preysLandscapeIndexes = dietLandscapeIndexes;
+                preysMaxCatches = maxCatches;
             }
 
             /* iterate through prey columns and while catches < maxCatches and
@@ -1509,153 +1512,158 @@ int main(int argc, char **argv)
 
     resourceTypesNb = atoi(argv[p]);
 
-    p++; 
+    p++;
 
     for (int i = 0; i < resourceTypesNb; i++)
         resourceTypes.push_back("resource" + to_string(i + 1)); // res1..n
 
     maxResources.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     maxResources.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     /* prey variables */
     preyTypesNb = atoi(argv[p]);
 
-    p++; 
+    p++;
 
     preyInitialDensities.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyInitialDensities.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     for (int i = 0; i < preyTypesNb; i++)
         preyTypes.push_back("prey" + to_string(i + 1)); // prey1..n
 
     preyMaxMove.push_back(atof(argv[p]));
 
-    p++; 
+    p++;
 
     preyMaxMove.push_back(atof(argv[p]));
 
-    p++; 
+    p++;
 
     preyMaxConsume.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyMaxConsume.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyMaintenanceCost.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyMaintenanceCost.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyMaxOffspring.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyMaxOffspring.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyReproCost.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     preyReproCost.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     /* predator variables */
     predatorTypesNb = atoi(argv[p]);
 
-    p++; 
+    p++;
 
     for (int i = 0; i < predatorTypesNb; i++)
         predatorTypes.push_back("predator" + to_string(i + 1)); // res1..n
 
     predInitialDensities.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     predMaxMove.push_back(atof(argv[p]));
 
-    p++; 
+    p++;
 
     predMaxConsume.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     predMaintenanceCost.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     predMaxOffspring.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     predReproCost.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     predIntro.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
 
     predAsymm.push_back(atof(argv[p]));
 
-    p++; 
+    p++;
 
     predCatchProba.push_back(atof(argv[p]));
 
-    p++; 
+    p++;
 
     predOportunistic.push_back(atoi(argv[p]));
 
-    p++; 
+    p++;
+
+    predSpecific.push_back(atoi(argv[p]));
+
+    p++;
 
     /* time variables */
     timeMaxi = atoi(argv[p]); // simulation time
 
-    p++; 
+    p++;
 
     freqRepr = atoi(argv[p]);
 
-    p++; 
+    p++;
 
     freqSurv = atoi(argv[p]);
 
-    p++; 
+    p++;
 
     freqRfll = atoi(argv[p]); // let the animals feed for a while before "daily" death trial
 
-    p++; 
+    p++;
 
     /* assessment frequency variables */
     freqResu = atoi(argv[p]);
 
-    p++; 
+    p++;
 
     freqSnap = atoi(argv[p]);
 
-    p++; 
+    p++;
 
     /* seed */
     randomSeed = atoi(argv[p]);
 
-    cout << "Total nb of parameters: " << p << endl << endl;
+    cout << "Total nb of parameters: " << p << endl
+         << endl;
 
     /* ---- construct matching structures ---- */
 
