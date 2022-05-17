@@ -238,11 +238,18 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
     } # end of loop over folders
   } # end of function
 
+<<<<<<< HEAD
 plotDensity <- function(path, Pattern) {
   
   # create a folder for figures
   dirPath = paste(path, "density", sep = "")
   dir.create(path = dirPath)
+=======
+plotsResults <- function(path, keyword = c("Results", "Snapshot"), Pattern) {
+  
+  # create a global stats folder
+  dir.create(path = paste(path, "allStatsAndPlots", sep = "/"))
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -254,6 +261,7 @@ plotDensity <- function(path, Pattern) {
   # only the folders
   content <- grep(pattern = c(Pattern), x = content, value = T)
   
+<<<<<<< HEAD
   # only the csv
   content <- grep(pattern = c(".csv"), x = content, value = T)
   
@@ -277,6 +285,28 @@ plotDensity <- function(path, Pattern) {
   
     # plot and save figure
     data <- read.csv(paste(path, content[i], sep = ""))
+=======
+  # loop over the folders
+  for (i in 1:length(content)) {
+    
+    # path to folder
+    # folder = paste("~/", path, content[i], "/stats-", content[i], sep = "")
+    folder = paste(path, "/", content[i], "/stats-", content[i], sep = "")
+    
+    # get content
+    results = list.files(folder)
+    
+    # select only results csv files
+    results <- grep(pattern = c(keyword), x = results, value = T)
+    results <- grep(pattern = c("stats"), x = results, value = T)
+    results <- grep(pattern = c(".csv"), x = results, value = T)
+    
+    # copy in the global stats folder
+    file.copy(from = paste(folder, results, sep = "/"), to = paste(path, "allStatsAndPlots", sep = "/"))
+    
+    # plot and save figure
+    data <- read.csv(paste(folder, results, sep = "/"))
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
     
     x = data$timeStep
     y1 = data$prey1PopulationSizeMean
@@ -294,7 +324,11 @@ plotDensity <- function(path, Pattern) {
     tIntro = 210
     
     fig <- ggplot(data, aes(x)) + 
+<<<<<<< HEAD
       geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(y1max)), alpha=0.5, fill = "lightgrey") +
+=======
+      geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
       geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
       geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
       geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
@@ -309,6 +343,7 @@ plotDensity <- function(path, Pattern) {
                           breaks=c('Prey 1', 'Prey 2', 'Predator'),
                           values=c(y1c, y2c, y3c))
     
+<<<<<<< HEAD
     # # save plot in this folder
     # ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = folder, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
     
@@ -718,6 +753,19 @@ plotRelativeCatches <- function(path, Pattern) {
 } # end of function
 
 gridFigDensity <- function(path, XparamName, YparamName) {
+=======
+    # save plot in this folder
+    ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = folder, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+    # and in the global stats folder
+    ggsave(filename = paste("stats", keyword, "-", content[i], ".pdf", sep = ""), path = paste(path, "allStatsAndPlots", sep = "/"), plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+    
+    
+  } # end of loop over folders
+} # end of function
+
+gridFig <- function(path, XparamName, YparamName) {
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
   
   # first merge all results
   
@@ -748,6 +796,11 @@ gridFigDensity <- function(path, XparamName, YparamName) {
     Yparam = strg[which(str_detect(strg, YparamName) == TRUE)] # search for XparamName in the list
     Yparam = sub(x = Yparam, pattern = paste(YparamName, "*", sep = ""), replacement = "") # get everything after XparamName
     
+<<<<<<< HEAD
+=======
+    # if (Xparam == 1) {next}
+    
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
     # read one file to get column number and headers
     res <- read.csv(paste(path, content[i], sep = "/"))
       
@@ -775,9 +828,16 @@ gridFigDensity <- function(path, XparamName, YparamName) {
   # save table in case
   write.csv(tab, file = paste(path,"/", XparamName, "X", YparamName, "MergedTable.csv", sep = ""), row.names = FALSE)
   
+<<<<<<< HEAD
   # plot
   # plot and save figure
   data <- tab
+=======
+  # plot grid
+  # Base Plot# plot and save figure
+  # data <- tab
+  data <- subset(tab, tab$pry1Cons != 1)
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
   
   x = data$timeStep
   y1 = data$prey1PopulationSizeMean
@@ -795,12 +855,17 @@ gridFigDensity <- function(path, XparamName, YparamName) {
   tIntro = 210
   
   fig <- ggplot(data, aes(x)) + 
+<<<<<<< HEAD
     geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(y1max)), alpha=0.5, fill = "lightgrey") +
+=======
+    geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
     geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
     geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
     geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
     geom_line(aes(y = y1), color = y1c) +
     geom_line(aes(y = y2), color = y2c) +
+<<<<<<< HEAD
     geom_line(aes(y = y3), color = y3c)
   
   ggp <- fig + facet_grid(data$pry1cons~data$prdCtchProb1) +
@@ -809,6 +874,24 @@ gridFigDensity <- function(path, XparamName, YparamName) {
   # save plot in this folder
   ggsave(filename = paste(XparamName, "X", YparamName, ".pdf", sep = ""), path = path, plot = ggp, width = 6.22, height = 5.73, limitsize = TRUE)
   
+=======
+    geom_line(aes(y = y3), color = y3c) +
+    # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+    # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+    # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+    # labs(x = "Time steps", y = "Population size") +
+    labs(title="Predators' catch probability VS preys' max consumption", x = "Time steps", y = "Population size", caption = "other parameters here?") # + #, subtitle="Ggplot2 - Facet Grid - Multiple plots in one figure"
+    # scale_colour_manual(name='Populations',
+                        # breaks=c('Prey 1', 'Prey 2', 'Predator'),
+                        # values=c(y1c, y2c, y3c))
+  
+  # Add Facet Grid
+  grid <- fig + facet_grid(data$pry1Cons ~ data$prdCtch)  # cyl in rows and class in columns.
+  # plot(grid)
+  
+  # save plot in this folder
+  ggsave(filename = "gridFigure", path = path, plot = grid, limitsize = TRUE)
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
   
 } # end of function
 
@@ -904,19 +987,28 @@ posStabNoPred <- function(path, keyword = c("Results", "Snapshot"), Pattern, sta
 } # end of function
 
 # path = paste(getwd(), "Duthie_Sims", sep="/")
+<<<<<<< HEAD
 path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/findEqNarrow/"
 # path = getwd()
 keyword = "Results"
 Pattern = "findEqNarrow-size"
+=======
+path = "/home/adrian/Documents/GitKraken/Chapter2model/findEquilibrium/allStatsAndPlots/ResultsFiles/"
+# path = getwd()
+keyword = "Results"
+Pattern = "findEq-size"
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
 
 mergeResults(path, keyword, Pattern)
 statsResults(path, keyword, Pattern)
+plotsResults(path, keyword, Pattern)
 
 stabPeriod = 5
 stabThreshold = 10
 
 posStabNoPred(path, keyword, Pattern, stabThreshold, stabPeriod)
 
+<<<<<<< HEAD
 path = "/home/adrian/Documents/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/"
 
 plotCatches(path, Pattern)
@@ -928,5 +1020,10 @@ plotRelativeCatches(path, Pattern)
 path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/findEqNarrow/allStatsAndPlots/ResultsFiles/"
 XparamName = "pry1cons"
 YparamName = "prdCtchProb1"
+=======
+path = "/home/adrian/Documents/GitKraken/Chapter2model/findEquilibrium/allStatsAndPlots/ResultsFiles/"
+XparamName = "pry1Cons"
+YparamName = "prdCtch"
+>>>>>>> ba2ba9bb0ea1889d753cf4b8b4a391ad6e2996d4
 
 gridFig(path, XparamName, YparamName)
