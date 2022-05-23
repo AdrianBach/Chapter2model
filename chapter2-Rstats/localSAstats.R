@@ -280,7 +280,7 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
   
 } # end of function
 
-localSAres <- function(path, keyword = c("Results", "Snapshot"), pattern) {
+localSAresults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
   
   # get the directory content
   # content <- list.files(paste("~/", path, sep = ""))
@@ -292,13 +292,40 @@ localSAres <- function(path, keyword = c("Results", "Snapshot"), pattern) {
   # only the folders
   content <- grep(pattern = c("folder"), x = content, value = T)
   
+  # create table 
+  headers <- c("predSpecific", "predOportunistic", "convRateRatio", "catchProbaRatio", "preyOffspRatio", "maxConsRatio", "replicatesNb",
+               "prey1extFreq", "prey2extFreq", "prey1extFreq",
+               "prey1densBeforeMean", "prey1densBeforeMax", "prey1densBeforeMin",
+               "prey2densBeforeMean", "prey2densBeforeMax", "prey2densBeforeMin",
+               "prey1growthBeforeMean", "prey1growthBeforeMax", "prey1growthBeforeMin",
+               "prey2growthBeforeMean", "prey2growthBeforeMax", "prey2growthBeforeMin",
+               "prey1densAfterMean", "prey1densAfterMax", "prey1densAfterMin",
+               "prey2densAfterMean", "prey2densAfterMax", "prey2densAfterMin",
+               "predatorDensMean", "predatorDensMax", "predatorDensMin",
+               "prey1growthAfterMean", "prey1growthAfterMax", "prey1growthAfterMin",
+               "prey2growthAfterMean", "prey2growthAfterMax", "prey2growthAfterMin",
+               "predatorGrowthMean", "predatorGrowthMax", "predatorGrowthMin",
+               "prey1catchesMean", "prey1catchesMax", "prey1catchesMin",
+               "prey2catchesMean", "prey2catchesMax", "prey2catchesMin")
+  
+  # set before after intervals
+  tIntro = 210
+  tEnd = 1000
+  before <- c(tIntro-100, tIntro)
+  after <- c(tEnd-250, tEnd)
+  
   # loop over the folders
   for (i in 1:length(content)) {
     
     # path to folder
     # folder = paste("~/", path, content[i], sep = "")
     folder = paste(path, content[i], sep = "")
-    print(paste("in localSA folder ", folder))
+    print(paste("in localSA folder ", i, ": ", folder))# get the value of XparamName
+    
+    tab <- data.frame(matrix(ncol = length(headers), nrow = 0))
+    
+    # # name columns
+    # colnames(tab) <- headers
     
     # get content
     simFol = list.files(folder)
@@ -309,18 +336,50 @@ localSAres <- function(path, keyword = c("Results", "Snapshot"), pattern) {
     # loop over the sim folders
     for (j in 1:length(simFol)) {
       
+      # initiate new line
+      newLine <- NULL
+      
       # get results folder
       resFol <- paste(folder, simFol[j], sep = "/")
-      print(paste("in sim folder ", resFol))
+      print(paste("in sim folder ", j, ": ", resFol))
       
-      # get files
+      # find stats folder and store path
+      
+      # get results files
       results <- list.files(resFol)
+      
+      # find stats folder and store path
+      statsFol <- grep(pattern = c("stats"), x = results, value = T)
       
       # only csv files
       results <- grep(pattern = c(".csv"), x = results, value = T)
       
       # only the results files
       results <- grep(pattern = c(keyword), x = results, value = T)
+      
+      # get param values and nb of rep
+      strg = resFol
+      
+      # strg = sub(x = strg, pattern = "*.csv", replacement = "")   # cut ".csv" out
+      strg = unlist(strsplit(strg, split = "-")) # split according to "-"
+      strg = strg[-c(1, 2, 3)] # take out non param elements
+      
+      # get param values 
+      newLine <- c(newLine,
+                  sub(x = strg[1], pattern = paste("predSpcf", "*", sep = ""), replacement = ""), # add to newLine everything after XparamName
+                  sub(x = strg[2], pattern = paste("predOpnt", "*", sep = ""), replacement = ""),
+                  sub(x = strg[3], pattern = paste("pryConvRateRatio", "*", sep = ""), replacement = ""),
+                  sub(x = strg[4], pattern = paste("pryCtchProbRatio", "*", sep = ""), replacement = ""),
+                  sub(x = strg[5], pattern = paste("pryOfspRatio", "*", sep = ""), replacement = ""),
+                  sub(x = strg[6], pattern = paste("pryMaxConsRatio", "*", sep = ""), replacement = ""))
+      
+      # get nb of replicates
+      newLine <- c(newLine, length(results))
+      
+      # initiate extinctions counters
+      pry1ext = 0
+      pry2ext = 0
+      predExt = 0
       
       # loop over the results files
       for (m in 1:length(results)) {
@@ -330,22 +389,60 @@ localSAres <- function(path, keyword = c("Results", "Snapshot"), pattern) {
         res <- read.csv(paste(resFol, results[m], sep = "/"))
         
         # count extinctions
+        if (res[dim(res)[1], 4] == 0) {pry1ext = pry1ext+1}
+        if (res[dim(res)[1], 5] == 0) {pry2ext = pry2ext+1}
+        if (res[dim(res)[1], 8] == 0) {predExt = predExt+1}
         
       } # end loop over files (replicates)
       
-      # name columns
-      colnames(tab) <- headers
+      # update new line
+      newLine <- c(newLine, pry1ext/length(results), pry2ext/length(results), predExt/length(results))
       
-      # create stats folder and save table
-      newFolderDir <- paste(resFol, "/stats-", simFol[j], sep = "")
-      dir.create(path = newFolderDir)
-      write.csv(tab, file = paste(newFolderDir, "/merged", keyword, "-", simFol[j], sep = ""), row.names = FALSE)
+      # browse stats folder and read stats
+      stats <- list.files(paste(resFol, statsFol, sep = "/"))
+      stats <- grep(pattern = c("stats"), x = stats, value = T)
+      stats <- grep(pattern = c(".csv"), x = stats, value = T)
+      
+      res <- read.csv(paste(resFol, statsFol, stats, sep = "/"))
+      
+      # subset before pred introduction
+      sub <- subset(res, subset = res$timeStep >= before[1] & res$timeStep < before[2])
+      # get before measures
+      newLine <- c(newLine, 
+                   mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+                   mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+                   mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+                   mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100))
+      
+      # subset after
+      sub <- subset(res, subset = res$timeStep >= after[1] & res$timeStep <= after[2])
+      # get before measures
+      newLine <- c(newLine, 
+                   mean(sub$prey1PopulationSizeMean), max(sub$prey1PopulationSizeMean), min(sub$prey1PopulationSizeMean),
+                   mean(sub$prey2PopulationSizeMean), max(sub$prey2PopulationSizeMean), min(sub$prey2PopulationSizeMean),
+                   mean(sub$predator1PopulationSizeMean), max(sub$predator1PopulationSizeMean), min(sub$predator1PopulationSizeMean),
+                   mean(sub$prey1growthRateMean/100), max(sub$prey1growthRateMean/100), min(sub$prey1growthRateMean/100),
+                   mean(sub$prey2growthRateMean/100), max(sub$prey2growthRateMean/100), min(sub$prey2growthRateMean/100),
+                   mean(sub$predatorGrowthRateMean/100), max(sub$predatorGrowthRateMean/100), min(sub$predatorGrowthRateMean/100),
+                   mean(sub$prey1catchesMean), max(sub$prey1catchesMean), min(sub$prey1catchesMean),
+                   mean(sub$prey2catchesMean), max(sub$prey2catchesMean), min(sub$prey2catchesMean))
+
+      # rbind the line to tab
+      tab <- rbind(tab, as.numeric(newLine))
       
     } # end loop over sim folders
     
+    # name columns
+    colnames(tab) <- headers
+    
+    # create local SA results folder in allStatsAndPlots and save table
+    newFolderDir <- paste(folder, "allStatsAndPlots", "localSAfiles", sep = "/")
+    dir.create(path = newFolderDir)
+    write.csv(tab, file = paste(newFolderDir, "/stats-", content[i], ".csv", sep = ""), row.names = FALSE)
+    
   } # end loop over folders
   
-}
+} # end of function
 
 Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
 Pattern = "localSA-pred"
@@ -353,4 +450,5 @@ Keyword = "Results"
 
 mergeResults(path = Path, keyword = Keyword, pattern = Pattern)
 statsResults(path = Path, keyword = Keyword, pattern = Pattern)
+localSAresults(path = Path, keyword = Keyword, pattern = Pattern)
 
