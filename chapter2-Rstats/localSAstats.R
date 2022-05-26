@@ -125,7 +125,7 @@ mergeResults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
       # create stats folder and save table
       newFolderDir <- paste(resFol, "/stats-", simFol[j], sep = "")
       dir.create(path = newFolderDir)
-      write.csv(tab, file = paste(newFolderDir, "/merged", keyword, "-", simFol[j], sep = ""), row.names = FALSE)
+      write.csv(tab, file = paste(newFolderDir, "/merged", keyword, "-", simFol[j], ".csv", sep = ""), row.names = FALSE)
     
     } # end loop over sim folders
     
@@ -294,7 +294,7 @@ localSAresults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
   
   # create table 
   headers <- c("predSpecific", "predOportunistic", "convRateRatio", "catchProbaRatio", "preyOffspRatio", "maxConsRatio", "replicatesNb",
-               "prey1extFreq", "prey2extFreq", "prey1extFreq",
+               "prey1extFreq", "prey2extFreq", "pred1extFreq",
                "prey1densBeforeMean", "prey1densBeforeMax", "prey1densBeforeMin",
                "prey2densBeforeMean", "prey2densBeforeMax", "prey2densBeforeMin",
                "prey1growthBeforeMean", "prey1growthBeforeMax", "prey1growthBeforeMin",
@@ -452,3 +452,83 @@ mergeResults(path = Path, keyword = Keyword, pattern = Pattern)
 statsResults(path = Path, keyword = Keyword, pattern = Pattern)
 localSAresults(path = Path, keyword = Keyword, pattern = Pattern)
 
+######### add missing parameter set #########
+
+missingSet <- read.csv(file = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-PredSpecific/allStatsAndPlots/localSAfiles/stats-folder-localSA-PredSpecific.csv")
+missingLine <- missingSet[2,]
+
+# catchProba
+filePath = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-CatchProb/allStatsAndPlots/localSAfiles/stats-folder-localSA-CatchProb.csv"
+tab <- read.csv(file = filePath)
+tab <- rbind(tab, missingLine)
+write.csv(tab, file = filePath, row.names = FALSE)
+
+# convRate
+filePath = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-ConvRate/allStatsAndPlots/localSAfiles/stats-folder-localSA-ConvRate.csv"
+tab <- read.csv(file = filePath)
+tab <- rbind(tab, missingLine)
+write.csv(tab, file = filePath, row.names = FALSE)
+
+# maxCons
+filePath = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-maxCons/allStatsAndPlots/localSAfiles/stats-folder-localSA-maxCons.csv"
+tab <- read.csv(file = filePath)
+tab <- rbind(tab, missingLine)
+write.csv(tab, file = filePath, row.names = FALSE)
+
+# offspring Nb
+filePath = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-offspringAvg/allStatsAndPlots/localSAfiles/stats-folder-localSA-offspringAvg.csv"
+tab <- read.csv(file = filePath)
+tab <- rbind(tab, missingLine)
+write.csv(tab, file = filePath, row.names = FALSE)
+
+######### figures ######### 
+
+######### Regime ########
+
+folderPath = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-PredSpecific/allStatsAndPlots/localSAfiles/"
+filePath = folderPath = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-PredSpecific/allStatsAndPlots/localSAfiles/stats-folder-localSA-PredSpecific.csv"
+data <- read.csv(filePath)
+
+#### Extinction Proba ####
+
+x = as.factor(data$predSpecific)
+y1 = data$prey1extFreq
+y2 = data$prey2extFreq
+y3 = data$prey1extFreq.1
+# y1min = data$prey1PopulationSizeICinf
+# y2min = data$prey2PopulationSizeICinf
+# y3min = data$predator1PopulationSizeICinf
+# y1max = data$prey1PopulationSizeICsup
+# y2max = data$prey2PopulationSizeICsup
+# y3max = data$predator1PopulationSizeICsup
+y1c = "red"
+y2c = "blue"
+y3c = "orange"
+# tIntro = 210
+
+fig <- ggplot(data, aes(x)) + 
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  # geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+  # geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  # geom_line(aes(y = y1), color = y1c) +
+  # geom_line(aes(y = y2), color = y2c) +
+  geom_line(aes(y = 0), color = "darkgreen") +
+  geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+  geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+  geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+  labs(x = "Predator Specific", y = "Extinction frequency") # +
+  # scale_colour_manual(name='Populations',
+  #                     breaks=c('Prey 1', 'Prey 2', 'Predator'),
+  #                     values=c(y1c, y2c, y3c))
+
+# save plot in this folder
+ggsave(filename = paste("stats", keyword, "-", simFol[j], ".pdf", sep = ""), path = statsFol, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+######### catchProba ######### 
+
+#### prey 2 to prey 1 density deviation (before/after) ####
+
+data <- read.csv(file = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/folder-localSA-CatchProb/allStatsAndPlots/localSAfiles/stats-folder-localSA-CatchProb.csv")
+
+data <- subset(data, data$predSpecific == 0)

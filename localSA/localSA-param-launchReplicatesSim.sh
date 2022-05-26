@@ -44,7 +44,7 @@ prd_intr_1=201  # argv[26] predator 1 time of introduction in the model
 prd_ctch_pry1_1=0.1  # argv[27] predator 1 prey1 catch probability
 prd_ctch_pry2_1=0.1  # argv[28] predator 1 prey2 catch probability
 prd_oprt_1=0    # argv[31] is predator oportunistic? (0 or 1)
-# prd_spcf_1=0    # argv[32] is predator specific? (0 or 1)
+prd_spcf_1=1    # argv[32] is predator specific? (0 or 1)
 
 # time variables
 simu_time=1000   # argv[33] simulation time
@@ -77,7 +77,7 @@ divide=$prd_cons_1*$freq_surv; by=3; prd_surv_1=`echo "scale=0; ($divide+$by-1)/
 prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[25] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 prd_cvrt_pry1_1=$(($freq_surv * $prd_cons_1/3)); # argv[29] predator 1 prey1 resources/catch
 # ratio=1
-# prd_cvrt_pry2_1=$(($ratio*$prd_cvrt_pry1_1))  # argv[30] predator 1 prey1 resources/catch
+prd_cvrt_pry2_1=$prd_cvrt_pry1_1  # argv[30] predator 1 prey1 resources/catch
 
 
 # Use make to compile the ibm
@@ -85,8 +85,8 @@ make
 
 #### Simulation loop ####
 
-ratioArray=($(seq 0.1 0.1 0.9)) # hard coded for now
-regimeArray=(0 1) # hard coded for now
+# ratioArray=($(seq 0.1 0.1 0.9)) # hard coded for now
+# regimeArray=(0 1) # hard coded for now
 
 # echo "ratioArray is ${ratioArray[*]}"
 # echo "ratioArray size is ${#ratioArray[@]}"
@@ -94,20 +94,21 @@ regimeArray=(0 1) # hard coded for now
 # echo "regimeArray is ${regimeArray[*]}"
 # echo "regimeArray size is ${#regimeArray[@]}"
 
-# loop over maxCell
-for ((i=0 ; i<${#regimeArray[@]} ; i++))
-do
-    prd_spcf_1=${regimeArray[$i]} 
+# # loop over maxCell
+# for ((i=0 ; i<${#regimeArray[@]} ; i++))
+# do
+    # prd_spcf_1=${regimeArray[$i]} 
 
-    # loop over prdCatchProb
-    for ((k=0 ; k<${#ratioArray[@]} ; k++))
-    do
-        prd_cvrt_pry2_1=`echo "scale=0; ${ratioArray[$k]}*$prd_cvrt_pry1_1" | bc`; echo "prd_cvrt_pry2_1 is $prd_cvrt_pry2_1"
+    # # loop over prdCatchProb
+    # for ((k=0 ; k<${#ratioArray[@]} ; k++))
+    # do
+    #     prd_cvrt_pry2_1=`echo "scale=0; ${ratioArray[$k]}*$prd_cvrt_pry1_1" | bc`; echo "prd_cvrt_pry2_1 is $prd_cvrt_pry2_1"
 
-        echo "predators specific: $prd_spcf_1 ; prey2 to prey1 resource/catch ratio : ${ratioArray[$k]}"
+        # echo "predators specific: $prd_spcf_1 ; prey2 to prey1 resource/catch ratio : ${ratioArray[$k]}"
 
         # name the simulation with only the variables of interest and their value
-        sim_name="localSA-predSpcf$prd_spcf_1-predOpnt$prd_oprt_1-pryConvRateRatio${ratioArray[$k]}-pryCtchProbRatio1-pryOfspRatio1-pryMaxConsRatio1" # argv[1]
+        # sim_name="localSA-predSpcf$prd_spcf_1-predOpnt$prd_oprt_1-pryConvRateRatio${ratioArray[$k]}-pryCtchProbRatio1-pryOfspRatio1-pryMaxConsRatio1" # argv[1]
+        sim_name="localSA-predSpcf$prd_spcf_1-predOpnt$prd_oprt_1-pryConvRateRatio1-pryCtchProbRatio1-pryOfspRatio1-pryMaxConsRatio1" # argv[1]
 
         ## Create useful directories ##
 
@@ -254,7 +255,7 @@ do
         # move back to the upper directory before looping
         cd ..
 
-    done
-done
+    # done
+# done
 
 echo "end of simulation loop."
