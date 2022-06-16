@@ -444,7 +444,7 @@ localSAresults <- function(path, keyword = c("Results", "Snapshot"), pattern) {
   
 } # end of function
 
-Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
+Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
 Pattern = "localSA-pred"
 Keyword = "Results"
 
@@ -1418,8 +1418,9 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
   # only the folders
   content <- grep(pattern = c("folder"), x = content, value = T)
   
+  #### WARNING ####
   # loop over the local SA folders
-  for (i in 1:length(content)) {
+  for (i in 3:length(content)) { # WARNING!!!! DONT FORGET TO SET i BACK TO 1 !!!!!
     
     # path to folder
     folder = paste(path, content[i], sep = "")
@@ -1439,8 +1440,9 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
     # select only folders
     simFol <- grep(pattern = c(pattern), x = simFol, value = T)
     
+    #### WARNING ####
     # loop over the sim folders
-    for (j in 1:length(simFol)) {
+    for (j in 1:length(simFol)) {  # WARNING!!!! DONT FORGET TO SET j BACK TO 1 !!!!!
       
       print(paste("in sim folder ", simFol[j]))
       
@@ -1463,18 +1465,25 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
       # only the results files
       results <- grep(pattern = c(keyword), x = results, value = T)
       
+      #### WARNING DONT FORGET TO REMOVE THIS BIT ONCE SUCCESSFUL ####
       # rm false file and rename true file
-      file.remove(paste(statsFol, grep(pattern = c("rep"), x = results, value = T), sep = "/"))
-      file.rename(paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"), paste(paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"), ".csv", sep = ""))
-      
-      # get files
-      results <- list.files(statsFol)
-      
-      # only csv files
-      results <- grep(pattern = c("merged"), x = results, value = T)
-      
-      # only the results files
-      results <- grep(pattern = c(keyword), x = results, value = T)
+      if (length(results) > 1) {
+        if  (grep(pattern = c("rep"), x = results[2]) == 1) {
+          file.remove(paste(statsFol, grep(pattern = c("rep"), x = results, value = T), sep = "/"))
+          file.rename(paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"), paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"))
+        } else {
+          file.remove(paste(statsFol, grep(pattern = c("NA"), x = results, value = T), sep = "/"))
+        }
+        
+        # get files
+        results <- list.files(statsFol)
+        
+        # only csv files
+        results <- grep(pattern = c("merged"), x = results, value = T)
+        
+        # only the results files
+        results <- grep(pattern = c(keyword), x = results, value = T)
+      }
       
       # get name
       name <- paste(statsFol, "/", results, sep = "")
@@ -1496,95 +1505,125 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
       
       if (exclude.ext == TRUE) {
         # create temporary table
-        temp <- as.data.frame(NULL)
+        temp <- data.frame(matrix(ncol = length(newHeaders), nrow = 0))
         
         # subset merged results and move to temp only if no extinction
         repNb <- levels(as.factor(stats$replicate))
+        
         for (m in 1:length(repNb)) {
           sub <- subset(stats, stats$replicate == repNb[m])
           
-          if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0)
+          if (sub$prey1PopulationSize[dim(sub)[1]] == 0 | sub$prey2PopulationSize[dim(sub)[1]] == 0 | sub$predator1PopulationSize[dim(sub)[1]] == 0) {
+            print(paste("replicate", m, "ended in extinction"))
+          } else {
+            paste("cux")
+            temp <- rbind(temp, sub)
+          }
         }
+      } # end of if loop
+          
+      # if temp is still empty skip to the next j loop
+      if (exclude.ext == TRUE & dim(temp)[1] == 0) {
+          print("extinctions only -- move to next sim folder")
+          
+      } else {
         
-        # if temp is still empty skip to the next j loop
-        
-        # otherwise replace stats by temp
-        stats <- temp
-      }
-      
-      # for loop making subset for each time step
-      ts <- levels(as.factor(stats$timeStep))
-      for (k in 1:length(ts)) {
-        
-        # subset per ts number
-        sub <- subset(stats, stats$timeStep == as.numeric(ts[k]))
-        
-        # initiate new line with time step
-        newLine <- c(as.numeric(ts[k]), dim(sub)[1])
-        
-        # apply stats to each column of measures
-        for (k in 3:(dim(sub)[2])) { # first line is rep, second is ts
-          newLine <- c(newLine, mean(sub[,k]), boot_sd_ci(sub[,k])[2], boot_sd_ci(sub[,k])[3])
+        if (exclude.ext == TRUE) {
+          # otherwise replace stats by temp
+          stats <- temp
         }
+      
+        # for loop making subset for each time step
+        ts <- levels(as.factor(stats$timeStep))
+        for (k in 1:length(ts)) {
+          
+          # subset per ts number
+          sub <- subset(stats, stats$timeStep == as.numeric(ts[k]))
+          
+          # initiate new line with time step
+          newLine <- c(as.numeric(ts[k]), dim(sub)[1])
+          
+          # apply stats to each column of measures
+          for (k in 3:(dim(sub)[2])) { # first line is rep, second is ts
+            newLine <- c(newLine, mean(sub[,k]), boot_sd_ci(sub[,k])[2], boot_sd_ci(sub[,k])[3])
+          }
+          
+          # rbind the line to tab
+          tab <- rbind(tab, newLine)
+        } # end loop over time steps
         
-        # rbind the line to tab
-        tab <- rbind(tab, newLine)
-      } # end loop over time steps
+        # column names
+        colnames(tab) <- newHeaders
+        
+        if (exclude.ext == FALSE) {
+          # write in the corresponding folder
+          write.csv(tab, file = paste(statsFol, "/stats", keyword, "-", simFol[j], ".csv", sep = ""), row.names = FALSE) 
+          
+          # and copy in the global stats folder
+          file.copy(from = paste(statsFol, "/stats", keyword, "-", simFol[j], ".csv", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
+        } else {
+          # write directly in the global folder
+          write.csv(tab, file = paste(folder, "/allStatsAndPlots/", keyword, "Files-woExt/woExt-", simFol[j], ".csv", sep = ""), row.names = FALSE)
+        } 
+        
+        # plot and save figure
+        data <- tab
+        
+        x = data$timeStep
+        y1 = data$prey1PopulationSizeMean
+        y2 = data$prey2PopulationSizeMean
+        y3 = data$predator1PopulationSizeMean
+        y1min = data$prey1PopulationSizeICinf
+        y2min = data$prey2PopulationSizeICinf
+        y3min = data$predator1PopulationSizeICinf
+        y1max = data$prey1PopulationSizeICsup
+        y2max = data$prey2PopulationSizeICsup
+        y3max = data$predator1PopulationSizeICsup
+        y1c = "red"
+        y2c = "blue"
+        y3c = "orange"
+        tIntro = 210
+        
+        fig <- ggplot(data, aes(x)) + 
+          geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+          geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
+          geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
+          geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+          geom_line(aes(y = y1), color = y1c) +
+          geom_line(aes(y = y2), color = y2c) +
+          geom_line(aes(y = y3), color = y3c) +
+          # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
+          # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
+          # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
+          labs(x = "Time steps", y = "Population size") +
+          scale_colour_manual(name='Populations',
+                              breaks=c('Prey 1', 'Prey 2', 'Predator'),
+                              values=c(y1c, y2c, y3c))
+        
+        if (exclude.ext == FALSE) {
+          # save plot in this folder
+          ggsave(filename = paste("stats", keyword, "-", simFol[j], ".pdf", sep = ""), path = statsFol, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+        
+          # and copy in the global stats folder
+          file.copy(from = paste(statsFol, "/stats", keyword, "-", simFol[j], ".pdf", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
+        } else {
+          # save plot in global folder
+          ggsave(filename = paste("woExt-stats", keyword, "-", simFol[j], ".pdf", sep = ""), path = paste(folder, "/allStatsAndPlots/", keyword, "Files-woExt", sep = ""), plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+        }
       
-      # column names
-      colnames(tab) <- newHeaders
-      
-      # write in the corresponding folder
-      write.csv(tab, file = paste(statsFol, "/stats", keyword, "-", simFol[j], ".csv", sep = ""), row.names = FALSE)
-      
-      # and copy in the global stats folder
-      file.copy(from = paste(statsFol, "/stats", keyword, "-", simFol[j], ".csv", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
-      
-      # plot and save figure
-      data <- tab
-      
-      x = data$timeStep
-      y1 = data$prey1PopulationSizeMean
-      y2 = data$prey2PopulationSizeMean
-      y3 = data$predator1PopulationSizeMean
-      y1min = data$prey1PopulationSizeICinf
-      y2min = data$prey2PopulationSizeICinf
-      y3min = data$predator1PopulationSizeICinf
-      y1max = data$prey1PopulationSizeICsup
-      y2max = data$prey2PopulationSizeICsup
-      y3max = data$predator1PopulationSizeICsup
-      y1c = "red"
-      y2c = "blue"
-      y3c = "orange"
-      tIntro = 210
-      
-      fig <- ggplot(data, aes(x)) + 
-        geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
-        geom_ribbon(aes(ymin = y1min, ymax = y1max), alpha = 0.2, size = 0.1, col = y1c, fill = y1c) +
-        geom_ribbon(aes(ymin = y2min, ymax = y2max), alpha = 0.2, size = 0.1, col = y2c, fill = y2c) +
-        geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
-        geom_line(aes(y = y1), color = y1c) +
-        geom_line(aes(y = y2), color = y2c) +
-        geom_line(aes(y = y3), color = y3c) +
-        # geom_point(aes(y = y1), size = 2.5, shape = 21, fill = "white", color = y1c) +
-        # geom_point(aes(y = y2), size = 2.5, shape = 22, fill = "white", color = y2c) +
-        # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c) +
-        labs(x = "Time steps", y = "Population size") +
-        scale_colour_manual(name='Populations',
-                            breaks=c('Prey 1', 'Prey 2', 'Predator'),
-                            values=c(y1c, y2c, y3c))
-      
-      # save plot in this folder
-      ggsave(filename = paste("stats", keyword, "-", simFol[j], ".pdf", sep = ""), path = statsFol, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
-      
-      # and copy in the global stats folder
-      file.copy(from = paste(statsFol, "/stats", keyword, "-", simFol[j], ".pdf", sep = ""), to = paste(folder, "/allStatsAndPlots/", keyword, "Files", sep = ""))
+      } # end of else loop
       
     } # end loop over sim folders
     
   } # end loop over local SA folders
   
 } # end of function
+
+Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
+Pattern = "localSA-pred"
+Keyword = "Results"
+
+statsResults(path = Path, keyword = Keyword, pattern = Pattern, exclude.ext = TRUE)
 
 localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), pattern) {
   
