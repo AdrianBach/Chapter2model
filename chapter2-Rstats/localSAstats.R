@@ -1418,9 +1418,8 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
   # only the folders
   content <- grep(pattern = c("folder"), x = content, value = T)
   
-  #### WARNING ####
   # loop over the local SA folders
-  for (i in 3:length(content)) { # WARNING!!!! DONT FORGET TO SET i BACK TO 1 !!!!!
+  for (i in 1:length(content)) {
     
     # path to folder
     folder = paste(path, content[i], sep = "")
@@ -1440,9 +1439,8 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
     # select only folders
     simFol <- grep(pattern = c(pattern), x = simFol, value = T)
     
-    #### WARNING ####
     # loop over the sim folders
-    for (j in 1:length(simFol)) {  # WARNING!!!! DONT FORGET TO SET j BACK TO 1 !!!!!
+    for (j in 1:length(simFol)) {  
       
       print(paste("in sim folder ", simFol[j]))
       
@@ -1465,25 +1463,24 @@ statsResults <- function(path, keyword = c("Results", "Snapshot"), pattern, excl
       # only the results files
       results <- grep(pattern = c(keyword), x = results, value = T)
       
-      #### WARNING DONT FORGET TO REMOVE THIS BIT ONCE SUCCESSFUL ####
-      # rm false file and rename true file
-      if (length(results) > 1) {
-        if  (grep(pattern = c("rep"), x = results[2]) == 1) {
-          file.remove(paste(statsFol, grep(pattern = c("rep"), x = results, value = T), sep = "/"))
-          file.rename(paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"), paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"))
-        } else {
-          file.remove(paste(statsFol, grep(pattern = c("NA"), x = results, value = T), sep = "/"))
-        }
-        
-        # get files
-        results <- list.files(statsFol)
-        
-        # only csv files
-        results <- grep(pattern = c("merged"), x = results, value = T)
-        
-        # only the results files
-        results <- grep(pattern = c(keyword), x = results, value = T)
-      }
+      # # rm false file and rename true file
+      # if (length(results) > 1) {
+      #   if  (grep(pattern = c("rep"), x = results[2]) == 1) {
+      #     file.remove(paste(statsFol, grep(pattern = c("rep"), x = results, value = T), sep = "/"))
+      #     file.rename(paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"), paste(statsFol, grep(pattern = c("rep"), x = results, value = T, invert = TRUE), sep = "/"))
+      #   } else {
+      #     file.remove(paste(statsFol, grep(pattern = c("NA"), x = results, value = T), sep = "/"))
+      #   }
+      #   
+      #   # get files
+      #   results <- list.files(statsFol)
+      #   
+      #   # only csv files
+      #   results <- grep(pattern = c("merged"), x = results, value = T)
+      #   
+      #   # only the results files
+      #   results <- grep(pattern = c(keyword), x = results, value = T)
+      # }
       
       # get name
       name <- paste(statsFol, "/", results, sep = "")
@@ -1639,7 +1636,7 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
   
   # create table 
   headers <- c("predSpecific", "predOportunistic", "convRateRatio", "catchProbaRatio", "preyOffspRatio", "maxConsRatio", "replicatesNb",
-               "prey1extFreq", "prey2extFreq", "pred1extFreq",
+               # "prey1extFreq", "prey2extFreq", "pred1extFreq",
                "prey1densBeforeMean", "prey1densBeforeMax", "prey1densBeforeMin",
                "prey2densBeforeMean", "prey2densBeforeMax", "prey2densBeforeMin",
                "prey1growthBeforeMean", "prey1growthBeforeMax", "prey1growthBeforeMin",
@@ -1660,7 +1657,7 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
   after <- c(tEnd-250, tEnd)
   
   # loop over the folders
-  for (i in 1:length(content)) {
+  for (i in 1:(length(content)-2)) {
     
     # path to folder
     # folder = paste("~/", path, content[i], sep = "")
@@ -1673,41 +1670,48 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
     # colnames(tab) <- headers
     
     # get content
-    simFol = list.files(folder)
+    globalFol = list.files(folder)
     
     # select only folders
-    simFol <- grep(pattern = c(pattern), x = simFol, value = T)
+    globalFol <- grep(pattern = c(pattern), x = globalFol, value = T)
     
-    # loop over the sim folders
-    for (j in 1:length(simFol)) {
+    # # loop over the sim folders
+    # for (j in 1:length(globalFol)) {
+    
+    # get results folder
+    resFol <- paste(folder, globalFol, sep = "/")
+    print(paste("in", resFol))
+    
+    # find stats folder and store path
+    
+    # get results files
+    statsFol <- list.files(resFol)
+    
+    # find stats folder and store path
+    statsFol <- grep(pattern = c("ResultsFiles-woExt"), x = statsFol, value = T)
+    print(paste("in", statsFol))
+    
+    results <- list.files(paste(resFol, statsFol, sep = "/"))
+
+    # only csv files
+    results <- grep(pattern = c(".csv"), x = results, value = T)
+    
+    # # only the results files
+    # results <- grep(pattern = c(keyword), x = results, value = T)
+    
+    for (j in 1:length(results)) {
       
       # initiate new line
       newLine <- NULL
       
-      # get results folder
-      resFol <- paste(folder, simFol[j], sep = "/")
-      print(paste("in sim folder ", j, ": ", simFol[j]))
-      
-      # find stats folder and store path
-      
-      # get results files
-      results <- list.files(resFol)
-      
-      # find stats folder and store path
-      statsFol <- grep(pattern = c("stats"), x = results, value = T)
-      
-      # only csv files
-      results <- grep(pattern = c(".csv"), x = results, value = T)
-      
-      # only the results files
-      results <- grep(pattern = c(keyword), x = results, value = T)
+      print(paste("in results file", results[j]))
       
       # get param values and nb of rep
-      strg = resFol
+      strg = results[j]
       
-      # strg = sub(x = strg, pattern = "*.csv", replacement = "")   # cut ".csv" out
+      strg = sub(x = strg, pattern = "*.csv", replacement = "")   # cut ".csv" out
       strg = unlist(strsplit(strg, split = "-")) # split according to "-"
-      strg = strg[-c(1, 2, 3)] # take out non param elements
+      strg = strg[-c(1:2)] # take out non param elements
       
       # get param values 
       newLine <- c(newLine,
@@ -1718,37 +1722,37 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
                    sub(x = strg[5], pattern = paste("pryOfspRatio", "*", sep = ""), replacement = ""),
                    sub(x = strg[6], pattern = paste("pryMaxConsRatio", "*", sep = ""), replacement = ""))
       
+      # # initiate extinctions counters
+      # pry1ext = 0
+      # pry2ext = 0
+      # predExt = 0
+      # 
+      # # loop over the results files
+      # for (m in 1:length(results)) {
+      #   
+      #   # print(paste("reading file ", results[m]))
+      #   # read results
+      #   res <- read.csv(paste(resFol, results[m], sep = "/"))
+      #   
+      #   # count extinctions
+      #   if (res[dim(res)[1], 4] == 0) {pry1ext = pry1ext+1}
+      #   if (res[dim(res)[1], 5] == 0) {pry2ext = pry2ext+1}
+      #   if (res[dim(res)[1], 8] == 0) {predExt = predExt+1}
+      #   
+      # } # end loop over files (replicates)
+      # 
+      # # update new line
+      # newLine <- c(newLine, pry1ext/length(results), pry2ext/length(results), predExt/length(results))
+      
+      # # browse stats folder and read stats
+      # stats <- list.files(paste(resFol, statsFol, sep = "/"))
+      # stats <- grep(pattern = c("stats"), x = stats, value = T)
+      # stats <- grep(pattern = c(".csv"), x = stats, value = T)
+      
+      res <- read.csv(paste(resFol, statsFol, results[j], sep = "/"))
+      
       # get nb of replicates
-      newLine <- c(newLine, length(results))
-      
-      # initiate extinctions counters
-      pry1ext = 0
-      pry2ext = 0
-      predExt = 0
-      
-      # loop over the results files
-      for (m in 1:length(results)) {
-        
-        # print(paste("reading file ", results[m]))
-        # read results
-        res <- read.csv(paste(resFol, results[m], sep = "/"))
-        
-        # count extinctions
-        if (res[dim(res)[1], 4] == 0) {pry1ext = pry1ext+1}
-        if (res[dim(res)[1], 5] == 0) {pry2ext = pry2ext+1}
-        if (res[dim(res)[1], 8] == 0) {predExt = predExt+1}
-        
-      } # end loop over files (replicates)
-      
-      # update new line
-      newLine <- c(newLine, pry1ext/length(results), pry2ext/length(results), predExt/length(results))
-      
-      # browse stats folder and read stats
-      stats <- list.files(paste(resFol, statsFol, sep = "/"))
-      stats <- grep(pattern = c("stats"), x = stats, value = T)
-      stats <- grep(pattern = c(".csv"), x = stats, value = T)
-      
-      res <- read.csv(paste(resFol, statsFol, stats, sep = "/"))
+      newLine <- c(newLine, res$repNb[1])
       
       # subset before pred introduction
       sub <- subset(res, subset = res$timeStep >= before[1] & res$timeStep < before[2])
@@ -1775,19 +1779,23 @@ localSAresultsNoExt <- function(path, keyword = c("Results", "Snapshot"), patter
       # rbind the line to tab
       tab <- rbind(tab, as.numeric(newLine))
       
-    } # end loop over sim folders
+    } # end loop over results folders
     
     # name columns
     colnames(tab) <- headers
     
     # create local SA results folder in allStatsAndPlots and save table
-    newFolderDir <- paste(folder, "allStatsAndPlots", "localSAfiles", sep = "/")
+    newFolderDir <- paste(folder, "allStatsAndPlots", "localSAfiles-woExt", sep = "/")
     dir.create(path = newFolderDir)
-    write.csv(tab, file = paste(newFolderDir, "/stats-", content[i], ".csv", sep = ""), row.names = FALSE)
+    write.csv(tab, file = paste(newFolderDir, "/woExt-stats-", content[i], ".csv", sep = ""), row.names = FALSE)
     
   } # end loop over folders
   
 } # end of function
+
+Pattern = "Stats"
+
+localSAresultsNoExt(path = Path, keyword = Keyword, pattern = Pattern)
 
 ######### catchProba ratio ######### 
 
