@@ -2091,3 +2091,599 @@ fig
 
 # save plot in this folder
 ggsave(filename = "woExt-localSA-maxCons-catchRate.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+################ interaction with Regime ################ 
+
+######## Catch probability ratio ######## 
+
+# Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
+Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
+folderPath = paste(Path, "folder-localSA-CatchProb/allStatsAndPlots/localSAfiles/", sep = "")
+filePath = paste(folderPath, "stats-folder-localSA-CatchProb.csv", sep = "")
+
+data <- read.csv(filePath)
+predGen <- subset(data, data$predSpecific == 0)
+predSpe <- subset(data, data$predSpecific == 1)
+
+x = predGen$catchProbaRatio
+
+#### exctinction probability ####
+
+# bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1extFreq
+y2 = predSpe$prey1extFreq
+y3 = predGen$prey2extFreq
+y4 = predSpe$prey2extFreq
+y5 = predGen$prey1extFreq.1
+y6 = predSpe$prey1extFreq.1
+# y1min = predGen$prey1densAfterMin
+# y2min = predSpe$prey1densAfterMin
+# y3min = predGen$prey2densAfterMin
+# y4min = predSpe$prey2densAfterMin
+# y5min = predGen$predatorDensMin
+# y6min = predSpe$predatorDensMin
+# y1max = predGen$prey1densAfterMax
+# y2max = predSpe$prey1densAfterMax
+# y3max = predGen$prey2densAfterMax
+# y4max = predSpe$prey2densAfterMax
+# y5max = predGen$predatorDensMax
+# y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+y5c = "orange"
+y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.85, xmax = 1.15, ymin = 0, ymax = 1.05), alpha=0.5, fill = "lightgrey") +
+  # geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.125)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.075)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.025)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.025)) +
+  geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.075)) +
+  geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.125)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  # geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 21, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.125)) +
+  # geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 22, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.075)) +
+  # geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 24, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = -0.025)) +
+  # geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 21, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.025)) +
+  # geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 22, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.075)) +
+  # geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 24, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.125)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  geom_point(aes(y = y1), shape = 16, fill = "white", size = 3, col = y1c, position = position_nudge(x = -0.125)) +
+  geom_point(aes(y = y2), shape = 16, fill = "white", size = 3, col = y2c, position = position_nudge(x = -0.075)) +
+  geom_point(aes(y = y3), shape = 15, fill = "white", size = 3, col = y3c, position = position_nudge(x = -0.025)) +
+  geom_point(aes(y = y4), shape = 15, fill = "white", size = 3, col = y4c, position = position_nudge(x = 0.025)) +
+  geom_point(aes(y = y5), shape = 17, fill = "white", size = 3, col = y5c, position = position_nudge(x = 0.075)) +
+  geom_point(aes(y = y6), shape = 17, fill = "white", size = 3, col = y6c, position = position_nudge(x = 0.125)) +
+  labs(x = "Prey 2 to prey 1 catch probability ratio", y = "Extinction frequency") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-catchProba-extFreq.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+#### catch rate ####
+
+# bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1catchesMean
+y2 = predSpe$prey1catchesMean
+y3 = predGen$prey2catchesMean
+y4 = predSpe$prey2catchesMean
+# y5 = predGen$predatorDensMean
+# y6 = predSpe$predatorDensMean
+y1min = predGen$prey1catchesMin
+y2min = predSpe$prey1catchesMin
+y3min = predGen$prey2catchesMin
+y4min = predSpe$prey2catchesMin
+# y5min = predGen$predatorDensMin
+# y6min = predSpe$predatorDensMin
+y1max = predGen$prey1catchesMax
+y2max = predSpe$prey1catchesMax
+y3max = predGen$prey2catchesMax
+y4max = predSpe$prey2catchesMax
+# y5max = predGen$predatorDensMax
+# y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+# y5c = "orange"
+# y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.85, xmax = 1.15, ymin = 0, ymax = 1.05*max(max(y1max), max(y3max))), alpha=0.5, fill = "lightgrey") +
+  # geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.075)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.025)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.025)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.075)) +
+  # geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.075)) +
+  # geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.125)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 16, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.075)) +
+  geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 16, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.025)) +
+  geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 15, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = 0.025)) +
+  geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 15, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.075)) +
+  # geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 17, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.075)) +
+  # geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 17, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.125)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  # geom_point(aes(y = y1), size = 2.5, shape = 24, fill = "white", color = y1c, position = position_nudge(x = -0.1)) +
+  # geom_point(aes(y = y2), size = 2.5, shape = 25, fill = "white", color = y2c, position = position_nudge(x = 0.1)) # +
+  # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c, position = position_nudge(x = 0.15)) +
+  labs(x = "Prey 2 to prey 1 catch probability ratio", y = "Average nb of catches per ts") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-catchProba-catchRate.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+#### density ####
+
+bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1densAfterMean
+y2 = predSpe$prey1densAfterMean
+y3 = predGen$prey2densAfterMean
+y4 = predSpe$prey2densAfterMean
+y5 = predGen$predatorDensMean
+y6 = predSpe$predatorDensMean
+y1min = predGen$prey1densAfterMin
+y2min = predSpe$prey1densAfterMin
+y3min = predGen$prey2densAfterMin
+y4min = predSpe$prey2densAfterMin
+y5min = predGen$predatorDensMin
+y6min = predSpe$predatorDensMin
+y1max = predGen$prey1densAfterMax
+y2max = predSpe$prey1densAfterMax
+y3max = predGen$prey2densAfterMax
+y4max = predSpe$prey2densAfterMax
+y5max = predGen$predatorDensMax
+y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+y5c = "orange"
+y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.85, xmax = 1.15, ymin = 0, ymax = 1.05*max(max(y1max), max(y3max))), alpha=0.5, fill = "lightgrey") +
+  geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.125)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.075)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.025)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.025)) +
+  geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.075)) +
+  geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.125)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 16, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.125)) +
+  geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 16, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.075)) +
+  geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 15, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = -0.025)) +
+  geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 15, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.025)) +
+  geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 17, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.075)) +
+  geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 17, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.125)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  # geom_point(aes(y = y1), size = 2.5, shape = 24, fill = "white", color = y1c, position = position_nudge(x = -0.1)) +
+  # geom_point(aes(y = y2), size = 2.5, shape = 25, fill = "white", color = y2c, position = position_nudge(x = 0.1)) # +
+  # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c, position = position_nudge(x = 0.15)) +
+  labs(x = "Prey 2 to prey 1 catch probability ratio", y = "Average density") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-catchProba-density.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+######## max consumption ratio ######## 
+
+# Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
+Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
+folderPath = paste(Path, "folder-localSA-maxCons/allStatsAndPlots/localSAfiles/", sep = "")
+filePath = paste(folderPath, "stats-folder-localSA-maxCons.csv", sep = "")
+
+data <- read.csv(filePath)
+predGen <- subset(data, data$predSpecific == 0)
+predSpe <- subset(data, data$predSpecific == 1)
+
+x = predGen$maxConsRatio
+
+#### exctinction probability ####
+
+# bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1extFreq
+y2 = predSpe$prey1extFreq
+y3 = predGen$prey2extFreq
+y4 = predSpe$prey2extFreq
+y5 = predGen$prey1extFreq.1
+y6 = predSpe$prey1extFreq.1
+# y1min = predGen$prey1densAfterMin
+# y2min = predSpe$prey1densAfterMin
+# y3min = predGen$prey2densAfterMin
+# y4min = predSpe$prey2densAfterMin
+# y5min = predGen$predatorDensMin
+# y6min = predSpe$predatorDensMin
+# y1max = predGen$prey1densAfterMax
+# y2max = predSpe$prey1densAfterMax
+# y3max = predGen$prey2densAfterMax
+# y4max = predSpe$prey2densAfterMax
+# y5max = predGen$predatorDensMax
+# y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+y5c = "orange"
+y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.93, xmax = 1.07, ymin = 0, ymax = 1.05), alpha=0.5, fill = "lightgrey") +
+  # geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.05)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.03)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.01)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.01)) +
+  geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.03)) +
+  geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.05)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  # geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 21, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.125)) +
+  # geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 22, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.075)) +
+  # geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 24, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = -0.025)) +
+  # geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 21, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.025)) +
+  # geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 22, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.075)) +
+  # geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 24, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.125)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  geom_point(aes(y = y1), shape = 16, fill = "white", size = 3, col = y1c, position = position_nudge(x = -0.05)) +
+  geom_point(aes(y = y2), shape = 16, fill = "white", size = 3, col = y2c, position = position_nudge(x = -0.03)) +
+  geom_point(aes(y = y3), shape = 15, fill = "white", size = 3, col = y3c, position = position_nudge(x = -0.01)) +
+  geom_point(aes(y = y4), shape = 15, fill = "white", size = 3, col = y4c, position = position_nudge(x = 0.01)) +
+  geom_point(aes(y = y5), shape = 17, fill = "white", size = 3, col = y5c, position = position_nudge(x = 0.03)) +
+  geom_point(aes(y = y6), shape = 17, fill = "white", size = 3, col = y6c, position = position_nudge(x = 0.05)) +
+  labs(x = "Prey 2 to prey 1 max consumption ratio", y = "Extinction frequency") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-maxCons-extFreq.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+#### catch rate ####
+
+# bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1catchesMean
+y2 = predSpe$prey1catchesMean
+y3 = predGen$prey2catchesMean
+y4 = predSpe$prey2catchesMean
+# y5 = predGen$predatorDensMean
+# y6 = predSpe$predatorDensMean
+y1min = predGen$prey1catchesMin
+y2min = predSpe$prey1catchesMin
+y3min = predGen$prey2catchesMin
+y4min = predSpe$prey2catchesMin
+# y5min = predGen$predatorDensMin
+# y6min = predSpe$predatorDensMin
+y1max = predGen$prey1catchesMax
+y2max = predSpe$prey1catchesMax
+y3max = predGen$prey2catchesMax
+y4max = predSpe$prey2catchesMax
+# y5max = predGen$predatorDensMax
+# y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+# y5c = "orange"
+# y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.95, xmax = 1.05, ymin = 0, ymax = 1.05*max(max(y1max), max(y3max))), alpha=0.5, fill = "lightgrey") +
+  # geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.03)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.01)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.01)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.03)) +
+  # geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.075)) +
+  # geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.125)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 16, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.03)) +
+  geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 16, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.01)) +
+  geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 15, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = 0.01)) +
+  geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 15, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.03)) +
+  # geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 17, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.075)) +
+  # geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 17, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.125)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  # geom_point(aes(y = y1), size = 2.5, shape = 24, fill = "white", color = y1c, position = position_nudge(x = -0.1)) +
+  # geom_point(aes(y = y2), size = 2.5, shape = 25, fill = "white", color = y2c, position = position_nudge(x = 0.1)) # +
+  # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c, position = position_nudge(x = 0.15)) +
+  labs(x = "Prey 2 to prey 1 max consumption ratio", y = "Average catches per ts") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-maxCons-catchRate.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+#### density ####
+
+bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1densAfterMean
+y2 = predSpe$prey1densAfterMean
+y3 = predGen$prey2densAfterMean
+y4 = predSpe$prey2densAfterMean
+y5 = predGen$predatorDensMean
+y6 = predSpe$predatorDensMean
+y1min = predGen$prey1densAfterMin
+y2min = predSpe$prey1densAfterMin
+y3min = predGen$prey2densAfterMin
+y4min = predSpe$prey2densAfterMin
+y5min = predGen$predatorDensMin
+y6min = predSpe$predatorDensMin
+y1max = predGen$prey1densAfterMax
+y2max = predSpe$prey1densAfterMax
+y3max = predGen$prey2densAfterMax
+y4max = predSpe$prey2densAfterMax
+y5max = predGen$predatorDensMax
+y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+y5c = "orange"
+y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.93, xmax = 1.07, ymin = 0, ymax = 1.05*max(max(y1max), max(y3max))), alpha=0.5, fill = "lightgrey") +
+  geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.05)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.03)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.01)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.01)) +
+  geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.03)) +
+  geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.05)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 16, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.05)) +
+  geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 16, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.03)) +
+  geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 15, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = -0.01)) +
+  geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 15, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.01)) +
+  geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 17, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.03)) +
+  geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 17, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.05)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  # geom_point(aes(y = y1), size = 2.5, shape = 24, fill = "white", color = y1c, position = position_nudge(x = -0.1)) +
+  # geom_point(aes(y = y2), size = 2.5, shape = 25, fill = "white", color = y2c, position = position_nudge(x = 0.1)) # +
+  # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c, position = position_nudge(x = 0.15)) +
+  labs(x = "Prey 2 to prey 1 max consumption ratio", y = "Average density") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-catchProba-density.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+######## Average offspring nb ratio ######## 
+
+# Path = "/home/adrian/Documents/GitKraken/Chapter2model/localSA/"
+Path = "/Users/adrianbach/Desktop/PhD/GitKraken/Chapter2model/localSA/"
+folderPath = paste(Path, "folder-localSA-offspringAvg/allStatsAndPlots/localSAfiles/", sep = "")
+filePath = paste(folderPath, "stats-folder-localSA-offspringAvg.csv", sep = "")
+
+data <- read.csv(filePath)
+predGen <- subset(data, data$predSpecific == 0)
+predSpe <- subset(data, data$predSpecific == 1)
+
+x = predGen$preyOffspRatio
+
+#### exctinction probability ####
+
+# bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1extFreq
+y2 = predSpe$prey1extFreq
+y3 = predGen$prey2extFreq
+y4 = predSpe$prey2extFreq
+y5 = predGen$prey1extFreq.1
+y6 = predSpe$prey1extFreq.1
+# y1min = predGen$prey1densAfterMin
+# y2min = predSpe$prey1densAfterMin
+# y3min = predGen$prey2densAfterMin
+# y4min = predSpe$prey2densAfterMin
+# y5min = predGen$predatorDensMin
+# y6min = predSpe$predatorDensMin
+# y1max = predGen$prey1densAfterMax
+# y2max = predSpe$prey1densAfterMax
+# y3max = predGen$prey2densAfterMax
+# y4max = predSpe$prey2densAfterMax
+# y5max = predGen$predatorDensMax
+# y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+y5c = "orange"
+y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.75, xmax = 1.25, ymin = 0, ymax = 1.05), alpha=0.5, fill = "lightgrey") +
+  # geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.25)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.15)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.05)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.05)) +
+  geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.15)) +
+  geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.25)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  # geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 21, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.125)) +
+  # geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 22, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.075)) +
+  # geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 24, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = -0.025)) +
+  # geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 21, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.025)) +
+  # geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 22, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.075)) +
+  # geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 24, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.125)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  geom_point(aes(y = y1), shape = 16, fill = "white", size = 3, col = y1c, position = position_nudge(x = -0.25)) +
+  geom_point(aes(y = y2), shape = 16, fill = "white", size = 3, col = y2c, position = position_nudge(x = -0.15)) +
+  geom_point(aes(y = y3), shape = 15, fill = "white", size = 3, col = y3c, position = position_nudge(x = -0.05)) +
+  geom_point(aes(y = y4), shape = 15, fill = "white", size = 3, col = y4c, position = position_nudge(x = 0.05)) +
+  geom_point(aes(y = y5), shape = 17, fill = "white", size = 3, col = y5c, position = position_nudge(x = 0.15)) +
+  geom_point(aes(y = y6), shape = 17, fill = "white", size = 3, col = y6c, position = position_nudge(x = 0.25)) +
+  labs(x = "Prey 2 to prey 1 offspring nb ratio", y = "Extinction frequency") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-offprinAvg-extFreq.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+#### catch rate ####
+
+# bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1catchesMean
+y2 = predSpe$prey1catchesMean
+y3 = predGen$prey2catchesMean
+y4 = predSpe$prey2catchesMean
+# y5 = predGen$predatorDensMean
+# y6 = predSpe$predatorDensMean
+y1min = predGen$prey1catchesMin
+y2min = predSpe$prey1catchesMin
+y3min = predGen$prey2catchesMin
+y4min = predSpe$prey2catchesMin
+# y5min = predGen$predatorDensMin
+# y6min = predSpe$predatorDensMin
+y1max = predGen$prey1catchesMax
+y2max = predSpe$prey1catchesMax
+y3max = predGen$prey2catchesMax
+y4max = predSpe$prey2catchesMax
+# y5max = predGen$predatorDensMax
+# y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+# y5c = "orange"
+# y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.80, xmax = 1.20, ymin = 0, ymax = 1.05*max(max(y1max), max(y3max))), alpha=0.5, fill = "lightgrey") +
+  # geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.15)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.05)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.05)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.15)) +
+  # geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.075)) +
+  # geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.125)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 16, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.15)) +
+  geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 16, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.05)) +
+  geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 15, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = 0.05)) +
+  geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 15, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.15)) +
+  # geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 17, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.075)) +
+  # geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 17, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.125)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  # geom_point(aes(y = y1), size = 2.5, shape = 24, fill = "white", color = y1c, position = position_nudge(x = -0.1)) +
+  # geom_point(aes(y = y2), size = 2.5, shape = 25, fill = "white", color = y2c, position = position_nudge(x = 0.1)) # +
+  # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c, position = position_nudge(x = 0.15)) +
+  labs(x = "Prey 2 to prey 1 average offspring nb ratio", y = "Average catches per ts") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-offspringAvg-catchRate.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+#### density ####
+
+bs = predGen$prey1densBeforeMean[1]
+y1 = predGen$prey1densAfterMean
+y2 = predSpe$prey1densAfterMean
+y3 = predGen$prey2densAfterMean
+y4 = predSpe$prey2densAfterMean
+y5 = predGen$predatorDensMean
+y6 = predSpe$predatorDensMean
+y1min = predGen$prey1densAfterMin
+y2min = predSpe$prey1densAfterMin
+y3min = predGen$prey2densAfterMin
+y4min = predSpe$prey2densAfterMin
+y5min = predGen$predatorDensMin
+y6min = predSpe$predatorDensMin
+y1max = predGen$prey1densAfterMax
+y2max = predSpe$prey1densAfterMax
+y3max = predGen$prey2densAfterMax
+y4max = predSpe$prey2densAfterMax
+y5max = predGen$predatorDensMax
+y6max = predSpe$predatorDensMax
+y1c = "pink"
+y2c = "red"
+y3c = "cyan"
+y4c = "blue"
+y5c = "orange"
+y6c = "brown"
+# tIntro = 210
+
+fig <- ggplot(predGen, aes(x)) + 
+  # geom_hline(yintercept = 0, color = "darkgreen", linetype = "dashed") +
+  # geom_hline(yintercept = -1, color = "darkred", linetype = "dashed") +
+  # geom_hline(yintercept = y3[1], alpha = 0.5, color = "darkblue", linetype = "dashed") +
+  # geom_vline(xintercept = 1, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_rect(aes(xmin = 0.70, xmax = 1.30, ymin = 0, ymax = 1.05*max(max(y1max), max(y3max))), alpha=0.5, fill = "lightgrey") +
+  geom_hline(yintercept = bs, alpha = 0.5, color = "black", linetype = "dashed") +
+  geom_line(aes(y = y1), color = y1c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.25)) +
+  geom_line(aes(y = y2), color = y2c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.15)) +
+  geom_line(aes(y = y3), color = y3c, alpha = 0.2,  size = 1, position = position_nudge(x = -0.05)) +
+  geom_line(aes(y = y4), color = y4c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.05)) +
+  geom_line(aes(y = y5), color = y5c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.15)) +
+  geom_line(aes(y = y6), color = y6c, alpha = 0.2,  size = 1, position = position_nudge(x = 0.25)) +
+  # geom_rect(aes(xmin = 0, xmax = tIntro, ymin = 0, ymax = 1.05*max(data$prey2PopulationSizeMean)), alpha=0.5, fill = "lightgrey") +
+  geom_pointrange(aes(y = y1, ymin = y1min, ymax = y1max), shape = 16, fill = "white", size = 0.5, col = y1c, position = position_nudge(x = -0.25)) +
+  geom_pointrange(aes(y = y2, ymin = y2min, ymax = y2max), shape = 16, fill = "white", size = 0.5, col = y2c, position = position_nudge(x = -0.15)) +
+  geom_pointrange(aes(y = y3, ymin = y3min, ymax = y3max), shape = 15, fill = "white", size = 0.5, col = y3c, position = position_nudge(x = -0.05)) +
+  geom_pointrange(aes(y = y4, ymin = y4min, ymax = y4max), shape = 15, fill = "white", size = 0.5, col = y4c, position = position_nudge(x = 0.05)) +
+  geom_pointrange(aes(y = y5, ymin = y5min, ymax = y5max), shape = 17, fill = "white", size = 0.5, col = y5c, position = position_nudge(x = 0.15)) +
+  geom_pointrange(aes(y = y6, ymin = y6min, ymax = y6max), shape = 17, fill = "white", size = 0.5, col = y6c, position = position_nudge(x = 0.25)) +
+  # geom_ribbon(aes(ymin = y3min, ymax = y3max), alpha = 0.2, size = 0.1, col = y3c, fill = y3c) +
+  # geom_point(aes(y = y1), size = 2.5, shape = 24, fill = "white", color = y1c, position = position_nudge(x = -0.1)) +
+  # geom_point(aes(y = y2), size = 2.5, shape = 25, fill = "white", color = y2c, position = position_nudge(x = 0.1)) # +
+  # geom_point(aes(y = y3), size = 2.5, shape = 24, fill = "white", color = y3c, position = position_nudge(x = 0.15)) +
+  labs(x = "Prey 2 to prey 1 average offspring nb ratio", y = "Average density") +
+  scale_x_continuous(breaks = x, labels = x)
+fig
+
+# save plot in this folder
+ggsave(filename = "localSA-regime-offspringAvg-density.pdf", path = folderPath, plot = fig, width = 6.22, height = 5.73, limitsize = TRUE)
+
+######## resources/catch ratio ######## 
+
+#### catch rate ####
+
+#### density ####
