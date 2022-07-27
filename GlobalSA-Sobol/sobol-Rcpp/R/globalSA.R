@@ -4,6 +4,8 @@
 
 library(Rcpp)
 
+path = getwd()
+
 ######## list of parameters ########
 
 #### User defined variables ####
@@ -53,16 +55,16 @@ freq_snap=100   # argv[38] frequency of snapshot measure
 #### Non user defined variables ####
 
 # preys variables
-pry_cons_1 = ceil(max_res_1/max_cell) # argv[11] prey 1 max consumption in resource units
-pry_cons_2 = ceil(max_res_2/max_cell) # argv[12] prey 2 max consumption
-pry_surv_1 = ceil(freq_surv*pry_cons_1/3) # argv[13] prey 1 resource units needed to pass survival trial. 
-pry_surv_2 = ceil(freq_surv*pry_cons_2/3) # argv[14] prey 2 resource units needed to pass survival trial
+pry_cons_1 = ceiling(max_res_1/max_cell) # argv[11] prey 1 max consumption in resource units
+pry_cons_2 = ceiling(max_res_2/max_cell) # argv[12] prey 2 max consumption
+pry_surv_1 = ceiling(freq_surv*pry_cons_1/3) # argv[13] prey 1 resource units needed to pass survival trial. 
+pry_surv_2 = ceiling(freq_surv*pry_cons_2/3) # argv[14] prey 2 resource units needed to pass survival trial
 pry_repr_1=pry_surv_1; # argv[17] prey 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 pry_repr_2=pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduction trial
 
 # predator variables
 prd_cons_1=3*pry_cons_1 # arg[22]
-prd_surv_1=ceil(prd_cons_1*freq_surv/3) # arg[23]
+prd_surv_1=ceiling(prd_cons_1*freq_surv/3) # arg[23]
 prd_repr_1=prd_surv_1 # argv[25] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
 prd_cvrt_pry1_1=floor(freq_surv*prd_cons_1/3) # argv[29] predator 1 prey1 resources/catch
 ratio=1
@@ -120,7 +122,7 @@ sim <- function(params) {
   params <- c(sim_name, params)
   
   ## run model with this params vector
-  sourceCpp("chapter2model-v0.5.0-Rrun.cpp")
+  sourceCpp(paste(path, '/src/chapter2model-v0.5.0-Rrun.cpp', sep = ""))
   tail(main(params)) # will params replace the argv vector???
   
   ## Try to get one value to feed criterias and see if it works

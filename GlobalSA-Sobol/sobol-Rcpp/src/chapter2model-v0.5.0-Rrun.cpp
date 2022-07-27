@@ -8,6 +8,7 @@
 #include <cmath>     // ceil
 #include <random>    // random generation functions
 #include <chrono>    // other needed tools for random generetion
+
 #include <Rcpp.h>    // compile and run from R
 
 using namespace std; // not to have to write std:: in front of every call
