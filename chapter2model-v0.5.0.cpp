@@ -26,12 +26,12 @@ vector<int> maxResources;     // maximum resources per cell
 int preyTypesNb;                   // Number of preys modelled
 vector<int> preyInitialDensities;  //
 vector<string> preyTypes;          // prey1..n
-vector<float> preyMaxMove;         // NOT GOOD should rather be defined in % of landscape size
+vector<float> preyMaxMove;         // now defined in % of landscape size?
 vector<int> preyMaxConsume;        // in resource units
 vector<int> preyMaintenanceCost;   //
 vector<int> preyExpectedOffspring; //
 vector<int> preyReproCost;         //
-// add time of introduction?
+vector<int> preyIntro;             // 
 // frequency of reproduction
 // frequency of survival trial
 
@@ -47,7 +47,7 @@ vector<int> predReproCost;         //
 vector<int> predIntro;             // time of introduction of the predator
 // vector<float> predAsymm;           // ratio of preys' catch conversion into resources
 vector<float> predCatchProba;      // pred catching probability
-vector<int> predConvRate;         // number of resources a pred gets from 
+vector<int> predConvRate;          // number of resources a pred gets from 
 vector<bool> predOportunistic;     // t/1 or f/0, is the predator oportunistic? (ranked prey types by conversion rate)
 vector<bool> predSpecific;         // t/1 or f/0, is the predator specific? (hunts prey 1 in priority regardless of conversion rates)
 
@@ -1629,6 +1629,14 @@ int main(int argc, char **argv)
     preyReproCost.push_back(atoi(argv[p]));
 
     p++;
+
+    preyIntro.push_back(atoi(argv[p]));
+
+    p++;
+
+    preyIntro.push_back(atoi(argv[p]));
+
+    p++;
     
 
     /* predator variables */
@@ -1799,7 +1807,8 @@ int main(int argc, char **argv)
 
             /* preys */
             for (int i = 0; i < preyTypesNb; i++)
-                preys[i]->randomMove(world.XYcoordinates, world.cellCode);
+                if (timeStep >= preyIntro[i])
+                    preys[i]->randomMove(world.XYcoordinates, world.cellCode);
 
             // prey1->getInfo();
             // prey2->getInfo();
@@ -1819,7 +1828,8 @@ int main(int argc, char **argv)
 
             /* preys */
             for (int i = 0; i < preyTypesNb; i++)
-                preys[i]->measureDensity(world.landscapeTablePtr);
+                if (timeStep >= preyIntro[i])
+                    preys[i]->measureDensity(world.landscapeTablePtr);
 
             // prey1.getInfo();
             // prey2.getInfo();
@@ -1839,14 +1849,16 @@ int main(int argc, char **argv)
 
             /* preys */
             for (int i = 0; i < preyTypesNb; i++)
-                preys[i]->feed(world.landscapeTablePtr, false);
+                if (timeStep >= preyIntro[i])
+                    preys[i]->feed(world.landscapeTablePtr, false);
 
             // prey1->getInfo();
             // prey2->getInfo();
 
             /* predators */
             if (timeStep >= predIntro[0])
-                pred1->hunt(world.landscapeTablePtr, false);
+                if (timeStep >= preyIntro[i])
+                    pred1->hunt(world.landscapeTablePtr, false);
 
             // for (int i = 0; i < predatorTypesNb; i++)
             // {
@@ -1858,7 +1870,8 @@ int main(int argc, char **argv)
             /* -- counting catches -- */
 
             for (int i = 0; i < preyTypesNb; i++)
-                preys[i]->countCatches(world.landscapeTablePtr, false);
+                if (timeStep >= preyIntro[i])
+                    preys[i]->countCatches(world.landscapeTablePtr, false);
 
             // prey1.getInfo();
             // prey2.getInfo();
@@ -1869,7 +1882,8 @@ int main(int argc, char **argv)
             {
                 /* preys */
                 for (int i = 0; i < preyTypesNb; i++)
-                    preys[i]->survivalTrial();
+                    if (timeStep >= preyIntro[i])
+                        preys[i]->survivalTrial();
 
                 // prey1.getInfo();
                 // prey2.getInfo();
@@ -1891,7 +1905,8 @@ int main(int argc, char **argv)
             {
                 /* preys */
                 for (int i = 0; i < preyTypesNb; i++)
-                    preys[i]->reproductionTrial();
+                    if (timeStep >= preyIntro[i])
+                        preys[i]->reproductionTrial();
 
                 // prey1.getInfo();
                 // prey2.getInfo();
@@ -1913,7 +1928,8 @@ int main(int argc, char **argv)
 
         /* preys */
         for (int i = 0; i < preyTypesNb; i++)
-            preys[i]->updatePopulationTable(timeStep, false);
+            if (timeStep >= preyIntro[i])
+                preys[i]->updatePopulationTable(timeStep, false);
 
         // prey1->getInfo();
         // prey2->getInfo();
@@ -1933,7 +1949,8 @@ int main(int argc, char **argv)
 
         /* preys */
         for (int i = 0; i < preyTypesNb; i++)
-            preys[i]->measureDensity(world.landscapeTablePtr);
+            if (timeStep >= preyIntro[i])
+                preys[i]->measureDensity(world.landscapeTablePtr);
 
         // prey1.getInfo();
         // prey2.getInfo();
