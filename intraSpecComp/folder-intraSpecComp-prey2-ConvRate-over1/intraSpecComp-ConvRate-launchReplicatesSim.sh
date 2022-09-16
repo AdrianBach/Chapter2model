@@ -28,8 +28,8 @@ max_cell=3.3 # max expected number of preys of each kind per cell # if 2.5, betw
 
 # prey variables
 pry_nb=2        # argv[6] number of prey types
-pry_init_1=25   # argv[7] prey 1 initial density in nb of individuals
-pry_init_2=0   # argv[8] prey 2 initial density
+pry_init_1=0   # argv[7] prey 1 initial density in nb of individuals
+pry_init_2=25   # argv[8] prey 2 initial density
 pry_move_1=0.1  # argv[9] prey 1 max movement range in fraction of size
 pry_move_2=0.1  # argv[10] prey 2 movement range
 # pry_surv_1=3  # argv[13] prey 1 resource units needed to pass survival trial
@@ -81,9 +81,9 @@ pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduc
 prd_cons_1=$((3*$pry_cons_1)) # arg[24]
 divide=$prd_cons_1*$freq_surv; by=3; prd_surv_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # arg[25]
 prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[27] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
-prd_cvrt_pry1_1=$(($freq_surv * $prd_cons_1/3))  # argv[31] predator 1 prey1 resources/catch
-ratio=1
-prd_cvrt_pry2_1=$(($ratio*$prd_cvrt_pry1_1))  # argv[32] predator 1 prey1 resources/catch
+prd_cvrt_pry2_1=$(($freq_surv * $prd_cons_1/3))  # argv[31] predator 1 prey1 resources/catch
+#ratio=1
+#prd_cvrt_pry2_1=$(($ratio*$prd_cvrt_pry1_1))  # argv[32] predator 1 prey1 resources/catch
 
 # # name the simulation with only the variables of interest and their value
 # sim_name="test-size$size-simTime$simu_time-res1max$max_res_1-predOprt$prd_oprt_1-predSpcf$prd_spcf_1-pry1cons$pry_cons_1-prdSurv$prd_surv_1-prdCtchProb1$prd_ctch_pry1_1-prdCtchProb2$prd_ctch_pry2_1" # argv[1]
@@ -95,8 +95,8 @@ make
 
 # ratioArray=($(seq 0.1 0.1 0.9))
 ratioArray=(1 1.1 1.5 2 2.5 3 5)
-spcfArray=(0 1 0)
-oprtArray=(0 0 1) 
+# spcfArray=(0 1 0)
+# oprtArray=(0 0 1) 
 
 # echo "ratioArray is ${ratioArray[*]}"
 # echo "ratioArray size is ${#ratioArray[@]}"
@@ -107,11 +107,11 @@ oprtArray=(0 0 1)
 # echo "oprtArray is ${oprtArray[*]}"
 # echo "oprtArray size is ${#oprtArray[@]}"
 
-# loop over maxCell
-for ((i=0 ; i<${#spcfArray[@]} ; i++))
-do
-    prd_spcf_1=${spcfArray[$i]} 
-    prd_oprt_1=${oprtArray[$i]} 
+# # loop over pred regimes
+# for ((i=0 ; i<${#spcfArray[@]} ; i++))
+# do
+#     prd_spcf_1=${spcfArray[$i]} 
+#     prd_oprt_1=${oprtArray[$i]} 
 
     # loop over prdCatchProb
     for ((k=0 ; k<${#ratioArray[@]} ; k++))
@@ -277,6 +277,6 @@ do
         cd ..
 
     done
-done
+# done
 
 echo "end of simulation loop."
