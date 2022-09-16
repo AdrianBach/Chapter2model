@@ -81,7 +81,7 @@ pry_repr_2=$pry_surv_2; # argv[18] prey 2 resource units needed to pass reproduc
 prd_cons_1=$((3*$pry_cons_1)) # arg[24]
 divide=$prd_cons_1*$freq_surv; by=3; prd_surv_1=`echo "scale=0; ($divide+$by-1)/$by" | bc`; # arg[25]
 prd_repr_1=$prd_surv_1; # echo "prd_repr_1 = $prd_repr_1" # argv[27] predator 1 resource units needed to pass reproduction trial. Defined as a proportion of what is needed to pass survival trial.
-prd_cvrt_pry2_1=$(($freq_surv * $prd_cons_1/3))  # argv[31] predator 1 prey1 resources/catch
+prd_cvrt_pry1_1=$(($freq_surv * $prd_cons_1/3))  # argv[31] predator 1 prey1 resources/catch
 #ratio=1
 #prd_cvrt_pry2_1=$(($ratio*$prd_cvrt_pry1_1))  # argv[32] predator 1 prey1 resources/catch
 
