@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+findEqNarrow/AllStatsAndPlots/ResultsFiles/relativeCatches/relativeCatches-stats*
+findEqNarrow/AllStatsAndPlots/ResultsFiles/relativeDensities/relativeDensity-stats-*
+findEqNarrow/AllStatsAndPlots/ResultsFiles/relativeGrowthRates/relativeGR-stats-*
