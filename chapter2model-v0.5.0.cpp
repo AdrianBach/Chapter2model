@@ -1281,7 +1281,8 @@ public:
         predMaxConsumption = 3 * maintenanceCost;
 
         /* set daily maxConsume */
-        dailyPredMaxConsumption = predMaxConsume[0];
+        // dailyPredMaxConsumption = predMaxConsume[0];
+        dailyPredMaxConsumption = predMaxConsumption/freqSurv;
 
         // /* get preys conversion rates in dietsTable */
         // for (int i = 0; i < memberMatchingListsSize; i++)
@@ -1299,13 +1300,14 @@ public:
         /* compute max catches */
         for (int i = 0; i < conversionRates.size(); i++)
         {
-            int res = ceil(float(3 * dailyPredMaxConsumption) / float(conversionRates[i]));
+            // int res = ceil(float(3 * dailyPredMaxConsumption) / float(conversionRates[i]));
+            int res = ceil(float(dailyPredMaxConsumption) / float(conversionRates[i]));
             // int res = float(maintenanceCost) * 3 / (float(conversionRates[i]) * float(freqSurv));
             maxCatches.push_back(res);
         }
 
         /* debug */
-        cout << "Max catches per day should be ceil " << 3 * dailyPredMaxConsumption << "/" << conversionRates[0] << ";" << 3 * dailyPredMaxConsumption << "/" << conversionRates[1] << " and are " << maxCatches[0] << " " << maxCatches[1] << endl
+        cout << "Max catches per day should be ceil " << dailyPredMaxConsumption << "/" << conversionRates[0] << ";" << dailyPredMaxConsumption << "/" << conversionRates[1] << " and are " << maxCatches[0] << " " << maxCatches[1] << endl
              << endl;
 
         catchProbas.push_back(predCatchProba[0]);
@@ -1493,8 +1495,8 @@ public:
                         LandscapeTable[indCellCode][densColumn] -= 1;   // decrement density on the cell such that another predator cannot catch more individuals than there actually are on the cell
                         populationTablePtr[rowIndex][3] += convRate;    // increment predator resource pool
                                                                         //
-                        predCons = populationTablePtr[rowIndex][3];     // update predCons variable
-                        dailyCons += convRate;                          // update daily consuption variable
+                        predCons = populationTablePtr[rowIndex][3];     // update predCons tracker variable
+                        dailyCons += convRate;                          // update daily consuption tracker variable
                         catches++;                                      // increment catches counter
                         dens = LandscapeTable[indCellCode][densColumn]; // update prey's density on this cell
 
@@ -1508,7 +1510,7 @@ public:
                                 cout << "No more prey situated column " << densColumn << " in landscape table on cell " << indCellCode << "." << endl
                                      << endl;
                             else if (catches >= maxCatch)
-                                cout << memberTypes[membersMatchingListsIndex] << "situated on cell " << indCellCode << " has eaten enough prey situated column " << densColumn << " in landscape table for this time step." << endl
+                                cout << memberTypes[membersMatchingListsIndex] << "situated on cell " << indCellCode << " has hunted enough prey situated column " << densColumn << " in landscape table for this time step." << endl
                                      << endl;
                             else if (dailyCons >= dailyPredMaxConsumption)
                                 cout << memberTypes[membersMatchingListsIndex] << "situated on cell " << indCellCode << " has eaten enough for this time step." << endl
@@ -1516,7 +1518,7 @@ public:
                             else if (predCons >= predMaxConsumption)
                                 cout << memberTypes[membersMatchingListsIndex] << "situated on cell " << indCellCode << " has eaten enough for this moving+feeding sequence." << endl
                                      << endl;
-                        }
+                        } 
                     }
                     else
                     {
