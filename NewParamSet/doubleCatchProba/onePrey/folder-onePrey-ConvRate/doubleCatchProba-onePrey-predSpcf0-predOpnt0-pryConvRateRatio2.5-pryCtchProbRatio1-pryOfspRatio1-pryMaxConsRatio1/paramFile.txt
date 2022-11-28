@@ -1,0 +1,81 @@
+sim_name = doubleCatchProba-onePrey-predSpcf0-predOpnt0-pryConvRateRatio2.5-pryCtchProbRatio1-pryOfspRatio1-pryMaxConsRatio1 	 # argv[1] 
+
+model version v0.5.0 
+
+# landscape variables
+size = 25 	 # argv[2] world's side size
+res_nb = 2 	 # argv[3] number of resource types
+max_res_1 = 50 	 # argv[4] max resource 1 per cell
+max_res_2 = 50 	 # argv[5] max resource 1 per cell
+
+# prey variables
+pry_nb = 2 	 # argv[6] number of prey types
+pry_init_1 = 0 	 # argv[7] prey 1 initial density in nb of individuals
+pry_init_2 = 25 	 # argv[8] prey 2 initial density
+pry_move_1 = 0.1 	 # argv[9] prey 1 max movement range in fraction of size
+pry_move_2 = 0.1 	 # argv[10] prey 2 movement range
+pry_cons_1 = 15 	 # argv[11] prey 1 max consumption in resource units
+pry_cons_2 = 15 	 # argv[12] prey 2 max consumption
+pry_surv_1 = 50 	 # argv[13] prey 1 resource units needed to pass survival trial
+pry_surv_2 = 50 	 # argv[14] prey 2 resource units needed to pass survival trial
+pry_offs_1 = 1 	 # argv[15] prey 1 max number of offspring
+pry_offs_2 = 1 	 # argv[16] prey 2 max number of offspring
+pry_repr_1 = 50 	 # argv[17] prey 1 resource units needed to pass reproduction trial
+pry_repr_2 = 50 	 # argv[18] prey 2 resource units needed to pass reproduction trial
+
+pry_intro_1 = 0 	 # argv[19] prey 1 time step of introduction 
+pry_intro_2 = 0 	 # argv[20] prey 2 time step of introduction 
+
+# predator variables
+prd_nb = 1 	 # argv[21] number of predator types
+prd_init_1 = 25 	 # argv[22] predator 1 initial density in nb of individuals
+prd_move_1 = 0.1 	 # argv[23] predator 1 max movement range in fraction of size
+prd_cons_1 = 45 	 # argv[24] predator 1 max movement range in fraction of size
+prd_surv_1 = 150 	 # argv[25] predator 1 resource units needed to pass survival trial
+prd_offs_1 = 1 	 # argv[26] predator 1 max number of offspring
+prd_repr_1 = 150 	 # argv[27] predator 1 resource units needed to pass reproduction trial
+prd_intr_1 = 201 	 # argv[28] predator 1 time of introduction in the model
+prd_ctch_pry1_1 = 0.2 	 # argv[29] predator 1 prey 1 catch probablility 
+prd_ctch_pry2_1 = 0.2 	 # argv[30] predator 1 prey 2 catch probablility 
+prd_cvrt_pry1_1 = 150 	 # argv[31] predator 1 prey 1 catch resources/catch 
+prd_cvrt_pry2_1 = 375.0 	 # argv[32] predator 1 prey 2 catch resources/catch 
+prd_oprt_1 = 0 	 # argv[33] predator 1 oportunistic? (0 or 1) 
+prd_spcf_1 = 0 	 # argv[34] predator 1 specific? (0 or 1) 
+
+# time variables
+simu_time = 1000 	 # argv[35] simulation time
+freq_repr = 10 	 # argv[36] frequency of reproduction trials
+freq_surv = 10 	 # argv[37] frequency of survival trials
+freq_rfll = 10 	 # argv[38] frequency of results measure
+
+# frequency of assessment
+freq_rslt = 10 	 # argv[39] frequency of landscape snap shot
+freq_snap = 1001 	 # argv[40] frequency of results measure
+
+# number of replicates
+rep = 20
+
+# Simulation infos 
+
+rep 	 seed (arg[41]) 	 sim time (s) 	 sim time (h) 
+
+0 	 17225 			 0 		 0 
+1 	 12199 			 0 		 0 
+2 	 16824 			 0 		 0 
+3 	 21862 			 0 		 0 
+4 	 22748 			 0 		 0 
+5 	 5058 			 0 		 0 
+6 	 27482 			 0 		 0 
+7 	 12770 			 0 		 0 
+8 	 15816 			 0 		 0 
+9 	 26124 			 0 		 0 
+10 	 28953 			 0 		 0 
+11 	 28200 			 0 		 0 
+12 	 9568 			 0 		 0 
+13 	 31381 			 0 		 0 
+14 	 8245 			 0 		 0 
+15 	 5649 			 0 		 0 
+16 	 30631 			 0 		 0 
+17 	 8595 			 0 		 0 
+18 	 3651 			 0 		 0 
+19 	 11071 			 0 		 0 
